@@ -48,3 +48,9 @@
   - Re-ran everything: backend 81 passed, contract 9 passing, e2e 23 passed + 1 skipped, tsc/lint clean.
   - Usage at handoff: 78% of the 5-hour window (read from the app's usage indicator).
   - Local services left running on laptop A: Hardhat :8545, API :8000, Next dev :3000. They are not needed on laptop B.
+- **Public release (owner request):**
+  - Secret audit of all 23 commits found no keys, tokens, passwords, `.env` files, wallet material, personal
+    emails or credentials.
+  - One low-sensitivity finding: a local Windows user path. It was removed from the current docs but remains in
+    older commits; scrubbing it would need a force-push, which the project rules forbid.
+  - Repo made public; `rohanshahare` invited with write access; README rewritten for judges.

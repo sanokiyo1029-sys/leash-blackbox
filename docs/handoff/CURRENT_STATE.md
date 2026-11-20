@@ -8,7 +8,8 @@ chain, Merkle batches anchored to an append-only EVM contract, a protected evide
 compromised host, an attack lab, and a standalone auditor verifier. Hackathon: The Big Hack 2.0, B3.
 
 ## Git
-- Repo: private `sanokiyo1029-sys/leash-blackbox`, branch `main`
+- Repo: **public** `sanokiyo1029-sys/leash-blackbox` (made public 2026-11-20 after a secret audit), branch `main`
+- Collaborator: `rohanshahare` invited with write (push) access; the invitation must be accepted on GitHub
 - Latest verified code commit: `ae97e9ccb9a5fbe9fd248203a6f4f7fd8135f763` (all suites re-run at handoff; origin/main
   matched local). The `docs: session handoff` commit that follows it only changes docs.
 - Commit identity (repo-local): `Rohan <277307707+sanokiyo1029-sys@users.noreply.github.com>`

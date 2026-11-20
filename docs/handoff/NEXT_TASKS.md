@@ -34,3 +34,4 @@ Statuses: TODO · IN_PROGRESS · BLOCKED · DONE
 | T-028 | Auditor batch audit: select batch, inspect commitment, verify host/vault copy, discrepancy table, export | P1 | T-024 | e2e batch-audit test passes | DONE |
 | T-029 | Restyle the remaining legacy screens (Proofs, Validation, Guided Demo, Architecture, Auditor lower section) with `kit` components (PageTitle/Panel/MetricCard) so the design language is uniform | P2 | T-024 | Visual consistency; e2e still green | TODO |
 | T-030 | Mobile pass: Playwright `e2e/responsive.spec.ts` asserts no horizontal overflow and no console errors on all 8 routes at 375px and 768px (16 passed). Remaining: visual review of legacy screens on phones (part of T-029) | P2 | T-024 | No horizontal overflow at 375px on all routes | DONE |
+| T-031 | Public release: secret audit, repo public, collaborator `rohanshahare` (write), judge-facing README | P0 | — | Visibility PUBLIC verified; invitation created | DONE |
