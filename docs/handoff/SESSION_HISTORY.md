@@ -126,3 +126,12 @@
   - Checks: tsc and lint clean; e2e 23 passed + 1 skipped (production build; all 8 routes at 375/768 px with no
     overflow and no console errors); screenshots regenerated. No backend, contract or verification code changed.
   - Also confirmed live: Ctrl+C in the start-all window stops all three services.
+- **Handoff (owner typed HANDOFF NOW, to pass the project to another teammate):**
+  - Stopped the running site; ports 8545/8000/3000 free. `main` clean and equal to `origin/main` (`9c22e94`) before
+    the handoff docs commit.
+  - Re-ran everything on the final code: contract 9 passing; backend 90 passed; frontend lint clean, `npm run build`
+    ok (8 routes), `tsc` ok; Playwright 23 passed + 1 skipped.
+  - `HANDOFF_PROMPT.md` rewritten as a continuation guide for someone on a fresh machine (clone, install, own
+    identity, collaborator invite, start command, assistant prompt). `AGENTS.md` now says each contributor commits
+    with their own identity. Added T-033 (rehearsal), T-034 (`start-all.sh`) and KI-017.
+  - Usage indicator: not read this session.

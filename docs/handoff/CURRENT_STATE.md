@@ -1,6 +1,10 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-20, session S02 (laptop B), checkpoint after T-029 + T-023_
+_Last updated: 2026-11-20, end of session S02 (laptop B), HANDOFF to the next teammate_
+
+## Start here (new teammate on a fresh machine)
+Follow `docs/handoff/HANDOFF_PROMPT.md` → "Fresh machine": clone, install, set your own repo-local git identity,
+then `scripts\start-all.cmd` (Windows) to see the product running. Everything below is the verified state at handoff.
 
 ## Project goal
 Tamper-evident, independently verifiable security evidence: canonical SHA-256 event hashing, hash
@@ -9,12 +13,13 @@ compromised host, an attack lab, and a standalone auditor verifier. Hackathon: T
 
 ## Git
 - Repo: **public** `sanokiyo1029-sys/leash-blackbox` (made public 2026-11-20 after a secret audit), branch `main`
-- Collaborator: `rohanshahare` invited with write (push) access; the invitation must be accepted on GitHub
-- Latest verified code commit: `ae97e9ccb9a5fbe9fd248203a6f4f7fd8135f763` (all suites re-run at handoff; origin/main
-  matched local). The `docs: session handoff` commit that follows it only changes docs.
-- Commit identity (repo-local): `Rohan <277307707+sanokiyo1029-sys@users.noreply.github.com>`
-- Push auth: repo-local credential helper → `gh auth git-credential` (gh logged in as sanokiyo1029-sys)
-- Uncommitted / unpushed state: none at handoff time (verify with `git status`)
+- Collaborators with write access: `rohanshahare` (accepted, pushed in S02). Anyone else must be invited by the owner
+  `sanokiyo1029-sys` (Settings → Collaborators) before they can push.
+- **Latest verified code commit: `94a0446`** (redesign). At handoff all suites were re-run on it (results below) and
+  `origin/main` matched local; the handoff docs commit that follows changes docs only.
+- Commit identity: each contributor uses **their own** GitHub-associated identity, set repo-locally (laptop A:
+  `Rohan <…+sanokiyo1029-sys@users.noreply.github.com>`, laptop B: `Rohan R Shahare <258174768+rohanshahare@users.noreply.github.com>`).
+- Uncommitted / unpushed state: none at handoff time (verify with `git status`). Local services were stopped.
 - **Laptop B (S02):** clone at `C:\Users\<user>\leash-blackbox`, `core.hooksPath .githooks` set. On arrival `gh` was
   authenticated as `lector-sys` (via a `GH_TOKEN` environment variable, READ access only), not `rohanshahare`, and the
   global git identity belonged to neither project account. See "Current blocker". Owner's decision for laptop B:
@@ -34,7 +39,8 @@ dashboard, evidence verification panel and auditor batch audit.
 Real log-file agent (T-022) done: `agent/tail_agent.py ingest|check`; editing the forwarded file is detected by `check`.
 Per-host ingest credentials (T-021) done: `LEASH_HOST_TOKENS` (hashes only); a host token cannot submit another host's events.
 Responsive checks (T-030) are automated: no overflow and no console errors at 375/768px on every route.
-**Next: final polish and presentation prep. T-018 (public testnet) is optional and needs the owner's testnet key.**
+Reference-driven print/manga redesign (T-032) done: spec in `docs/design/REFERENCE_SPEC.md`.
+**Next: presentation rehearsal (owner), `start-all.sh` for macOS/Linux teammates (T-034), optional T-018 testnet.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -105,13 +111,16 @@ pytest starts its own node on a free port.
 None confirmed. See KNOWN_ISSUES.md for limitations.
 
 ## Current blocker
-None. Laptop B: `gh` is logged in as `rohanshahare` (keyring, push access confirmed). A machine-level `GH_TOKEN`
-variable for `lector-sys` (READ only) still overrides it, so push with `env -u GH_TOKEN git push origin main` (bash)
-or clear `$env:GH_TOKEN` in that PowerShell window first.
+None in the code. For a new teammate: pushing needs a GitHub account with write access (owner invite). If a
+`GH_TOKEN` environment variable is set on your machine it overrides `gh auth login`; clear it in that shell
+(`$env:GH_TOKEN=''` in PowerShell, `env -u GH_TOKEN` in bash) before pushing.
 
 ## Exact next task
-Rehearse the pitch with the demo-day checklist at the end of `docs/PITCH.md` (screenshots and pitch are current as of
-S02). Keep the final hours for submission. Optional: T-018 (public testnet; needs the owner's funded key in a local `.env`).
+1. Run the product once: `scripts\start-all.cmd`, open http://localhost:3000/demo, press **Run the full story**.
+2. T-034: `scripts/start-all.sh` for macOS/Linux (same behaviour as the `.ps1`: prerequisite + port checks, readiness
+   probes, reset + seed, stop only its own PIDs), only if a teammate is not on Windows.
+3. Presentation: rehearse with the demo-day checklist at the end of `docs/PITCH.md`; keep the final hours for submission.
+4. Optional: T-018 (public testnet; needs the owner's funded key in a local `.env`, never in chat or git).
 Keep the e2e selectors working whenever the UI changes: "Run the full story", "Load protected vault evidence",
 "Verify in my browser", "status 1 · 1 log", "Protected evidence".
 

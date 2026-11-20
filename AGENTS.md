@@ -10,7 +10,8 @@ EVM chain. A verifier detects modified / deleted / injected host records.
 3. Continue the highest-priority TODO. Do not re-implement features marked DONE.
 
 ## Hard rules
-- Commit author must be the repository owner's configured identity (repo-local `user.name`/`user.email`).
+- Commit author must be the contributor's own GitHub-associated identity, set repo-locally (`user.name`/`user.email`);
+  never commit under someone else's identity.
   Never add `Co-Authored-By` trailers for AI tools, never add "generated with/by" lines, never credit an
   assistant in code, docs or metadata. Enable the guard hook once per clone: `git config core.hooksPath .githooks`.
 - Never force-push, never reset/discard uncommitted work, never auto-resolve conflicts by dropping a side.
