@@ -1,6 +1,29 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-20, end of session S02 (laptop B), HANDOFF to the next teammate_
+_Last updated: 2026-11-20, session S03 (laptop A), Dashboard v2 checkpoint_
+
+## S03 status (read first)
+- **Design gate in force.** The owner rejected two directions: the flat black dashboard of interchangeable cards (S01)
+  and the red-and-cream newspaper layout (S02). A third direction, **Dashboard v2**, is built on branch
+  **`design/dashboard-v2`** and is **awaiting the owner's approval**. `main` still shows the S02 look.
+- **Do not restyle other routes until the owner approves.** After approval, fast-forward the branch into `main`, then
+  apply the design to: Attack Lab → Guided Demo → Evidence Explorer → Blockchain Proofs → Auditor → Validation →
+  Architecture (owner's order).
+- **Spec:** `docs/design/REFERENCE_SPEC.md` (v2, on the branch). It was re-verified against genuine reel frames; it
+  maps each observation to an adaptation and a browser check, lists interactions with timings and reduced-motion
+  equivalents, and defines scoped tokens.
+- **Baseline at S03 start (`a1ae30a`, fresh fast-forward from laptop B's 12 commits):**
+  - backend pytest 90 passed
+  - hardhat 9 passing
+  - `tsc` and lint clean; `next build` compiled
+- **On the branch after Dashboard v2:**
+  - Playwright 23 passed, 1 skipped (screenshot spec, CAPTURE only); `tsc` and lint clean
+  - Screenshots at 1440×900, 1280×800, 768×1024 and 390×844, clean and tampered: `docs/img/dashboard-v2/`
+- **Still open from the S03 brief:**
+  - pitch rewrite (90-second + 3-minute + judge Q&A)
+  - live judge-demo verification with `scripts\start-all.cmd`, including reset and restart
+  - KI-014 wording in the UI, demo and pitch
+
 
 ## Start here (new teammate on a fresh machine)
 Follow `docs/handoff/HANDOFF_PROMPT.md` → "Fresh machine": clone, install, set your own repo-local git identity,
@@ -116,6 +139,12 @@ None in the code. For a new teammate: pushing needs a GitHub account with write 
 (`$env:GH_TOKEN=''` in PowerShell, `env -u GH_TOKEN` in bash) before pushing.
 
 ## Exact next task
+**S03 override:** get the owner's decision on Dashboard v2 (branch `design/dashboard-v2`). If approved, merge it
+(fast-forward) and roll the design out route by route in the owner's order. If revisions are requested, revise on the
+branch and recapture the four viewports. Independent work that may proceed meanwhile: T-037 (pitch) and T-038 (live
+demo check).
+
+S02 notes (still valid):
 1. Run the product once: `scripts\start-all.cmd`, open http://localhost:3000/demo, press **Run the full story**.
 2. T-034: `scripts/start-all.sh` for macOS/Linux (same behaviour as the `.ps1`: prerequisite + port checks, readiness
    probes, reset + seed, stop only its own PIDs), only if a teammate is not on Windows.

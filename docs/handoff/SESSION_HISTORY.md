@@ -135,3 +135,28 @@
     identity, collaborator invite, start command, assistant prompt). `AGENTS.md` now says each contributor commits
     with their own identity. Added T-033 (rehearsal), T-034 (`start-all.sh`) and KI-017.
   - Usage indicator: not read this session.
+
+## S03 — 2026-11-20 — laptop A (delivery brief: Dashboard redesign behind an approval gate)
+- **Starting commit:** `0b311df` locally, behind by 12; fast-forwarded to `a1ae30a` (laptop B's S02 work).
+- **Baseline re-run at `a1ae30a`:** backend 90 passed, hardhat 9 passing, `tsc` and lint clean, build compiled.
+- **Reference:**
+  - Reel `DfFzpXTR9AY` inspected again from genuine frames (canvas overlay in the browser, nothing saved): 16 single
+    frames plus dense sampling of 3.4–5.0 s and 12.6–14.2 s.
+  - S02's static observations were confirmed. What it missed (and what produced the rejected newspaper look):
+    minimal frames, rare display type, press-and-hold controls, bottom-up scene wipes, and the next-scene peek.
+  - Spec rewritten (v2).
+- **Built on branch `design/dashboard-v2`:**
+  - The Dashboard v2 verdict scene and bands; scoped `.dash` tokens; `components/dashboard/{integrity-seal,hold-button}.tsx`.
+  - A route-scoped shell variant for `/` (full-bleed main, lighter header, no footer).
+  - A header tab-wrap fix at 1280 px.
+- **QA (real stack via `scripts\start-all.ps1 -Dev`):**
+  - 4 viewports × clean and tampered: no overflow, no console errors, no failed requests.
+  - Hold released after 250 ms → no verify request; a full hold → exactly one; CLEAN → TAMPERED bloom.
+  - Keyboard: focus reaches the hold control and "Verify now" with a visible ring.
+- **Fixed during QA:**
+  - a hydration mismatch (the reveal moved to CSS);
+  - a stale-report race that showed "0 records diverge" after a flip (counts now come from the run summary, and ticks
+    only from the report whose run id matches);
+  - an e2e strict-mode duplicate text.
+- **Tests on the branch:** Playwright 23 passed, 1 skipped; `tsc` and lint clean.
+- **Usage indicator (app):** 13 % of the 5-hour window at session start.
