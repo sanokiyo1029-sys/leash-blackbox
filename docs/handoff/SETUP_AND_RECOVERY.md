@@ -35,7 +35,8 @@ All are optional for local development.
    `POST /api/demo/reset`). Manual option: `npx hardhat run scripts/deploy.js --network localhost`.
 3. **Backend:** `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
    (OpenAPI UI at http://127.0.0.1:8000/docs)
-4. **Frontend:** not built yet (T-009).
+4. **Frontend:** `cd frontend; npm install; npm run dev` → http://localhost:3000 (API URL from
+   `NEXT_PUBLIC_LEASH_API_URL`, default http://127.0.0.1:8000). Production check: `npm run build`.
 
 ## Demo seed / reset
 `POST /api/demo/reset` wipes all three stores and deploys a fresh contract. Then:
@@ -46,6 +47,7 @@ All are optional for local development.
 - `.venv\Scripts\python -m pytest` (in `backend/`). It starts a private Hardhat node on a free port.
   Set `LEASH_TEST_RPC_URL` to use a running node instead.
 - Auditor: `python verifier\leash_verify.py bundle.json --rpc http://127.0.0.1:8545 --contract 0x...`
+- Frontend: `cd frontend; npx tsc --noEmit; npm run lint; npm run build`
 
 ## Regenerating the ABI
 After changing the contract: `cd blockchain; npm run export-abi`. This rewrites `shared/LeashAnchor.json`.

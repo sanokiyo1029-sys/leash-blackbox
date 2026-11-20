@@ -18,4 +18,8 @@
   - `pytest` → 76 passed
   - Live API + CLI smoke test passed (numbers in CURRENT_STATE.md)
 - **Architectural changes:** initial architecture (ARCHITECTURE_DECISIONS.md ADR-001..007).
-- **Remaining problems:** frontend not started.
+- **Frontend (same session, later):**
+  - Next.js 16 + Tailwind 4 + shadcn/ui (base-ui) + Recharts + Lucide web console with 7 screens.
+  - In-browser verifier (`lib/verify.ts`).
+  - tsc, lint and build pass; verified manually in a browser (results in CURRENT_STATE.md).
+- **Remaining problems:** no automated UI tests yet (T-016); validation results not yet committed (T-015).

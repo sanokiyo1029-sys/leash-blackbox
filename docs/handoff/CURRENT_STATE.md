@@ -17,7 +17,8 @@ compromised host, an attack lab, and a standalone auditor verifier. Hackathon: T
 
 ## Phase
 Phases 1–4 complete and tested. Phase 6 core (auditor CLI, export, negative tests) done.
-**Next: Phase 5 (frontend).**
+Phase 5 web console built and checked manually in a browser (no automated UI tests yet).
+**Next: T-016 Playwright smoke tests, then T-015 offline validation script + results, then T-017 presentation mode.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -31,13 +32,27 @@ Phases 1–4 complete and tested. Phase 6 core (auditor CLI, export, negative te
   verify CLEAN in 69 ms; cover_tracks deleted 12 → 12/12 detected, 0 FP, 0 FN; vault bundle →
   VERIFIED (exit 0); host bundle → TAMPERING_DETECTED (exit 2).
 
+## Web console (frontend/, verified manually 2026-11-20)
+- `npx tsc --noEmit`, `npm run lint`, `npm run build` all pass (8 static routes).
+- Checked in the browser against the live API + Hardhat node:
+  - Dashboard shows a CLEAN verdict, counts and charts.
+  - Attack Lab: cover_tracks + fabricate_alibi → TAMPERING DETECTED, 15/15 detected, 0 missed, 0 false alarms.
+  - Evidence Explorer: a DELETED record's original is recovered, with an 8-step proof that the browser
+    recomputes to the on-chain root.
+  - Auditor Portal: in-browser verification of the vault bundle → VERIFIED 192/192, chain head 1/1.
+    The host bundle → TAMPERING DETECTED (12 missing, 3 uncommitted), and the reference CLI agrees.
+- Screens: Dashboard, Evidence Explorer, Proof Explorer, Attack Simulation, Auditor Portal,
+  Validation (live randomized trials), Architecture.
+- `frontend/lib/verify.ts` is a third implementation of the hashing spec (TypeScript + WebCrypto);
+  it agreed with the Python implementations on the live bundle.
+
 ## Partially implemented
 - None in code. The README PowerShell `curl.exe` demo lines were not run in PowerShell; the same
   flow was verified from bash.
 
 ## Pending
-Frontend (T-009..T-014), validation metrics script and dashboard (T-015), Playwright (T-016),
-architecture page and presentation mode (T-017).
+Playwright smoke tests (T-016), offline validation script with committed results (T-015),
+presentation mode (T-017), optional public testnet anchoring (T-018).
 
 ## Working commands (verified)
 - `cd blockchain; npm install; npx hardhat test`
@@ -45,12 +60,14 @@ architecture page and presentation mode (T-017).
 - `cd backend; .venv\Scripts\python -m pytest`
 - `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
 - `python verifier\leash_verify.py BUNDLE.json --rpc http://127.0.0.1:8545`
+- `cd frontend; npm install; npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`
 
 ## Failing commands
 None known.
 
 ## Services required
-Hardhat node on 127.0.0.1:8545 for the API. pytest starts its own node on a free port.
+Hardhat node on 127.0.0.1:8545 → API on 127.0.0.1:8000 → frontend on localhost:3000.
+pytest starts its own node on a free port.
 
 ## Important files
 `blockchain/contracts/LeashAnchor.sol`, `backend/app/service.py`, `backend/app/verify.py`,
@@ -64,5 +81,5 @@ None confirmed. See KNOWN_ISSUES.md for limitations.
 None.
 
 ## Exact next task
-T-009: scaffold `frontend/` (Next.js + TypeScript + Tailwind + shadcn/ui + Recharts + Lucide). Then
-T-010..T-013 (Dashboard, Evidence Explorer, Proof Explorer, Attack Simulation) against the live API.
+T-016: add Playwright smoke tests for Dashboard, Evidence, Proofs, Attack and Auditor against a running
+stack. Then T-015: `scripts/run_validation.py` writing results to `docs/validation/`.

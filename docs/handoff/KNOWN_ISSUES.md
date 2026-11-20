@@ -7,3 +7,6 @@
 | KI-003 | Architecture | All trust zones run on one machine in one process; separation is by store files and code boundaries, not OS isolation. | Info | Documented limitation |
 | KI-004 | Threat model | Events not yet anchored are protected only by vault separation (labelled `vault_only`). | Info | Documented limitation |
 | KI-005 | Performance | `/api/events` recomputes the full classification per request (fine for demo scale, O(n) per call). | Low | Open |
+| KI-006 | Frontend | The Validation page's trial runner resets demo data and redeploys the contract on every trial (by design; there is a warning on the page). | Info | Documented |
+| KI-007 | Frontend | In-browser verification calls the RPC endpoint directly; it works with Hardhat (CORS `*`). Other nodes may need CORS enabled. | Low | Open |
+| KI-008 | Frontend | No Playwright tests yet; UI was verified manually in a browser (see SESSION_HISTORY S01). | Medium | Open (T-016) |
