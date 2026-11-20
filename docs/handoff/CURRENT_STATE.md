@@ -1,6 +1,6 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-20, session S05 (laptop B), T-040 e2e checkpoint_
+_Last updated: 2026-11-20, session S05 (laptop B), T-040 done_
 
 ## S05 status (read first)
 - Laptop B pulled `60fb9a7` (fast-forward, clean) and took over `main`.
@@ -8,7 +8,10 @@ _Last updated: 2026-11-20, session S05 (laptop B), T-040 e2e checkpoint_
   `916a1113…fa390`; CTA href `/attack`; live line "Live now: local chain 31337 · block N · M events anchored" on the
   e2e stack; no console errors; "Story" link in the desktop header) and `/story` added to the responsive routes.
 - `npm run test:e2e` → **27 passed, 1 skipped** (run with the demo stack stopped).
-- Still open: T-040 steps 4–5 (`/story` on the :3000 production stack from `start-all.cmd`, feel-check diff in BRIEF.md).
+- T-040 steps 4–5 done: `start-all.cmd` (production build, 132 events, 1 batch) → `/story` at :3000 reaches `sc-ready`,
+  root `916a1113…`, CTA `/attack`, no overflow, and the close shows "Live now: local chain 31337 · block 2 · 132 events
+  anchored". Feel-check diff written into BRIEF.md (not cold; 4 chapters match, 3 drift: louder ch2, softer ch4, dense ch5).
+- **Next: T-041** (feel fixes, demo stack stopped while rebuilding), then T-033 (owner rehearsal).
 
 ## S04 status
 - **HANDOFF NOW from laptop A at the end of S04.** The other laptop continues with T-040. Laptop A may still have

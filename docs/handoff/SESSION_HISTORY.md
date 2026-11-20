@@ -218,5 +218,8 @@
 - **T-040 (part):** added `frontend/e2e/story.spec.ts` (2 tests) and `/story` to `e2e/responsive.spec.ts`.
 - **Tests:** `npx tsc --noEmit` exit 0; eslint on the specs clean; `npm run test:e2e` → 27 passed, 1 skipped (1.4 min),
   demo stack not running. Backend, contract, verifier and agent unchanged (last: 90 passed / 9 passing in S03–S04).
-- **Open:** T-040 steps 4–5.
+- **T-040 steps 4–5:** `scripts\start-all.cmd` started cleanly (132 events, 1 batch). `/story` on :3000: `sc-ready`, root
+  `916a1113…`, CTA `/attack`, no overflow, live line "Live now: local chain 31337 · block 2 · 132 events anchored".
+  Feel-check diff in BRIEF.md (not cold); follow-ups recorded as T-041. KI-024 resolved.
+- **Left running:** the demo stack (:8545/:8000/:3000) for the owner.
 

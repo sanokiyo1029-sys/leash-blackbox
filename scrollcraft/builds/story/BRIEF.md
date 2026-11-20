@@ -113,6 +113,33 @@ after verification.
 - **Type.** Archivo for display and body (variable width; the condensed heavy cut for verdict-scale words). Geist
   Mono only for log data and hashes.
 
+
+## Feel check (S05, production build on :3000)
+**Not cold.** The checker had read this brief earlier in the session (to write the e2e test), so this pass is weaker
+than feel.md §6 asks for. A cold pass by someone who has not read the brief is still worth doing (T-033 rehearsal).
+
+Setup: `scripts\start-all.cmd` (production build), Chromium, 1630×845, motion on. Chapters
+sampled by scroll position after the camera settled; the owner's own scroll in a second tab showed the erase sweep live.
+
+| # | Intended (above) | Felt | Diff |
+|---|---|---|---|
+| 1 | Curiosity, comfort | Calm | Match |
+| 2 | Unease | Alarm | Louder than intended: the red ROOT stamp lands as a shout, not a creeping unease |
+| 3 | Complicity, then loss | Complicit, then quiet | Match. The silence frame (small clean log, "Looking at the server alone, nothing happened.") works |
+| 4 | Surprise | Relief | Softer than intended: the wire has been visible since chapter 1, so the vault is expected rather than discovered |
+| 5 | Intrigue | Dense | Off: at the seal frame the tree, five block cards and the vault list are all small on screen at once; the eye has no single subject |
+| 6 | Discovery, power (PEAK) | Power | Match. Full red field + TAMPERING DETECTED is the largest change on the page; "Now verify." is a quiet wide frame before it; the return frame ("Every line you erased, back.") is close enough to read the restored rows |
+| 7 | Calm confidence | Settled | Match, with one blemish: at 1630 px a fragment of the vault list sits at the top-right edge behind the skip button |
+
+Specific checks: the peak reads as the peak (only full-screen colour change, 2.8 vh, the most scroll room); there is
+silence in front of it; the end resolves (headline, CTA, live line "Live now: local chain 31337 · block 2 · 132 events
+anchored" all hold on the last frame).
+
+**What changed:** nothing yet. Fixing the page means rebuilding `.next`, which breaks the running demo stack (KI-022),
+and the owner was using the live site. Proposed follow-ups (T-041): soften chapter 2's stamp (or delay it) so unease
+builds; hide the wire until chapter 4's reveal; give chapter 5 one subject at a time (tree, then block); keep the vault
+list out of frame on the close at wide viewports. Re-run the harness after each.
+
 ---
 
 ## Owner's answers (verbatim)
