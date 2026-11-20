@@ -1,0 +1,9 @@
+# Known issues
+
+| ID | Area | Description | Severity | Status |
+|---|---|---|---|---|
+| KI-001 | Environment | On Windows with long paths disabled, Python venv/pip fails in deeply nested folders. Keep the clone at a short, non-OneDrive path. | Medium | Workaround documented |
+| KI-002 | Chain | Hardhat node state is in memory; restarting it orphans the active deployment. The backend reports "contract not found"; recover with `POST /api/demo/reset`. | Low (demo) | By design for the prototype |
+| KI-003 | Architecture | All trust zones run on one machine in one process; separation is by store files and code boundaries, not OS isolation. | Info | Documented limitation |
+| KI-004 | Threat model | Events not yet anchored are protected only by vault separation (labelled `vault_only`). | Info | Documented limitation |
+| KI-005 | Performance | `/api/events` recomputes the full classification per request (fine for demo scale, O(n) per call). | Low | Open |

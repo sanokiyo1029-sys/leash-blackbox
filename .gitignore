@@ -1,0 +1,42 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Runtime data (SQLite stores, exported bundles)
+data/
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+exports/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node / Hardhat
+node_modules/
+blockchain/artifacts/
+blockchain/cache/
+blockchain/deployments/
+frontend/.next/
+frontend/out/
+*.tsbuildinfo
+
+# Tooling and OS noise
+.npm-install.log
+.pip-install.log
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+test-results/
+playwright-report/

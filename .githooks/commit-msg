@@ -1,0 +1,11 @@
+#!/bin/sh
+# Project policy: commits carry only the human author. Strip any AI/assistant
+# co-author or "generated with" trailers that tooling may append.
+# Enable once per clone:  git config core.hooksPath .githooks
+msg_file="$1"
+tmp="$msg_file.tmp.$$"
+grep -viE '^(co-authored-by:.*(claude|anthropic|openai|codex|copilot|chatgpt|gemini|cursor|noreply@anthropic\.com))|(generated (with|by) .*(claude|codex|copilot|chatgpt|ai))' "$msg_file" > "$tmp" || true
+# Remove trailing blank lines left behind
+sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$tmp" > "$msg_file"
+rm -f "$tmp"
+exit 0
