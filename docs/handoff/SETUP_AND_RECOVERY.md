@@ -48,6 +48,8 @@ All are optional for local development.
   Set `LEASH_TEST_RPC_URL` to use a running node instead.
 - Auditor: `python verifier\leash_verify.py bundle.json --rpc http://127.0.0.1:8545 --contract 0x...`
 - Frontend: `cd frontend; npx tsc --noEmit; npm run lint; npm run build`
+- End-to-end: `cd frontend; npm run test:e2e` (needs backend venv + blockchain node_modules; starts everything itself)
+- Validation metrics: `backend\.venv\Scripts\python scripts\run_validation.py --trials 30` (rewrites docs/validation/)
 
 ## Regenerating the ABI
 After changing the contract: `cd blockchain; npm run export-abi`. This rewrites `shared/LeashAnchor.json`.

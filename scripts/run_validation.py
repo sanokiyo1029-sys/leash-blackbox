@@ -296,7 +296,7 @@ def write_markdown(res: dict, path: Path) -> None:
         "  are listed in ARCHITECTURE_DECISIONS.md.",
         "",
     ]
-    path.write_text("\n".join(lines), encoding="utf-8")
+    path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
 
 
 def main() -> None:
@@ -336,7 +336,7 @@ def main() -> None:
         }
         out = REPO / "docs" / "validation"
         out.mkdir(parents=True, exist_ok=True)
-        (out / "results.json").write_text(json.dumps(res, indent=2), encoding="utf-8")
+        (out / "results.json").write_text(json.dumps(res, indent=2) + "\n", encoding="utf-8", newline="\n")
         write_markdown(res, out / "RESULTS.md")
         d = detection["summary"]
         print(f"recall={pct(d['recall'])} precision={pct(d['precision'])} clean_false_alarm_runs="

@@ -28,4 +28,5 @@
     the same anchored seq" as an inject, while the verifier correctly reports MODIFIED. Fixed the labelling
     and added a regression test (77 passed).
   - Re-run: recall 100%, precision 100% over 30 trials.
-- **Remaining problems:** no automated UI tests yet (T-016).
+- **E2E:** added Playwright smoke tests (5 passed, Edge channel, private ports).
+- **Remaining problems:** presentation mode (T-017) not built; optional testnet anchoring (T-018) not started.

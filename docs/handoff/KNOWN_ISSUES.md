@@ -9,4 +9,4 @@
 | KI-005 | Performance | `/api/events` recomputes the full classification per request (fine for demo scale, O(n) per call). | Low | Open |
 | KI-006 | Frontend | The Validation page's trial runner resets demo data and redeploys the contract on every trial (by design; there is a warning on the page). | Info | Documented |
 | KI-007 | Frontend | In-browser verification calls the RPC endpoint directly; it works with Hardhat (CORS `*`). Other nodes may need CORS enabled. | Low | Open |
-| KI-008 | Frontend | No Playwright tests yet; UI was verified manually in a browser (see SESSION_HISTORY S01). | Medium | Open (T-016) |
+| KI-008 | Frontend | Playwright smoke tests cover the 5 core screens only (not Validation/Architecture). On machines without Edge, set `PW_CHANNEL=chromium` and run `npx playwright install chromium`. | Low | Open |
