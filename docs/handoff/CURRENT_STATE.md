@@ -1,6 +1,6 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-20, end of session S01 (laptop A), HANDOFF_
+_Last updated: 2026-11-20, session S02 (laptop B), checkpoint after T-029 + T-023_
 
 ## Project goal
 Tamper-evident, independently verifiable security evidence: canonical SHA-256 event hashing, hash
@@ -15,6 +15,10 @@ compromised host, an attack lab, and a standalone auditor verifier. Hackathon: T
 - Commit identity (repo-local): `Rohan <277307707+sanokiyo1029-sys@users.noreply.github.com>`
 - Push auth: repo-local credential helper → `gh auth git-credential` (gh logged in as sanokiyo1029-sys)
 - Uncommitted / unpushed state: none at handoff time (verify with `git status`)
+- **Laptop B (S02):** clone at `C:\Users\<user>\leash-blackbox`, `core.hooksPath .githooks` set. On arrival `gh` was
+  authenticated as `lector-sys` (via a `GH_TOKEN` environment variable, READ access only), not `rohanshahare`, and the
+  global git identity belonged to neither project account. See "Current blocker". Owner's decision for laptop B:
+  repo-local identity `Rohan R Shahare <258174768+rohanshahare@users.noreply.github.com>`; push as `rohanshahare`.
 
 ## Phase
 Phases 1–4 complete and tested. Phase 6 core (auditor CLI, export, negative tests) done.
@@ -24,9 +28,11 @@ Validation experiments (T-015) done; results committed in `docs/validation/RESUL
 Pitch script (`docs/PITCH.md`) and real screenshots (`docs/img/`) done (T-019).
 Hardening T-020 done (lab gating + ingest token).
 **Premium UI transformation (T-024..T-028) done:** design system, Attack Lab split-screen centerpiece,
-dashboard, evidence verification panel and auditor batch audit. Legacy screens are still to be restyled (T-029).
+dashboard, evidence verification panel and auditor batch audit.
+**S02:** the remaining screens (Proofs, Validation, Guided Demo, Architecture, auditor full-bundle section) are on the kit
+(T-029). The guided demo re-reads the anchored roots from the contract after the attack. One-command start (T-023) done.
 Responsive checks (T-030) are automated: no overflow and no console errors at 375/768px on every route.
-**Next: T-029 restyle legacy screens with the kit; then T-022/T-023/T-021. T-018 needs the owner's testnet key.**
+**Next: T-022 (log-file agent), then T-021. T-018 needs the owner's testnet key.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -63,17 +69,20 @@ Responsive checks (T-030) are automated: no overflow and no console errors at 37
   flow was verified from bash.
 
 ## Pending
-Real log-file agent (T-022), start script (T-023), per-host credentials (T-021), optional public testnet anchoring
+Real log-file agent (T-022), per-host credentials (T-021), optional public testnet anchoring
 (T-018, needs the owner's key).
 
 ## Working commands (verified)
+- **Demo day, one command (S02):** `scripts\start-all.cmd` (= `powershell -ExecutionPolicy Bypass -File scripts\start-all.ps1`).
+  Starts chain :8545, API :8000, production web :3000, resets the stores for the fresh chain and seeds 120 events.
+  Ctrl+C stops all three; `-Stop` cleans up after a closed window; `-Dev` skips the build; `-NoSeed` starts empty.
 - `cd blockchain; npm install; npx hardhat test`
 - `cd blockchain; npx hardhat node --hostname 127.0.0.1 --port 8545`
-- `cd backend; .venv\Scripts\python -m pytest`
+- `cd backend; .venv\Scripts\python -m pytest` → **81 passed** (S02; do not add `-q`, see KI-012)
 - `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
 - `python verifier\leash_verify.py BUNDLE.json --rpc http://127.0.0.1:8545`
 - `cd frontend; npm install; npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`
-- `cd frontend; npm run test:e2e` → **23 passed, 1 skipped** at handoff (7 smoke + 16 responsive; the screenshot spec is skipped unless CAPTURE=1) (starts its own Hardhat :8546, API :8011, Next :3011;
+- `cd frontend; npm run test:e2e` → **23 passed, 1 skipped** (re-run in S02 after T-029) (7 smoke + 16 responsive; the screenshot spec is skipped unless CAPTURE=1) (starts its own Hardhat :8546, API :8011, Next :3011;
   uses the installed Microsoft Edge, or set `PW_CHANNEL=chromium` after `npx playwright install chromium`)
 
 ## Failing commands
@@ -92,13 +101,15 @@ pytest starts its own node on a free port.
 None confirmed. See KNOWN_ISSUES.md for limitations.
 
 ## Current blocker
-None.
+Pushing from laptop B needs a GitHub login with write access (`rohanshahare` after accepting the invitation, or the
+owner). A `GH_TOKEN` environment variable overrides `gh auth login`, so it has to be unset in that shell first.
 
 ## Exact next task
-T-029: restyle `/proofs`, `/validation`, `/demo`, `/architecture` and the lower "Full-bundle audit" part of `/auditor`
-with the kit components (`PageTitle`, `Panel`, `MetricCard`, `AlertBanner`, `HashChip`), matching the Attack Lab
-and dashboard. Keep the e2e selectors working: button names "Run the full story", "Load protected vault evidence",
-"Verify in my browser"; texts "status 1 · 1 log", "Protected evidence". Then run `npm run test:e2e`.
+T-022: `agent/tail_agent.py` that tails a syslog/auth.log-style file and forwards new lines to `/api/events/ingest`
+(bearer token from `LEASH_INGEST_TOKEN`), remembers its file offset so nothing is ingested twice, skips and reports
+malformed lines, keeps file order, with pytest coverage. Acceptance: editing the tailed file after ingest is detected by verify.
+Keep the e2e selectors working whenever the UI changes: "Run the full story", "Load protected vault evidence",
+"Verify in my browser", "status 1 · 1 log", "Protected evidence".
 
 ## UI architecture notes (for the next session)
 - Tokens: `frontend/app/globals.css` (`.dark` block: background/primary/violet/ok/warn/bad, shadows; utilities

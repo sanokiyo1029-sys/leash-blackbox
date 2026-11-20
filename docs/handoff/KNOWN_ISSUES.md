@@ -11,5 +11,7 @@
 | KI-006 | Frontend | The Validation page's trial runner resets demo data and redeploys the contract on every trial (by design; there is a warning on the page). | Info | Documented |
 | KI-007 | Frontend | In-browser verification calls the RPC endpoint directly; it works with Hardhat (CORS `*`). Other nodes may need CORS enabled. | Low | Open |
 | KI-008 | Frontend | Playwright smoke tests cover the 5 core screens only (not Validation/Architecture). On machines without Edge, set `PW_CHANNEL=chromium` and run `npx playwright install chromium`. | Low | Open |
-| KI-010 | Frontend | Proofs, Validation, Guided Demo, Architecture and the lower Auditor section still use the first-generation styling (functional, but not yet on the new kit). | Low | Open (T-029) |
+| KI-010 | Frontend | Proofs, Validation, Guided Demo, Architecture and the lower Auditor section used the first-generation styling. Restyled on the kit in S02. | Low | Resolved (T-029) |
+| KI-012 | Tooling | `backend/pytest.ini` already sets `addopts = -q`; running `pytest -q` on top makes it `-qq`, which hides the "N passed" summary line. Run `python -m pytest` without `-q`. | Info | Documented |
+| KI-013 | Environment | The start script refuses to run if 8545, 8000 or 3000 is in use (it never kills foreign processes). The API PID it records is the venv launcher; the real interpreter is a child, so `-Stop` uses a tree kill. | Info | By design |
 | KI-011 | Frontend | The Attack Lab's attack highlights (amber/crimson before verification) come from this browser session's own actions; after a reload only the verifier's verdicts (from a new verification) are shown. | Info | By design |

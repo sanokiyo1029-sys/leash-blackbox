@@ -54,3 +54,28 @@
   - One low-sensitivity finding: a local Windows user path. It was removed from the current docs but remains in
     older commits; scrubbing it would need a force-push, which the project rules forbid.
   - Repo made public; `rohanshahare` invited with write access; README rewritten for judges.
+
+## S02 — 2026-11-20 — laptop B
+- **Starting commit:** `0b311df` (fresh clone; local `main` equal to `origin/main`, clean tree).
+- **Environment found:** `gh` was authenticated as `lector-sys` through a `GH_TOKEN` variable, with READ access to the
+  repo, not as `rohanshahare`. The global git identity on this laptop belonged to neither project account. The repo was already public.
+  No commit was made under either identity before the owner decided (see CURRENT_STATE "Current blocker").
+- **Work completed:**
+  - T-029: `/proofs`, `/validation`, `/demo`, `/architecture` and the auditor's full-bundle section rebuilt on the kit
+    (PageTitle, Panel, MetricCard, AlertBanner, HashChip, EmptyState, LoadingRows, Reveal). `VerdictBanner` now renders an
+    `AlertBanner`; the unused legacy helpers `PageHeader`, `ErrorNote`, `Stat` and `Hash` were removed from `status.tsx`.
+  - Proof Explorer: metric row (batches, records committed, gas, median anchor latency) and a live "vault record matches
+    the contract" banner computed from the browser's own contract read.
+  - Guided demo: progress bar, auto-scroll to the running step, sample high/critical events in step 2, and in step 6 the
+    batch roots are re-read from the contract and compared with the roots anchored before the attack.
+  - T-023: `scripts/start-all.ps1` + `scripts/start-all.cmd`; `logs/` added to `.gitignore`; README and PITCH updated.
+- **Tests executed and results (this session, this laptop):**
+  - `npx hardhat test` → 9 passing; `python -m pytest` → 81 passed (81 collected, exit 0).
+  - `npm run lint` clean; `npm run build` passes (all 8 app routes prerendered); `npx tsc --noEmit` exit 0 after the build.
+  - `npm run test:e2e` → 23 passed, 1 skipped (screenshot spec).
+  - Start script: full start in one command (chain, API, reset + 132 events in 1 anchored batch, production build, web);
+    a second start while running refused with the three port owners named and exit 1; `-Stop` stopped the three recorded
+    processes and freed 8545/8000/3000.
+  - Manual browser check against the started stack: Proof Explorer, full demo story (step 6 "On-chain commitment
+    unchanged", 1/1 roots), auditor host bundle at 375px (TAMPERING DETECTED, 12 MISSING rows, no horizontal overflow).
+- **Not done:** `.sh` start script (only Windows was required); T-022, T-021, T-018.
