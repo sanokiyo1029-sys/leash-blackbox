@@ -2,7 +2,9 @@
 
 Next.js 16 (App Router) + TypeScript + Tailwind CSS 4 + shadcn/ui + Recharts + Lucide.
 
-All data comes from the FastAPI backend (`NEXT_PUBLIC_LEASH_API_URL`, default `http://127.0.0.1:8000`).
+All data comes from the FastAPI backend. The browser calls `/api/*` on the web origin and the Next server proxies it to
+`LEASH_API_PROXY` (default `http://127.0.0.1:8000`), so browser shields that block cross-port localhost requests do not
+cut it off. `NEXT_PUBLIC_LEASH_API_URL` makes the browser call an API directly instead (then CORS applies).
 The Auditor Portal and the proof views also talk **directly** to the chain over JSON-RPC and
 recompute hashes with WebCrypto (`lib/verify.ts`), so those results do not depend on the backend.
 

@@ -51,7 +51,7 @@ export default defineConfig({
       url: WEB,
       timeout: 180_000,
       reuseExistingServer: false,
-      env: { NEXT_PUBLIC_LEASH_API_URL: API },
+      env: { LEASH_API_PROXY: API }, // the browser uses the same-origin /api proxy, as in production
     },
   ],
 });

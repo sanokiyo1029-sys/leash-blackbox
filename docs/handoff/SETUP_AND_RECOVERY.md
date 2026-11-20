@@ -25,7 +25,7 @@ macOS/Linux: use `backend/.venv/bin/python` instead of `backend\.venv\Scripts\py
 
 ## Environment variables (names only, see `.env.example`)
 `LEASH_RPC_URL`, `LEASH_ANCHOR_PRIVATE_KEY`, `LEASH_DATA_DIR`, `LEASH_MAX_BATCH_SIZE`,
-`LEASH_CORS_ORIGINS`, `LEASH_DEMO_MODE` (1 = lab endpoints on), `LEASH_INGEST_TOKEN` (shared bearer token for ingest), `LEASH_HOST_TOKENS` (per-host `host=<sha256 of token>` list), `NEXT_PUBLIC_LEASH_API_URL`,
+`LEASH_CORS_ORIGINS`, `LEASH_DEMO_MODE` (1 = lab endpoints on), `LEASH_INGEST_TOKEN` (shared bearer token for ingest), `LEASH_HOST_TOKENS` (per-host `host=<sha256 of token>` list), `LEASH_API_PROXY`, `NEXT_PUBLIC_LEASH_API_URL`,
 `LEASH_TEST_RPC_URL` (tests only), `LEASH_PYTHON` / `PW_CHANNEL` (Playwright only).
 All are optional for local development.
 
@@ -37,7 +37,7 @@ All are optional for local development.
 3. **Backend:** `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
    (OpenAPI UI at http://127.0.0.1:8000/docs)
 4. **Frontend:** `cd frontend; npm install; npm run dev` → http://localhost:3000 (API URL from
-   `NEXT_PUBLIC_LEASH_API_URL`, default http://127.0.0.1:8000). Production check: `npm run build`.
+   `/api/*` is proxied by the Next server to `LEASH_API_PROXY`, default http://127.0.0.1:8000; `NEXT_PUBLIC_LEASH_API_URL` makes the browser call an API directly). Production check: `npm run build`.
 
 ## Demo seed / reset
 `POST /api/demo/reset` wipes all three stores and deploys a fresh contract. Then:

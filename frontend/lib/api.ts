@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export const API_BASE = (process.env.NEXT_PUBLIC_LEASH_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
+// Default: same origin. next.config.ts proxies /api/* to the backend, so browser shields and ad blockers that block
+// cross-port localhost requests cannot cut the console off. Set NEXT_PUBLIC_LEASH_API_URL to call an API directly.
+export const API_BASE = (process.env.NEXT_PUBLIC_LEASH_API_URL || "").replace(/\/$/, "");
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {

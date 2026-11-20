@@ -14,6 +14,9 @@ _Last updated: 2026-11-20, session S05 (laptop B), T-040 and T-041 done_
 - T-041 done: chapter 2's stamp seeps in instead of slamming, the wire and vault stay unseen until chapter 4, chapter 5
   shows the tree then the block, and the vault leaves the close. Checked at 1630×845 and 375×812 on the dev server;
   lint and tsc clean; e2e 27 passed + 1 skipped. Details in BRIEF.md "What changed". KI-025 (phone header overlap) is new.
+- API proxy (KI-026): the browser calls `/api/*` on :3000 and `next.config.ts` rewrites it to `LEASH_API_PROXY`
+  (default http://127.0.0.1:8000). Verified: e2e 27 passed + 1 skipped through the proxy; Edge with every direct
+  request to :8000 blocked still shows live chain status on `/` and `/story`.
 - **Next: T-033** (owner rehearsal, ideally including a cold run of `/story` by someone who has not read the brief).
 
 ## S04 status

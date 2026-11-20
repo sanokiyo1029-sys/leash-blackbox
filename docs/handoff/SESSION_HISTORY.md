@@ -224,5 +224,8 @@
 - **T-041:** stack stopped; `story-world.tsx`, `story-data.ts` and `story.css` changed (stamp, hidden wire/vault before
   ch4, seal focus, vault out of the close). Checked on the dev stack (`start-all.cmd -Dev`) at 1630×845 and 375×812;
   `npm run lint` and `tsc` clean; e2e 27 passed + 1 skipped. ScrollCraft harness not re-run. KI-025 recorded.
+- **API proxy (2026-11-21):** the owner's browser reported the API offline; a clean Edge worked, so a profile-level
+  blocker was cutting `localhost:3000` → `127.0.0.1:8000`. `lib/api.ts` now defaults to the same origin and
+  `next.config.ts` rewrites `/api/*` to the backend; e2e uses the proxy too (27 passed + 1 skipped). KI-026.
 - **Left running:** the demo stack (:8545/:8000/:3000, production build) for the owner.
 
