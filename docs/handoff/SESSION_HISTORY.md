@@ -185,3 +185,29 @@
   Indian context (CERT-In 2022 directions), all claims tied to demo actions or local-EVM measurements.
 - **Final tests:** Playwright 23 passed + 1 skipped; `tsc` and lint clean; backend unchanged since the S03 baseline
   (90 passed).
+
+### S04 (laptop A, 2026-11-20): ScrollCraft story
+- The owner answered the ScrollCraft interview: one unbroken cinematic world; seven chapters; "the scroll is the
+  attack"; ink black, paper, one signal red; no paid assets. Their answers are in
+  `scrollcraft/builds/story/BRIEF.md` verbatim.
+- Built `/story`.
+  - **Structure:** the continuous-world grammar as a bespoke fixed stage. One camera travels host log → wire →
+    evidence vault → Merkle tree → chain block → verifier → the real Attack Lab screenshot. The engine is not used,
+    since its worldflight mode is video-only. The page publishes `data-sc-verify-state` for the harness.
+  - **Signature move:** the visitor's scroll erases five lines and rewrites one, typing the attacker's `sed`
+    commands. The verdict blooms red and the originals fly back from the vault, each with a verified 4-step proof.
+  - **Depth:** a far grid, a canvas of motes at many depths, and a giant faint night clock that advances with the
+    log.
+- **Evidence:**
+  - Harness, three runs: desktop 46 frames, phone 33, reduced 27. Final state: no dead scroll, all cues peak,
+    contrast clear.
+  - Roots cross-checked against `backend/app/merkle.py`.
+  - Keyboard, overflow and error checks as listed in CURRENT_STATE.
+- **Fixes found by the harness:**
+  - restore labels laid out as a grid cell (CSS specificity);
+  - the scrim greying the log;
+  - text over the wide shot;
+  - the verdict holding too briefly;
+  - the reduced-motion dip firing at the first and last frame;
+  - the phone wide shot under the bar.
+- **Handoff at 90% of the 5-hour usage window.** T-040 is open.

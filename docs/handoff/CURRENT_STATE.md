@@ -1,8 +1,28 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-20, session S03 (laptop A), v2 design approved and rolled out_
+_Last updated: 2026-11-20, session S04 (laptop A), ScrollCraft story checkpoint (handoff at 90% usage)_
 
-## S03 status (read first)
+## S04 status (read first)
+- **New route `/story`**: a ScrollCraft scroll story with seven chapters in one continuous world. The visitor's
+  scroll performs the cover-up (log lines are erased as you scroll), and the verdict brings them back.
+  - Brief, feeling curve, structure and score: `scrollcraft/builds/story/BRIEF.md` (the owner's answers verbatim).
+  - Code: `frontend/app/story/` (page + scoped CSS) and `frontend/components/story/` (`story-data.ts`,
+    `story-world.tsx`). The app shell renders `/story` without its header or footer.
+  - Every hash on the page is real. It is computed in the browser with `lib/verify.ts` (S04: root `916a1113…`,
+    server root `3aea88bd…`), and both match the backend's own Python canonical/Merkle code exactly.
+  - Linked from the header ("Story", shown at ≥1360 px and in the menu) and from the Dashboard's red band
+    ("Watch the story first").
+- **Verified in S04, on the dev server (:3100):**
+  - ScrollCraft harness at desktop, 390×844 and reduced motion: no dead scroll, every copy block peaks, and contrast
+    clears 4.5:1 at the worst frame.
+  - No horizontal overflow at 390, 360, 768 or 1280 px.
+  - Tab order is logical; the chapter map works by keyboard; focusing the final CTA brings the close on screen.
+  - No page errors.
+  - Contact sheets: `scrollcraft/builds/story/lab/{desktop,mobile,reduced}/sheet.png`.
+- **Not yet verified:** the e2e suite with these changes, and `/story` on the production build at :3000 (the
+  running demo stack predates `/story`). See T-040.
+
+## S03 status
 - **v2 design APPROVED by the owner and rolled out on every route** (on `main`).
   - Rejected directions, so don't return to them: the flat black dashboard of cards (S01) and the red-and-cream
     newspaper (S02).
@@ -142,6 +162,10 @@ None in the code. For a new teammate: pushing needs a GitHub account with write 
 (`$env:GH_TOKEN=''` in PowerShell, `env -u GH_TOKEN` in bash) before pushing.
 
 ## Exact next task
+**S04: T-040 first** (see NEXT_TASKS). Stop the demo stack, run e2e (add the `/story` smoke test), restart
+`scripts\start-all.cmd`, check `/story` at :3000 including the live-status line, then write the feel-check diff in
+BRIEF.md. After that: T-033 (owner rehearsal).
+
 **S03:** the design is approved and rolled out.
 - T-037 (pitch) is done: `docs/PITCH.md` has the 90-second script, the 3-minute walkthrough, the judge Q&A and the
   updated checklist.

@@ -48,3 +48,7 @@ playwright-report/
 logs/
 *.leash-state.json
 !agent/sample/auth.log
+
+# ScrollCraft harness frames (keep only the contact sheets and reports)
+scrollcraft/builds/*/lab/*/[0-9]*.png
+scrollcraft/builds/*/lab/*/sheet.html

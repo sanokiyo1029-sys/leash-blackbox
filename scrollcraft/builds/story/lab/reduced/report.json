@@ -1,0 +1,1249 @@
+{
+  "doc": {
+    "height": 11700,
+    "vh": 900,
+    "acts": [
+      "flow",
+      "flow",
+      "flow",
+      "flow",
+      "flow",
+      "flow",
+      "flow"
+    ],
+    "world": null
+  },
+  "report": [
+    {
+      "i": 0,
+      "y": 0,
+      "pct": 0,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "The attacker can erase the logs.They can",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.31
+        }
+      ],
+      "cues": [
+        {
+          "t": "The attacker can erase the logs.They cannot er",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-150,0.92,30,3,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 1,
+      "y": 9,
+      "pct": 0,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "The attacker can erase the logs.They can",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.31
+        }
+      ],
+      "cues": [
+        {
+          "t": "The attacker can erase the logs.They cannot er",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-150,0.92,30,3,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 2,
+      "y": 441,
+      "pct": 4,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "The attacker can erase the logs.They can",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.31
+        }
+      ],
+      "cues": [
+        {
+          "t": "The attacker can erase the logs.They cannot er",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-150,0.92,40,4,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 3,
+      "y": 495,
+      "pct": 5,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "The attacker can erase the logs.They cannot er",
+          "o": 0.77
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-150,0.92,40,4,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 4,
+      "y": 873,
+      "pct": 8,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "03:12 UTC. A quiet night on web-prod-01.",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.32
+        }
+      ],
+      "cues": [
+        {
+          "t": "03:12 UTC. A quiet night on web-prod-01.Every ",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-150,0.92,60,6,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 5,
+      "y": 927,
+      "pct": 9,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "03:12 UTC. A quiet night on web-prod-01.",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.32
+        }
+      ],
+      "cues": [
+        {
+          "t": "03:12 UTC. A quiet night on web-prod-01.Every ",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-150,0.92,60,6,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 6,
+      "y": 1305,
+      "pct": 12,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "03:12 UTC. A quiet night on web-prod-01.Every ",
+          "o": 0.56
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-150,0.92,60,6,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 7,
+      "y": 1359,
+      "pct": 13,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "03:12 UTC. A quiet night on web-prod-01.Every ",
+          "o": 0.25
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-40,0.92,60,6,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 8,
+      "y": 1791,
+      "pct": 17,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "03:41. Three wrong passwords from an add",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.32
+        }
+      ],
+      "cues": [
+        {
+          "t": "03:41. Three wrong passwords from an address n",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-40,0.92,90,9,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 9,
+      "y": 1854,
+      "pct": 17,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "03:41. Three wrong passwords from an add",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.32
+        }
+      ],
+      "cues": [
+        {
+          "t": "03:41. Three wrong passwords from an address n",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-40,0.92,90,9,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 10,
+      "y": 2223,
+      "pct": 21,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "03:41:15. Root.Full control of the server, and",
+          "o": 0.5
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-40,0.92,108,11,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 11,
+      "y": 2372,
+      "pct": 22,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "03:41:15. Root.Full control of the serve",
+          "dir": "light-on-dark",
+          "worst": 16.16,
+          "mean": 16.29
+        }
+      ],
+      "cues": [
+        {
+          "t": "03:41:15. Root.Full control of the server, and",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-40,0.92,113,11,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 12,
+      "y": 2655,
+      "pct": 25,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "03:41:15. Root.Full control of the server, and",
+          "o": 0.64
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,40,1.00,152,15,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 13,
+      "y": 2891,
+      "pct": 27,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "You have root now.Every line you scroll ",
+          "dir": "light-on-dark",
+          "worst": 16.16,
+          "mean": 16.28
+        }
+      ],
+      "cues": [
+        {
+          "t": "You have root now.Every line you scroll past, ",
+          "o": 0.87
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,40,1.00,160,16,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 14,
+      "y": 3409,
+      "pct": 32,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "You have root now.Every line you scroll ",
+          "dir": "light-on-dark",
+          "worst": 16.16,
+          "mean": 16.28
+        }
+      ],
+      "cues": [
+        {
+          "t": "You have root now.Every line you scroll past, ",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,40,1.00,130,13,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 15,
+      "y": 3645,
+      "pct": 34,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "You have root now.Every line you scroll ",
+          "dir": "light-on-dark",
+          "worst": 16.16,
+          "mean": 16.28
+        }
+      ],
+      "cues": [
+        {
+          "t": "You have root now.Every line you scroll past, ",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,40,1.00,122,12,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 16,
+      "y": 3928,
+      "pct": 36,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "You have root now.Every line you scroll past, ",
+          "o": 0.25
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,20,1.00,110,11,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 17,
+      "y": 4077,
+      "pct": 38,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "Looking at the server alone, nothing happened.",
+          "o": 0.81
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,20,1.00,110,11,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 18,
+      "y": 4446,
+      "pct": 41,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "Looking at the server alone, nothing happened.",
+          "o": 0.73
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,20,1.00,110,11,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 19,
+      "y": 4509,
+      "pct": 42,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "Looking at the server alone, nothing happened.",
+          "o": 0.22
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,-20,0.60,110,11,0,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 20,
+      "y": 4941,
+      "pct": 46,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "But every line had already left the serv",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.31
+        }
+      ],
+      "cues": [
+        {
+          "t": "But every line had already left the server.Eac",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "420,40,0.92,110,11,17,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 21,
+      "y": 4997,
+      "pct": 46,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "But every line had already left the serv",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.31
+        }
+      ],
+      "cues": [
+        {
+          "t": "But every line had already left the server.Eac",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "420,40,0.92,110,11,18,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 22,
+      "y": 5373,
+      "pct": 50,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "The evidence vault.It only appends. It cannot ",
+          "o": 0.78
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "1400,360,0.88,110,11,20,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 23,
+      "y": 5446,
+      "pct": 50,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "The evidence vault.It only appends. It c",
+          "dir": "light-on-dark",
+          "worst": 16.16,
+          "mean": 16.29
+        }
+      ],
+      "cues": [
+        {
+          "t": "The evidence vault.It only appends. It cannot ",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "1400,360,0.88,110,11,20,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 24,
+      "y": 5805,
+      "pct": 54,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "The evidence vault.It only appends. It c",
+          "dir": "light-on-dark",
+          "worst": 16.16,
+          "mean": 16.29
+        }
+      ],
+      "cues": [
+        {
+          "t": "The evidence vault.It only appends. It cannot ",
+          "o": 0.9
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "1400,390,0.92,110,11,20,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 25,
+      "y": 5895,
+      "pct": 55,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "The evidence vault.It only appends. It cannot ",
+          "o": 0.3
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "1400,390,0.92,110,11,20,0,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 26,
+      "y": 6345,
+      "pct": 59,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "Folded into one fingerprint.Each record ",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.31
+        }
+      ],
+      "cues": [
+        {
+          "t": "Folded into one fingerprint.Each record is has",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "1400,390,0.92,110,11,20,15,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 27,
+      "y": 6460,
+      "pct": 60,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "Folded into one fingerprint.Each record ",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.31
+        }
+      ],
+      "cues": [
+        {
+          "t": "Folded into one fingerprint.Each record is has",
+          "o": 0.85
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "1400,-140,0.70,110,11,20,19,0,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 28,
+      "y": 6794,
+      "pct": 63,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "Sealed on a blockchain.Only the fingerpr",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.29
+        }
+      ],
+      "cues": [
+        {
+          "t": "Sealed on a blockchain.Only the fingerprint go",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "1400,-140,0.70,110,11,20,20,10,0,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 29,
+      "y": 7134,
+      "pct": 66,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "Sealed on a blockchain.Only the fingerpr",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.29
+        }
+      ],
+      "cues": [
+        {
+          "t": "Sealed on a blockchain.Only the fingerprint go",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "1400,-140,0.70,110,11,20,20,10,10,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 30,
+      "y": 7243,
+      "pct": 67,
+      "settled": true,
+      "contrast": [],
+      "cues": [
+        {
+          "t": "Sealed on a blockchain.Only the fingerprint go",
+          "o": 0.5
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "1400,-340,0.74,110,11,20,20,10,10,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 31,
+      "y": 7808,
+      "pct": 72,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "Now verify.Recompute the fingerprint fro",
+          "dir": "light-on-dark",
+          "worst": 16.16,
+          "mean": 16.29
+        }
+      ],
+      "cues": [
+        {
+          "t": "Now verify.Recompute the fingerprint from what",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "700,-60,0.42,110,11,20,20,10,10,0,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 32,
+      "y": 8482,
+      "pct": 79,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "Tampering detectedThe server's logs no l",
+          "dir": "light-on-dark",
+          "worst": 19.16,
+          "mean": 19.24
+        }
+      ],
+      "cues": [
+        {
+          "t": "Tampering detectedThe server's logs no longer ",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "700,-60,0.42,110,11,20,20,10,10,10,0"
+      ],
+      "customHold": true,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 33,
+      "y": 9054,
+      "pct": 84,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "Tampering detectedThe server's logs no l",
+          "dir": "light-on-dark",
+          "worst": 19.16,
+          "mean": 19.24
+        }
+      ],
+      "cues": [
+        {
+          "t": "Tampering detectedThe server's logs no longer ",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "700,-60,0.42,110,11,20,20,10,10,10,0"
+      ],
+      "customHold": true,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 34,
+      "y": 9156,
+      "pct": 85,
+      "settled": true,
+      "contrast": [],
+      "cues": [],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "700,-60,0.42,110,11,20,20,10,10,17,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 35,
+      "y": 9572,
+      "pct": 89,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "Every line you erased, back.Each origina",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.29
+        }
+      ],
+      "cues": [
+        {
+          "t": "Every line you erased, back.Each original come",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "700,-50,0.45,135,14,20,20,10,10,20,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 36,
+      "y": 9830,
+      "pct": 91,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "Every line you erased, back.Each origina",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.29
+        }
+      ],
+      "cues": [
+        {
+          "t": "Every line you erased, back.Each original come",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,10,0.82,160,16,20,20,10,10,20,0"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 37,
+      "y": 10091,
+      "pct": 93,
+      "settled": true,
+      "contrast": [],
+      "cues": [],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "0,10,0.84,160,16,20,20,10,10,20,5"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 38,
+      "y": 10609,
+      "pct": 98,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "The attacker erased the trail. Not the p",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.35
+        }
+      ],
+      "cues": [
+        {
+          "t": "The attacker erased the trail. Not the proof.N",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "720,1190,0.64,160,16,20,20,10,10,20,10"
+      ],
+      "customHold": false,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    },
+    {
+      "i": 39,
+      "y": 10800,
+      "pct": 100,
+      "settled": true,
+      "contrast": [
+        {
+          "t": "The attacker erased the trail. Not the p",
+          "dir": "light-on-dark",
+          "worst": 16.28,
+          "mean": 16.35
+        }
+      ],
+      "cues": [
+        {
+          "t": "The attacker erased the trail. Not the proof.N",
+          "o": 1
+        }
+      ],
+      "clips": [],
+      "rails": [],
+      "wipes": [],
+      "act": "flow",
+      "stages": [],
+      "segs": [],
+      "custom": [
+        "720,1190,0.65,160,16,20,20,10,10,20,10"
+      ],
+      "customHold": true,
+      "seg": null,
+      "segp": null,
+      "bg": ""
+    }
+  ],
+  "consoleErrors": [
+    "Access to fetch at 'http://127.0.0.1:8000/api/status' from origin 'http://localhost:3100' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Access to fetch at 'http://127.0.0.1:8000/api/status' from origin 'http://localhost:3100' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Access to fetch at 'http://127.0.0.1:8000/api/status' from origin 'http://localhost:3100' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Access to fetch at 'http://127.0.0.1:8000/api/status' from origin 'http://localhost:3100' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED",
+    "Access to fetch at 'http://127.0.0.1:8000/api/status' from origin 'http://localhost:3100' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.",
+    "Failed to load resource: net::ERR_FAILED"
+  ],
+  "failed": [
+    "net::ERR_FAILED http://127.0.0.1:8000/api/status",
+    "net::ERR_FAILED http://127.0.0.1:8000/api/status",
+    "net::ERR_FAILED http://127.0.0.1:8000/api/status",
+    "net::ERR_FAILED http://127.0.0.1:8000/api/status",
+    "net::ERR_FAILED http://127.0.0.1:8000/api/status"
+  ]
+}

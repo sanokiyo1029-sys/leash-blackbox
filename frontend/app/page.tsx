@@ -225,9 +225,14 @@ export default function Dashboard() {
             <div className="mt-2 font-display text-[clamp(32px,4.5vw,56px)] leading-none font-black uppercase">Now break it.</div>
             <p className="mt-3 max-w-[48ch] text-white/90">Take root on web-prod-01, erase the trail, then verify. The chain-backed record shows exactly what changed.</p>
           </div>
-          <Link href="/attack" className="btn-caption !min-h-12 !px-5 !text-[13px]">
-            Open the attack lab <ArrowRight className="size-4" />
-          </Link>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <Link href="/story" className="text-[14px] font-semibold text-white underline decoration-white/60 underline-offset-4 hover:decoration-white">
+              Watch the story first
+            </Link>
+            <Link href="/attack" className="btn-caption !min-h-12 !px-5 !text-[13px]">
+              Open the attack lab <ArrowRight className="size-4" />
+            </Link>
+          </div>
         </div>
       </RevealBand>
     </div>

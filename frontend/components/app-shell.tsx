@@ -12,6 +12,8 @@ import type { Status } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const NAV = [
+  // Hidden in the desktop bar below 1360px, where the live chain tag needs the room; always in the menu.
+  { href: "/story", label: "The Story", short: "Story", roomy: true },
   { href: "/attack", label: "Attack Lab", short: "Attack Lab", featured: true },
   { href: "/", label: "Security Dashboard", short: "Dashboard" },
   { href: "/evidence", label: "Evidence Explorer", short: "Evidence" },
@@ -61,7 +63,7 @@ function TopNav() {
   const pathname = usePathname();
   return (
     <nav className="hidden self-stretch xl:flex" aria-label="Primary">
-      {NAV.map(({ href, short, featured }) => {
+      {NAV.map(({ href, short, featured, roomy }) => {
         const active = isActive(pathname, href);
         return (
           <Link
@@ -69,7 +71,8 @@ function TopNav() {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "label-caps relative flex items-center gap-1.5 px-2.5 whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              "label-caps relative items-center gap-1.5 px-2.5 whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              roomy ? "hidden min-[1360px]:flex" : "flex",
               active ? "text-ink" : "text-ink/60 hover:text-ink",
             )}
           >
@@ -170,8 +173,11 @@ function CursorDot() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  // Dashboard v2 (S03, pending approval) uses full-bleed scenes and slimmer chrome; other routes are unchanged.
-  const scene = usePathname() === "/";
+  const pathname = usePathname();
+  // The Dashboard uses full-bleed scenes and no footer.
+  const scene = pathname === "/";
+  // /story is an immersive scroll world with its own chrome (map, skip control).
+  if (pathname === "/story") return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
   return (
     <MotionConfig reducedMotion="user" transition={{ duration: dur.base, ease: ease.out }}>
       <div className="app-backdrop flex min-h-screen flex-col">
