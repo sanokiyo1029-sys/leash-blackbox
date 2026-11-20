@@ -138,8 +138,8 @@ const STEPS: Step[] = [
           {before.length > 0 && (
             <div
               className={cn(
-                "flex flex-wrap items-center gap-x-3 gap-y-1 rounded-sm border-2 border-ink bg-card px-3 py-2.5 text-xs",
-                unchanged === before.length ? "shadow-[4px_4px_0_0_var(--ok)]" : "shadow-[4px_4px_0_0_var(--bad)]",
+                "flex flex-wrap items-center gap-x-3 gap-y-1 rounded-sm border border-ink/15 bg-card px-3 py-2.5 text-xs",
+                unchanged === before.length ? "border-t-[3px] border-t-[var(--ok)]" : "border-t-[3px] border-t-[var(--bad)]",
               )}
             >
               {unchanged === before.length ? <Lock className="size-4 text-ok" /> : <ShieldX className="size-4 text-bad" />}
@@ -224,17 +224,17 @@ export default function DemoMode() {
         initial={{ clipPath: "inset(0 100% 0 0)" }}
         animate={{ clipPath: "inset(0 0% 0 0)" }}
         transition={{ duration: dur.slow, ease: ease.inOut }}
-        className="relative overflow-hidden rounded-sm border-2 border-ink bg-primary px-5 py-10 text-center text-primary-foreground sm:px-10 sm:py-14"
+        className="relative overflow-hidden rounded-sm bg-primary px-5 py-12 text-center text-primary-foreground sm:px-10 sm:py-16"
       >
-        <div aria-hidden className="ink-grain absolute inset-0 opacity-60" />
+        
         <div className="relative">
-          <div className="label-caps inline-block border-2 border-ink bg-card px-2 py-0.5 text-ink">Live demo · seven scenes</div>
+          <div className="label-caps inline-block text-primary-foreground/85">Live demo · seven scenes</div>
           <h1 className="mt-4 font-display text-[clamp(2rem,6vw,4.5rem)] leading-[0.95] font-black text-balance uppercase">The attacker can erase the logs.</h1>
           <h2 className="mt-1 font-display text-[clamp(2rem,6vw,4.5rem)] leading-[0.95] font-black text-balance text-ink uppercase">They cannot erase the proof.</h2>
           <p className="mx-auto mt-4 max-w-xl text-sm text-primary-foreground/90">
             Seven steps against the real backend and chain. Nothing on this page is scripted output: every value comes from the API, the contract or your browser.
           </p>
-          <div className="mt-6 inline-flex flex-wrap justify-center gap-2 rounded-sm border-2 border-ink bg-card p-2 text-foreground shadow-[4px_4px_0_0_var(--ink)]">
+          <div className="mt-7 inline-flex flex-wrap justify-center gap-2 text-foreground">
             <Button size="lg" onClick={runAll} disabled={running !== null}>
               <PlayCircle /> Run the full story
             </Button>
@@ -255,7 +255,7 @@ export default function DemoMode() {
         </div>
         <ol className="grid grid-cols-7 gap-1.5" aria-hidden>
           {STEPS.map((s, i) => (
-            <li key={s.title} className={cn("h-3 border-2 border-ink transition-colors duration-300", i < next ? "bg-primary" : running === i ? "bg-ink" : "bg-card")} />
+            <li key={s.title} className={cn("h-1.5 rounded-full transition-colors duration-300", i < next ? "bg-primary" : running === i ? "bg-ink" : "bg-ink/15")} />
           ))}
         </ol>
       </div>
@@ -276,15 +276,15 @@ export default function DemoMode() {
               id={`step-${i}`}
               className={cn(
                 "surface rounded-sm p-5 transition-[opacity,box-shadow] duration-300",
-                active && "shadow-[6px_6px_0_0_var(--primary)]",
-                done && "shadow-[6px_6px_0_0_var(--ok)]",
+                active && "border-t-[3px] border-t-[var(--primary)]",
+                done && "border-t-[3px] border-t-[var(--ok)]",
                 !done && !active && i > next && "opacity-50",
               )}
             >
               <div className="flex items-start gap-4">
                 <div
                   className={cn(
-                    "grid size-10 shrink-0 place-items-center border-2 border-ink font-display text-xl font-black transition-colors duration-300",
+                    "grid size-10 shrink-0 place-items-center rounded-full border border-ink/30 text-base font-semibold transition-colors duration-300",
                     done ? "bg-ok text-paper" : active ? "bg-primary text-paper" : "bg-card text-ink",
                   )}
                 >
@@ -327,7 +327,7 @@ function Facts({ items }: { items: [string, React.ReactNode][] }) {
 function AuditCard({ title, r }: { title: string; r: BrowserVerdict }) {
   const ok = r.verdict !== "TAMPERING_DETECTED";
   return (
-    <div className={cn("rounded-sm border-2 border-ink p-4 shadow-[4px_4px_0_0_var(--ink)]", ok ? "bg-ok text-paper" : "bg-primary text-primary-foreground")}>
+    <div className={cn("rounded-sm p-4", ok ? "bg-ok text-paper" : "bg-primary text-primary-foreground")}>
       <div className="text-xs font-semibold opacity-90">{title}</div>
       <div className="mt-1 flex items-center gap-2 font-display text-2xl font-black">
         {ok ? <CheckCircle2 className="size-6" /> : <ShieldX className="size-6" />}

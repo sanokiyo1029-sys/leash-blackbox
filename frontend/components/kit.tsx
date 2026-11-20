@@ -34,8 +34,8 @@ export function Panel({
       {...fadeUp}
       className={cn(
         "surface relative flex min-w-0 flex-col rounded-sm",
-        tone === "danger" && "shadow-[5px_5px_0_0_var(--bad)]",
-        tone === "safe" && "shadow-[5px_5px_0_0_var(--ok)]",
+        tone === "danger" && "border-t-[3px] border-t-[var(--bad)]",
+        tone === "safe" && "border-t-[3px] border-t-[var(--ok)]",
         className,
       )}
     >
@@ -54,8 +54,8 @@ export function Panel({
 }
 
 /**
- * Scene band. "scene": a framed red field with ink grain and a hatched disc, white tag, big serif title, white action card.
- * "action": a paper field with radial ink speed lines and a red serif title (the reference's action frames).
+ * Page header in the v2 language (docs/design/REFERENCE_SPEC.md): small caps label, one display title, a short line,
+ * actions in a row. No frame or band; the page's own content is the focal subject. "action" adds a red rule.
  */
 export function PageTitle({
   eyebrow,
@@ -70,58 +70,20 @@ export function PageTitle({
   actions?: React.ReactNode;
   variant?: "scene" | "action";
 }) {
-  const act = variant === "action";
   return (
-    <motion.header
-      initial={{ clipPath: "inset(0 100% 0 0)" }}
-      animate={{ clipPath: "inset(0 0% 0 0)" }}
-      transition={{ duration: dur.slow, ease: ease.inOut }}
-      className={cn("relative mb-6 overflow-hidden rounded-sm border-2 border-ink", act ? "bg-card text-ink" : "bg-primary text-primary-foreground")}
-    >
-      {act ? (
-        <motion.div
-          aria-hidden
-          initial={{ scale: 1.25, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: dur.dramatic, ease: ease.out }}
-          className="speed-lines speed-lines-right absolute -inset-y-48 right-[-25%] left-[45%]"
-        />
-      ) : (
-        <SceneArt />
-      )}
-      <div className="relative flex flex-wrap items-end justify-between gap-5 px-5 py-6 sm:px-8 sm:py-8">
-        <div className="min-w-0">
-          {eyebrow && (
-            <div className={cn("label-caps mb-3 inline-block border-2 border-ink px-2 py-0.5", act ? "bg-ink text-paper" : "bg-card text-ink")}>{eyebrow}</div>
-          )}
-          <h1 className={cn("font-display text-[clamp(1.9rem,6vw,4rem)] leading-[0.95] font-black tracking-tight text-balance uppercase", act && "text-primary")}>{title}</h1>
-          {description && <p className={cn("mt-3 text-sm", act ? "max-w-xl text-ink/80" : "max-w-3xl text-primary-foreground/90")}>{description}</p>}
-        </div>
-        {actions && (
-          <div className="flex flex-wrap gap-2 rounded-sm border-2 border-ink bg-card p-2 text-foreground shadow-[4px_4px_0_0_var(--ink)]">{actions}</div>
+    <motion.header {...fadeUp} className="mb-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
+      <div className="min-w-0">
+        {eyebrow && (
+          <div className="label-caps mb-3 flex items-center gap-2 text-ink/70">
+            {variant === "action" && <span className="inline-block h-[3px] w-6 bg-primary" aria-hidden />}
+            {eyebrow}
+          </div>
         )}
+        <h1 className="font-display text-[clamp(1.75rem,4.2vw,3rem)] leading-[0.98] font-black tracking-[-0.01em] text-balance uppercase">{title}</h1>
+        {description && <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-ink/75">{description}</p>}
       </div>
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </motion.header>
-  );
-}
-
-function SceneArt() {
-  return (
-    <>
-      <div aria-hidden className="ink-grain absolute inset-0 opacity-60" />
-      {/* Focal object of the scene: a hatched paper disc, cropped by the frame (original art) */}
-      <motion.div
-        aria-hidden
-        initial={{ scale: 0.6, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: dur.dramatic, ease: ease.out, delay: 0.15 }}
-        className="absolute -right-24 -bottom-56 hidden size-[30rem] rounded-full border-2 border-ink md:block"
-      >
-        {/* Ink-only drawing (no paper fill), so white titles stay legible where they cross it */}
-        <div className="absolute inset-0 rounded-full bg-[repeating-linear-gradient(-45deg,var(--ink)_0_1.5px,transparent_1.5px_9px)] opacity-45" />
-        <div className="absolute inset-10 rounded-full border-2 border-ink/70" />
-      </motion.div>
-    </>
   );
 }
 
@@ -189,10 +151,10 @@ export function LiveDot({ tone = "ok", pulse = true, className }: { tone?: "ok" 
 
 // Print blocks: tampering is a solid red block; the other tones are paper with a spot colour.
 const ALERT = {
-  success: { icon: CheckCircle2, cls: "bg-card text-ok shadow-[4px_4px_0_0_var(--ok)]", body: "text-foreground/80" },
-  danger: { icon: ShieldAlert, cls: "bg-primary text-primary-foreground shadow-[4px_4px_0_0_var(--ink)]", body: "text-primary-foreground/90" },
-  warn: { icon: AlertTriangle, cls: "bg-spot-yellow/45 text-ink shadow-[4px_4px_0_0_var(--ink)]", body: "text-ink/80" },
-  info: { icon: Info, cls: "bg-card text-info shadow-[4px_4px_0_0_var(--info)]", body: "text-foreground/80" },
+  success: { icon: CheckCircle2, cls: "border-ok/40 bg-card text-ok", body: "text-foreground/80" },
+  danger: { icon: ShieldAlert, cls: "border-transparent bg-primary text-primary-foreground", body: "text-primary-foreground/90" },
+  warn: { icon: AlertTriangle, cls: "border-transparent bg-[#f4c542] text-ink", body: "text-ink/80" },
+  info: { icon: Info, cls: "border-info/35 bg-card text-info", body: "text-foreground/80" },
 };
 
 export function AlertBanner({
@@ -217,7 +179,7 @@ export function AlertBanner({
       exit={{ opacity: 0, y: -6 }}
       transition={{ duration: dur.base, ease: ease.out }}
       role={tone === "danger" ? "alert" : "status"}
-      className={cn("flex items-start gap-3 rounded-sm border-2 border-ink px-4 py-3.5", cls, className)}
+      className={cn("flex items-start gap-3 rounded-sm border px-4 py-3.5", cls, className)}
     >
       <Icon className="mt-0.5 size-5 shrink-0" />
       <div className="min-w-0 flex-1">

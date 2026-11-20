@@ -1,14 +1,17 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-20, session S03 (laptop A), Dashboard v2 checkpoint_
+_Last updated: 2026-11-20, session S03 (laptop A), v2 design approved and rolled out_
 
 ## S03 status (read first)
-- **Design gate in force.** The owner rejected two directions: the flat black dashboard of interchangeable cards (S01)
-  and the red-and-cream newspaper layout (S02). A third direction, **Dashboard v2**, is built on branch
-  **`design/dashboard-v2`** and is **awaiting the owner's approval**. `main` still shows the S02 look.
-- **Do not restyle other routes until the owner approves.** After approval, fast-forward the branch into `main`, then
-  apply the design to: Attack Lab → Guided Demo → Evidence Explorer → Blockchain Proofs → Auditor → Validation →
-  Architecture (owner's order).
+- **v2 design APPROVED by the owner and rolled out on every route** (on `main`).
+  - Rejected directions, so don't return to them: the flat black dashboard of cards (S01) and the red-and-cream
+    newspaper (S02).
+  - The rollout applies v2 to global tokens, `.surface`, `PageTitle`, `AlertBanner`, the shell, buttons, the Attack
+    Lab and the Guided Demo.
+  - The Attack Lab gained hold-to-verify, and each finding opens an "Inspect proof" drawer (the `EvidenceDetail`
+    record, Merkle proof and on-chain root).
+  - Screenshots of every route at 1440×900 and 390×844: `docs/img/rollout-v2/`. Dashboard review set:
+    `docs/img/dashboard-v2/`.
 - **Spec:** `docs/design/REFERENCE_SPEC.md` (v2, on the branch). It was re-verified against genuine reel frames; it
   maps each observation to an adaptation and a browser check, lists interactions with timings and reduced-motion
   equivalents, and defines scoped tokens.
@@ -139,10 +142,8 @@ None in the code. For a new teammate: pushing needs a GitHub account with write 
 (`$env:GH_TOKEN=''` in PowerShell, `env -u GH_TOKEN` in bash) before pushing.
 
 ## Exact next task
-**S03 override:** get the owner's decision on Dashboard v2 (branch `design/dashboard-v2`). If approved, merge it
-(fast-forward) and roll the design out route by route in the owner's order. If revisions are requested, revise on the
-branch and recapture the four viewports. Independent work that may proceed meanwhile: T-037 (pitch) and T-038 (live
-demo check).
+**S03:** the design is approved and rolled out. Next: T-037 (pitch rewrite per the S03 brief) and T-038 (live
+judge-demo check with `scripts\start-all.cmd`, including reset/replay and stop/restart). Then T-033 (owner rehearsal).
 
 S02 notes (still valid):
 1. Run the product once: `scripts\start-all.cmd`, open http://localhost:3000/demo, press **Run the full story**.

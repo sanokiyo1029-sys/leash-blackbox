@@ -45,7 +45,7 @@ function ChainStatus({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 border-2 border-ink px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] whitespace-nowrap uppercase",
+        "flex items-center gap-2 rounded-[2px] border border-ink px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] whitespace-nowrap uppercase",
         bad ? "bg-primary text-primary-foreground" : "bg-card text-ink",
       )}
       title={error ?? data?.chain.error ?? data?.chain.rpc_url}
@@ -70,12 +70,12 @@ function TopNav() {
             aria-current={active ? "page" : undefined}
             className={cn(
               "label-caps relative flex items-center gap-1.5 px-2.5 whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-              active ? "text-primary-foreground" : "text-ink/70 hover:text-ink",
+              active ? "text-ink" : "text-ink/60 hover:text-ink",
             )}
           >
-            {active && <motion.span layoutId="nav-active" transition={spring.snappy} className="absolute inset-x-0.5 inset-y-2.5 bg-primary" />}
+            {active && <motion.span layoutId="nav-active" transition={spring.snappy} className="absolute inset-x-0.5 inset-y-3 rounded-[2px] border border-ink bg-white" />}
             <span className="relative">{short}</span>
-            {featured && <span className={cn("relative size-1.5 rounded-full", active ? "bg-primary-foreground" : "bg-primary")} aria-label="live" />}
+            {featured && <span className="relative size-1.5 rounded-full bg-primary" aria-label="live" />}
           </Link>
         );
       })}
@@ -175,7 +175,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <MotionConfig reducedMotion="user" transition={{ duration: dur.base, ease: ease.out }}>
       <div className="app-backdrop flex min-h-screen flex-col">
-        <header className={cn("sticky top-0 z-30", scene ? "border-b border-ink/15 bg-white" : "border-b-2 border-ink bg-paper")}>
+        <header className="sticky top-0 z-30 border-b border-ink/15 bg-white">
           <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center gap-3 px-4 sm:px-6 lg:px-8">
             <button className="-ml-1 p-1.5 text-ink hover:bg-ink/[0.06] xl:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
               <Menu className="size-5" />

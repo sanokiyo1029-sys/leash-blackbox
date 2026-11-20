@@ -160,3 +160,12 @@
   - an e2e strict-mode duplicate text.
 - **Tests on the branch:** Playwright 23 passed, 1 skipped; `tsc` and lint clean.
 - **Usage indicator (app):** 13 % of the 5-hour window at session start.
+- **Owner approved Dashboard v2.** `main` was fast-forwarded to it (`78cf00f`). Rollout on `design/rollout-v2`, then merged:
+  - global v2 tokens (field `#fbfaf7` with ink grain, white plates, 1 px rules, red `#d81e1e`, 2 px radius)
+  - `PageTitle` without the red band; `AlertBanner` as verdict fields; shell header and outlined tab on every route;
+    1 px buttons
+  - Attack Lab: v2 restyle, hold-to-verify, and an "Inspect proof" drawer for each finding
+  - Guided Demo: restyled (7 scenes kept, so backend behaviour and e2e selectors are unchanged)
+  - Fixed Attack Lab horizontal overflow at 375/390 px (grid column templates)
+  - Tests: Playwright 23 passed + 1 skipped; lint and `tsc` clean. 16 route captures (8 routes × 1440/390): no
+    overflow, no console errors, no failed requests.

@@ -46,7 +46,7 @@ export function HoldButton({
   };
   useEffect(() => () => cancel(), []);
 
-  const fg = tone === "white" ? "#fff" : "var(--d-ink)";
+  const fg = tone === "white" ? "#fff" : "var(--d-ink, var(--ink))";
   return (
     <button
       type="button"

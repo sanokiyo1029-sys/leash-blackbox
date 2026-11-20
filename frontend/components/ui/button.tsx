@@ -9,15 +9,15 @@ const buttonVariants = cva(
       variant: {
         // Print buttons: ink frame, hard offset shadow on hover (docs/design/REFERENCE_SPEC.md)
         default:
-          "border-2 border-ink bg-primary font-semibold text-primary-foreground hover:-translate-x-px hover:-translate-y-px hover:shadow-[3px_3px_0_0_var(--ink)]",
+          "border border-ink bg-primary font-semibold text-primary-foreground hover:-translate-x-px hover:-translate-y-px hover:shadow-[3px_3px_0_0_var(--ink)]",
         outline:
-          "border-2 border-ink bg-card font-semibold hover:-translate-x-px hover:-translate-y-px hover:shadow-[3px_3px_0_0_var(--ink)] aria-expanded:bg-muted aria-expanded:text-foreground",
+          "border border-ink bg-card font-semibold hover:-translate-x-px hover:-translate-y-px hover:shadow-[3px_3px_0_0_var(--ink)] aria-expanded:bg-muted aria-expanded:text-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
         ghost:
           "hover:bg-ink/[0.06] hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground",
         destructive:
-          "border-2 border-destructive bg-card font-semibold text-destructive hover:bg-destructive hover:text-primary-foreground focus-visible:ring-destructive/30",
+          "border border-destructive bg-card font-semibold text-destructive hover:bg-destructive hover:text-primary-foreground focus-visible:ring-destructive/30",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

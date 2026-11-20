@@ -62,18 +62,18 @@
 
 /* Print palette (docs/design/REFERENCE_SPEC.md): paper, ink, one red, and spot colours for status. */
 :root {
-  --paper: oklch(0.955 0.012 85);
-  --ink: oklch(0.17 0.008 60);
+  --paper: #fbfaf7;
+  --ink: #111111;
   --spot-yellow: oklch(0.86 0.16 92);
 
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: oklch(0.985 0.006 85);
+  --card: #ffffff;
   --card-foreground: var(--ink);
-  --popover: oklch(0.985 0.006 85);
+  --popover: #ffffff;
   --popover-foreground: var(--ink);
-  --primary: oklch(0.56 0.215 28);
-  --primary-foreground: oklch(0.985 0.006 85);
+  --primary: #d81e1e;
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.92 0.014 85);
   --secondary-foreground: var(--ink);
   --muted: oklch(0.915 0.014 85);
@@ -81,7 +81,7 @@
   --accent: oklch(0.915 0.014 85);
   --accent-foreground: var(--ink);
   --destructive: oklch(0.56 0.215 28);
-  --border: oklch(0.17 0.008 60 / 20%);
+  --border: oklch(0.17 0.008 60 / 14%);
   --input: oklch(0.17 0.008 60 / 55%);
   --ring: oklch(0.56 0.215 28 / 60%);
 
@@ -97,7 +97,7 @@
   --chart-4: oklch(0.56 0.215 28);
   --chart-5: oklch(0.48 0.17 300);
 
-  --radius: 0.25rem;
+  --radius: 0.125rem;
   --sidebar: var(--paper);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: oklch(0.56 0.215 28);
@@ -109,7 +109,7 @@
 
   /* Elevation is a hard ink offset, never a blur */
   --shadow-panel: none;
-  --shadow-pop: 5px 5px 0 0 var(--ink);
+  --shadow-pop: 3px 3px 0 0 var(--ink);
 }
 
 @layer base {
@@ -129,20 +129,23 @@
 }
 
 @layer utilities {
+  /* v2 (REFERENCE_SPEC.md): a quiet field with faint ink grain; content sits on flat white plates */
   .app-backdrop {
     background-color: var(--background);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='120'%3E%3Cg fill='none' stroke='%23111' stroke-linecap='round' opacity='.05'%3E%3Cpath stroke-width='1.2' d='M0 8C70 3 140 14 210 8S320 3 360 8'/%3E%3Cpath stroke-width='1.8' d='M0 31C80 37 150 25 230 32S330 27 360 31'/%3E%3Cpath stroke-width='.9' d='M0 55C60 49 130 61 200 55S310 47 360 55'/%3E%3Cpath stroke-width='1.5' d='M0 79C90 86 160 72 240 80S330 75 360 79'/%3E%3Cpath stroke-width='1' d='M0 103C70 97 140 109 210 103S320 96 360 103'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 360px 120px;
   }
-  /* Comic panel: paper fill, ink frame, square corners */
   .surface {
     background: var(--card);
-    border: 2px solid var(--ink);
+    border: 1px solid oklch(0.17 0.008 60 / 16%);
   }
   .surface-hover {
-    transition: transform 160ms var(--ease-out-expo), box-shadow 160ms var(--ease-out-expo);
+    transition: transform 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo), border-color 180ms;
   }
   .surface-hover:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0 0 var(--ink);
+    transform: translate(-1px, -1px);
+    border-color: var(--ink);
+    box-shadow: 3px 3px 0 0 var(--ink);
   }
   .font-hash {
     font-family: var(--font-geist-mono), ui-monospace, monospace;
@@ -284,10 +287,10 @@
     opacity: 0;
   }
 }
-.dash .hold-ring {
+.hold-ring {
   transition: stroke-dashoffset 0.2s var(--ease-out-d);
 }
-.dash .hold-ring.holding {
+.hold-ring.holding {
   transition: stroke-dashoffset var(--dur-hold) linear;
 }
 @media (prefers-reduced-motion: no-preference) {

@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AlertBanner, EmptyState, HashChip, LiveDot, LoadingRows, PageTitle, Spinner } from "@/components/kit";
+import { HoldButton } from "@/components/dashboard/hold-button";
+import { EvidenceDetail } from "@/components/evidence-detail";
 import { api, useAction, useApi } from "@/lib/api";
 import { dur, ease, spring, stagger } from "@/lib/motion";
 import type { AttackResult, Batch, Deployment, EventItem, EventRecord, Score, Status, VerificationReport } from "@/lib/types";
@@ -80,6 +82,7 @@ export default function AttackLab() {
   const [command, setCommand] = useState<string | null>(null);
   const [chain, setChain] = useState<Record<number, ChainBatch | null>>({});
   const [focus, setFocus] = useState<number | null>(null);
+  const [proofSeq, setProofSeq] = useState<number | null>(null);
   const rowRefs = useRef(new Map<number, HTMLDivElement>());
 
   const deployment = batches.data?.deployment ?? null;
@@ -191,7 +194,7 @@ export default function AttackLab() {
 
       {/* Command bar */}
       <div className="surface flex flex-col gap-3 rounded-sm p-3 lg:flex-row lg:items-center">
-        <div className="label-caps flex items-center gap-2 bg-ink px-2 py-1.5 text-paper">
+        <div className="label-caps flex items-center gap-2 px-1 text-ink/70">
           <Terminal className="size-4 text-primary" /> Attacker toolkit
         </div>
         <div className="flex flex-1 flex-wrap gap-2">
@@ -208,9 +211,12 @@ export default function AttackLab() {
             </Button>
           ))}
         </div>
-        <Button size="lg" onClick={verify} disabled={!hasData || !!action.busy} className="lg:min-w-48">
-          {verifying ? <Spinner /> : <ScanSearch />} Verify integrity
-        </Button>
+        <div className="flex items-center gap-3">
+          <HoldButton label="verify" busy={verifying} disabled={!hasData || !!action.busy} onComplete={verify} />
+          <Button size="lg" onClick={verify} disabled={!hasData || !!action.busy} className="lg:min-w-48">
+            {verifying ? <Spinner /> : <ScanSearch />} Verify integrity
+          </Button>
+        </div>
       </div>
 
       <AnimatePresence mode="popLayout">
@@ -264,7 +270,7 @@ export default function AttackLab() {
             {verifying && (
               <motion.div
                 key="scan"
-                className="pointer-events-none absolute inset-x-0 top-0 z-20 h-1.5 bg-primary shadow-[0_0_0_2px_var(--ink)]"
+                className="pointer-events-none absolute inset-x-0 top-0 z-20 h-1 bg-primary"
                 initial={{ y: 0, opacity: 0 }}
                 animate={{ y: ["0%", "900%"], opacity: [0, 1, 1, 0] }}
                 exit={{ opacity: 0, transition: { duration: 0.2 } }} // own transition: the looping one below would never let exit finish
@@ -273,7 +279,7 @@ export default function AttackLab() {
             )}
           </AnimatePresence>
 
-          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_52px_minmax(0,1fr)]">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[minmax(0,1fr)_52px_minmax(0,1fr)]">
             {/* Panel headers */}
             <HostHeader attacked={attacked || detectedNow} command={command} busy={!!action.busy && action.busy !== "verify"} hostCount={hostCount} vaultCount={vaultCount} />
             <div className="hidden lg:block" />
@@ -312,7 +318,10 @@ export default function AttackLab() {
 
       {report && !stale && report.findings.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: dur.base, ease: ease.out }} className="surface rounded-2xl p-4">
-          <div className="mb-3 text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">What the verifier proved</div>
+          <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+            <div className="label-caps text-ink/70">What the verifier proved</div>
+            <div className="text-xs text-muted-foreground">Select a finding to open its record, hashes and Merkle proof</div>
+          </div>
           <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             {report.findings.slice(0, 12).map((f, i) => (
               <motion.button
@@ -322,9 +331,9 @@ export default function AttackLab() {
                 transition={stagger(i)}
                 onClick={() => {
                   setFocus(f.seq);
-                  rowRefs.current.get(f.seq)?.scrollIntoView({ behavior: "smooth", block: "center" });
+                  setProofSeq(f.seq);
                 }}
-                className="surface-hover rounded-xl border bg-card/40 p-3 text-left text-xs"
+                className="surface surface-hover rounded-sm p-3 text-left text-xs"
               >
                 <div className="mb-1 flex items-center gap-2">
                   <VerdictPill verdict={f.status} />
@@ -339,11 +348,37 @@ export default function AttackLab() {
                       .join(" · ")}
                   {f.status === "INJECTED" && <>No commitment exists: {f.host_record?.msg}</>}
                 </div>
+                <div className="mt-2 text-[11px] font-semibold tracking-[0.08em] text-ink uppercase underline underline-offset-2">Inspect proof →</div>
               </motion.button>
             ))}
           </div>
         </motion.div>
       )}
+
+      {/* Trace a finding to its record, hashes, Merkle proof and on-chain commitment */}
+      <AnimatePresence>
+        {proofSeq !== null && (
+          <motion.div className="fixed inset-0 z-50 flex justify-end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <div className="absolute inset-0 bg-ink/45" onClick={() => setProofSeq(null)} />
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label={`Evidence for record ${proofSeq}`}
+              className="relative h-full w-full max-w-[34rem] overflow-y-auto bg-background p-3 sm:p-4"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={spring.soft}
+            >
+              <div className="mb-2 flex items-center justify-between gap-2 px-1">
+                <span className="label-caps text-ink/70">Trace to proof</span>
+                <button className="rounded-sm border border-ink px-2 py-1 text-xs font-semibold" onClick={() => setProofSeq(null)}>Close</button>
+              </div>
+              <EvidenceDetail key={proofSeq} seq={proofSeq} rpcUrl={rpcUrl} contract={deployment?.contract_address} onClose={() => setProofSeq(null)} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -361,14 +396,14 @@ function Stepper({ step }: { step: number }) {
           <li
             key={label}
             className={cn(
-              "surface flex items-center gap-3 rounded-sm px-3 py-2.5 text-xs transition-[background-color,color] duration-300",
-              current && "bg-ink! text-paper", // ! beats the .surface background
+              "surface flex items-center gap-3 rounded-sm px-3 py-2.5 text-xs transition-[border-color] duration-300",
+              current && "border-ink!",
             )}
           >
             <span
               className={cn(
-                "grid size-7 shrink-0 place-items-center rounded-full border-2 font-display text-sm font-black transition-colors duration-300",
-                done ? "border-ink bg-ok text-paper" : current ? "border-paper bg-primary text-paper" : "border-ink text-ink",
+                "grid size-7 shrink-0 place-items-center rounded-full border text-[12px] font-semibold transition-colors duration-300",
+                done ? "border-ok bg-ok text-white" : current ? "border-primary bg-primary text-white" : "border-ink/30 text-ink/60",
               )}
             >
               {done ? <Check className="size-3.5" /> : i + 1}
@@ -383,8 +418,8 @@ function Stepper({ step }: { step: number }) {
 
 function HostHeader({ attacked, command, busy, hostCount, vaultCount }: { attacked: boolean; command: string | null; busy: boolean; hostCount: number; vaultCount: number }) {
   return (
-    <div className={cn("surface flex flex-col rounded-sm p-4 transition-shadow duration-500", attacked && "shadow-[6px_6px_0_0_var(--bad)]")}>
-      <div className="flex items-center justify-between gap-2">
+    <div className={cn("surface flex flex-col rounded-sm p-4 transition-shadow duration-500", attacked && "border-t-[3px] border-t-[var(--bad)]")}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className={cn("grid size-8 place-items-center rounded-lg transition-colors", attacked ? "bg-bad/15 text-bad" : "bg-muted text-muted-foreground")}>
             <Server className="size-4" />
@@ -413,7 +448,7 @@ function HostHeader({ attacked, command, busy, hostCount, vaultCount }: { attack
             transition={{ duration: dur.base, ease: ease.out }}
             className="overflow-hidden"
           >
-            <div className="mt-3 flex items-center gap-2 overflow-hidden rounded-sm border-2 border-ink bg-ink px-3 py-2 font-hash text-[11.5px] text-paper">
+            <div className="mt-3 flex items-center gap-2 overflow-hidden rounded-sm bg-ink px-3 py-2 font-hash text-[11.5px] text-paper">
               <span className="text-bad">root@web-prod-01:~#</span>
               <motion.span
                 className="truncate"
@@ -458,8 +493,8 @@ function ChainHeader({
 }) {
   const match = verified && !!onchain && hostRoot === onchain.merkle_root;
   return (
-    <div className="surface rounded-sm p-4 shadow-[6px_6px_0_0_var(--ink)]">
-      <div className="flex items-center justify-between gap-2">
+    <div className="surface rounded-sm border-t-[3px] border-t-[var(--info)] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="grid size-8 place-items-center rounded-lg bg-info/15 text-info">
             <Link2 className="size-4" />
@@ -471,7 +506,7 @@ function ChainHeader({
             </div>
           </div>
         </div>
-        <span className="label-caps inline-flex -rotate-3 items-center gap-1.5 border-2 border-ink bg-ink px-2 py-0.5 whitespace-nowrap text-paper">
+        <span className="label-caps inline-flex items-center gap-1.5 rounded-[2px] border border-ink bg-white px-2 py-0.5 whitespace-nowrap text-ink">
           <Lock className="size-3" /> immutable
         </span>
       </div>
@@ -497,7 +532,7 @@ function ChainHeader({
             transition={{ duration: dur.base, ease: ease.out }}
             className={cn("mt-3 rounded-lg border px-3 py-2 text-[11.5px]", match ? "border-ok/30 bg-ok/[0.07] text-ok" : "border-bad/35 bg-bad/[0.08] text-bad")}
           >
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span>Root rebuilt from host logs</span>
               {hostRoot ? <HashChip value={hostRoot} n={7} tone={match ? "ok" : "bad"} /> : <span className="font-hash">cannot rebuild</span>}
             </div>
@@ -576,7 +611,7 @@ function RowPair({
   const attackerLine = (row.host?.msg ?? row.anchored?.msg ?? "").includes(ATTACKER_IP);
 
   return (
-    <div ref={refCb} className={cn("grid gap-2 rounded-2xl border p-2 lg:contents", bad && "border-bad/30", focused && "ring-2 ring-primary/40 lg:ring-0")}>
+    <div ref={refCb} className={cn("grid grid-cols-[minmax(0,1fr)] gap-2 rounded-sm border p-2 lg:contents", bad && "border-bad/30", focused && "ring-2 ring-primary/40 lg:ring-0")}>
       {/* LEFT: host */}
       <motion.div
         layout="position"
