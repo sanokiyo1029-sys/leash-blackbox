@@ -1,8 +1,16 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-20, session S04 (laptop A), ScrollCraft story checkpoint (handoff at 90% usage)_
+_Last updated: 2026-11-20, session S05 (laptop B), T-040 e2e checkpoint_
 
-## S04 status (read first)
+## S05 status (read first)
+- Laptop B pulled `60fb9a7` (fast-forward, clean) and took over `main`.
+- T-040 steps 1–3 done: `frontend/e2e/story.spec.ts` (page reaches `html.sc-ready`; the browser-computed root equals
+  `916a1113…fa390`; CTA href `/attack`; live line "Live now: local chain 31337 · block N · M events anchored" on the
+  e2e stack; no console errors; "Story" link in the desktop header) and `/story` added to the responsive routes.
+- `npm run test:e2e` → **27 passed, 1 skipped** (run with the demo stack stopped).
+- Still open: T-040 steps 4–5 (`/story` on the :3000 production stack from `start-all.cmd`, feel-check diff in BRIEF.md).
+
+## S04 status
 - **HANDOFF NOW from laptop A at the end of S04.** The other laptop continues with T-040. Laptop A may still have
   the demo stack (:8545/:8000/:3000) and the dev server (:3100) running locally; that does not affect git.
 - **New route `/story`**: a ScrollCraft scroll story with seven chapters in one continuous world. The visitor's
@@ -140,7 +148,7 @@ Optional public testnet anchoring
 - `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
 - `python verifier\leash_verify.py BUNDLE.json --rpc http://127.0.0.1:8545`
 - `cd frontend; npm install; npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`
-- `cd frontend; npm run test:e2e` → **23 passed, 1 skipped** (re-run in S02 after T-029) (7 smoke + 16 responsive; the screenshot spec is skipped unless CAPTURE=1) (starts its own Hardhat :8546, API :8011, Next :3011;
+- `cd frontend; npm run test:e2e` → **27 passed, 1 skipped** (S05: 7 smoke + 2 story + 18 responsive; the screenshot spec is skipped unless CAPTURE=1) (starts its own Hardhat :8546, API :8011, Next :3011;
   uses the installed Microsoft Edge, or set `PW_CHANNEL=chromium` after `npx playwright install chromium`)
 
 ## Failing commands

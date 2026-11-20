@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 // Every route must fit a 375px phone and a 768px tablet without horizontal scrolling or console errors.
-const ROUTES = ["/", "/attack", "/evidence", "/auditor", "/proofs", "/demo", "/validation", "/architecture"];
+const ROUTES = ["/", "/attack", "/evidence", "/auditor", "/proofs", "/demo", "/validation", "/architecture", "/story"];
 
 for (const width of [375, 768]) {
   test.describe(`viewport ${width}px`, () => {
