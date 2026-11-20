@@ -22,7 +22,10 @@ Phase 7 started: guided presentation mode at `/demo` (T-017) done.
 Validation experiments (T-015) done; results committed in `docs/validation/RESULTS.md`.
 Pitch script (`docs/PITCH.md`) and real screenshots (`docs/img/`) done (T-019).
 Hardening T-020 done (lab gating + ingest token).
-**Next: T-022 real log-file agent, T-023 start script, T-021 per-host credentials; T-018 needs the owner's testnet key.**
+**Premium UI transformation (T-024..T-028) done:** design system, Attack Lab split-screen centerpiece,
+dashboard, evidence verification panel and auditor batch audit. Legacy screens are still to be restyled (T-029),
+and the mobile pass on every route is still to do (T-030).
+**Next: T-029 restyle legacy screens with the kit, T-030 mobile pass; then T-022/T-023/T-021. T-018 needs the owner's testnet key.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -31,7 +34,7 @@ Hardening T-020 done (lab gating + ingest token).
   transaction on Hardhat → receipt and event checked → verification (host vs vault vs chain).
 - Attack lab: cover_tracks, alter_evidence, fabricate_alibi, timestomp, truncate_tail, wipe_all, random_tamper.
 - Evidence export (vault/host, full/selective) and `verifier/leash_verify.py` (stdlib only, own Keccak).
-- `backend/.venv/Scripts/python -m pytest` → **80 passed** (latest run, includes demo-mode gating and ingest-token tests).
+- `backend/.venv/Scripts/python -m pytest` → **81 passed** (latest run, includes the targeted erase/rewrite attack test).
 - `backend/.venv/Scripts/python scripts/run_validation.py --trials 30` → 30 trials, 476 tampered
   records: recall 100%, precision 100%, 0 clean-run false alarms, independent CLI agreed 30/30
   (about 42 s; full tables in docs/validation/RESULTS.md).
@@ -68,7 +71,7 @@ Real log-file agent (T-022), start script (T-023), per-host credentials (T-021),
 - `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
 - `python verifier\leash_verify.py BUNDLE.json --rpc http://127.0.0.1:8545`
 - `cd frontend; npm install; npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`
-- `cd frontend; npm run test:e2e` → **6 passed** (starts its own Hardhat :8546, API :8011, Next :3011;
+- `cd frontend; npm run test:e2e` → **8 passed** (7 smoke + 1 screenshot spec skipped unless CAPTURE=1) (starts its own Hardhat :8546, API :8011, Next :3011;
   uses the installed Microsoft Edge, or set `PW_CHANNEL=chromium` after `npx playwright install chromium`)
 
 ## Failing commands
@@ -90,6 +93,19 @@ None confirmed. See KNOWN_ISSUES.md for limitations.
 None.
 
 ## Exact next task
-T-022: `agent/tail_agent.py`, which tails a real auth.log-style file, parses lines into events and POSTs them to
-`/api/events/ingest` with `LEASH_INGEST_TOKEN`. Then show in a test that editing the file after ingest is caught
-(the agent keeps its host-side copy in host_logs.db as today).
+T-029: restyle `/proofs`, `/validation`, `/demo`, `/architecture` and the lower "Full-bundle audit" part of `/auditor`
+with the kit components (`PageTitle`, `Panel`, `MetricCard`, `AlertBanner`, `HashChip`), matching the Attack Lab
+and dashboard. Keep the e2e selectors working: button names "Run the full story", "Load protected vault evidence",
+"Verify in my browser"; texts "status 1 · 1 log", "Protected evidence". Then run `npm run test:e2e`.
+
+## UI architecture notes (for the next session)
+- Tokens: `frontend/app/globals.css` (`.dark` block: background/primary/violet/ok/warn/bad, shadows; utilities
+  `.surface`, `.surface-hover`, `.app-backdrop`, `.font-hash`; reduced-motion override).
+- Motion: `frontend/lib/motion.ts` (ease, dur, spring, fadeUp, stagger). `MotionConfig reducedMotion="user"` lives in `AppShell`.
+- Components: `frontend/components/kit.tsx` (Panel, PageTitle, MetricCard/AnimatedNumber, LiveDot, AlertBanner,
+  EmptyState, Skeleton/LoadingRows, Spinner, Modal, Reveal, HashChip). Legacy helpers remain in `components/status.tsx`.
+- Attack Lab: `frontend/app/attack/page.tsx`. Rows are a single 3-column grid on desktop (`lg:contents` wrapper);
+  verdicts come only from the explicit `/api/verify` report (never from live diffing), and the on-chain root is
+  read directly via `lib/verify.ts readBatch`.
+- New API: `POST /api/attacks/erase_record` and `rewrite_record` with `{"params": {"seq": N}}`
+  (`GET /api/attacks/scenarios` lists them under `targeted`).

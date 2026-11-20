@@ -86,4 +86,15 @@ test.describe.serial("LEASH BLACKBOX core screens", () => {
     await expect(page.getByText("TAMPERING DETECTED")).toBeVisible();
     await expect(page.getByText(/MISSING — committed in batch 0/).first()).toBeVisible();
   });
+
+  test("auditor: batch audit flags the tampered host copy and verifies the vault", async ({ page }) => {
+    await page.goto("/auditor");
+    await page.getByRole("option", { name: /Batch #0/ }).click();
+    await expect(page.getByText("Vault root matches chain")).toBeVisible();
+    await page.getByRole("button", { name: "Verify host's current logs" }).click();
+    await expect(page.getByText("Discrepancies found")).toBeVisible();
+    await expect(page.getByRole("cell", { name: "MISSING" }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Verify protected evidence" }).click();
+    await expect(page.getByText("Verified", { exact: true })).toBeVisible();
+  });
 });

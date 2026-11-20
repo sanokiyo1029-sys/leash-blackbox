@@ -34,4 +34,12 @@
 - **Pitch:** `docs/PITCH.md`, plus 6 real screenshots captured by Playwright (`docs/img/`). Fixed a premature-match bug
   in the demo e2e wait condition.
 - **Hardening:** ingest bearer token (`LEASH_INGEST_TOKEN`, constant-time compare); 80 tests passed.
-- **Remaining problems:** none blocking; T-018 (needs the owner's testnet key), T-021, T-022 and T-023 are open.
+- **Premium UI transformation (same session, later):**
+  - The reference Instagram reel was behind a login wall: only the account name and a "FUTURE of web design" caption
+    were visible, so I did not attempt exact reference matching. I followed the written design direction instead.
+  - Built the design system, the Attack Lab split screen (with targeted erase/rewrite API + test), the dashboard,
+    the evidence verification panel and the auditor batch audit. Added Motion (`motion` npm).
+  - Tests: backend 81 passed; e2e 7 smoke passed (the Attack Lab test also asserts 0 console errors); screenshots
+    were regenerated.
+- **Remaining problems:** legacy screens not yet restyled (T-029); mobile pass across all routes (T-030); T-018,
+  T-021, T-022 and T-023 are open.

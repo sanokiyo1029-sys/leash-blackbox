@@ -5,6 +5,7 @@ import { Download, FileJson, Loader2, ShieldCheck, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { BatchAudit } from "@/components/batch-audit";
 import { ErrorNote, PageHeader, Stat } from "@/components/status";
 import { api, useAction, useApi } from "@/lib/api";
 import type { Status } from "@/lib/types";
@@ -71,6 +72,9 @@ export default function AuditorPortal() {
       />
       <ErrorNote error={action.error} />
 
+      <BatchAudit />
+
+      <h2 className="pt-2 text-sm font-semibold tracking-tight text-muted-foreground">Full-bundle audit</h2>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>

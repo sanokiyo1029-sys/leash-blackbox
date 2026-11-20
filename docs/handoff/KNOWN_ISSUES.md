@@ -11,3 +11,5 @@
 | KI-006 | Frontend | The Validation page's trial runner resets demo data and redeploys the contract on every trial (by design; there is a warning on the page). | Info | Documented |
 | KI-007 | Frontend | In-browser verification calls the RPC endpoint directly; it works with Hardhat (CORS `*`). Other nodes may need CORS enabled. | Low | Open |
 | KI-008 | Frontend | Playwright smoke tests cover the 5 core screens only (not Validation/Architecture). On machines without Edge, set `PW_CHANNEL=chromium` and run `npx playwright install chromium`. | Low | Open |
+| KI-010 | Frontend | Proofs, Validation, Guided Demo, Architecture and the lower Auditor section still use the first-generation styling (functional, but not yet on the new kit). | Low | Open (T-029) |
+| KI-011 | Frontend | The Attack Lab's attack highlights (amber/crimson before verification) come from this browser session's own actions; after a reload only the verifier's verdicts (from a new verification) are shown. | Info | By design |
