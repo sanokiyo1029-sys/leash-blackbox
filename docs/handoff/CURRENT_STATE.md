@@ -2,6 +2,39 @@
 
 _Last updated: 2026-11-20, session S05 (laptop B), T-040 and T-041 done_
 
+## S06 status: GHOST PROTOCOL P0 (branch `feature/ghost-protocol`, laptop A, read first)
+- **Not merged into `main`.** `main` was being advanced from the other laptop (T-040, T-041, API proxy), so this work
+  is on its own branch. Merging is the owner's decision (T-048).
+- **What exists: the first independent witness and the first evidence-of-silence rule.**
+  - **The witness (`backend/app/witness.py`).** A gateway witness signs every SSH session it observes. The signature
+    is secp256k1 ECDSA over EIP-191 of the canonical claim, made with `eth_account`, which was already installed.
+  - **Separation.** The witness has its own key (`data/witness/gateway.key`) and its own append-only store
+    (`data/witness/witness.db`). Its identity is registered in the vault (`witness_registry`), not in its own store.
+  - **Rule: `ssh-session-corroboration` v1.** Every witnessed session must match one host-forwarded `sshd
+    login_success` in the vault with the same host, user and source IP, within ±120 s. Matching is 1:1.
+  - **Verdicts.** A session that was witnessed but never reported gives the new verdict `OBSERVED_OMISSION`, which
+    ranks below `TAMPERING_DETECTED` and above `INCONCLUSIVE`. Unregistered or invalid signatures are rejected and
+    make the run `INCONCLUSIVE`, never `CLEAN`.
+  - **Reporting.** `report.witness` carries the policy, the signature scheme, the trust assumptions, corroborated
+    observations, rejected observations and omissions.
+  - **Attack and API.** A new attack, `silent_login`, kills the host logger and logs in from the attacker's IP: the
+    host writes nothing, and the witness records the session. `GET /api/witness` lists observations. Seeded traffic
+    (`/api/simulate/traffic`) is observed by the witness too, so the clean baseline shows corroboration.
+  - **UI.** Attack Lab gains a "Go silent" button and an amber "Observed omission" banner (who, from where, when,
+    signer, signature valid, policy). The clean banner states how many sessions the witness corroborated. The
+    Dashboard has an amber "Silent" view.
+- **Verified in S06:**
+  - backend `pytest` **95 passed** (90 existing + 5 new in `tests/test_witness.py`);
+  - Playwright **27 passed, 1 skipped**;
+  - frontend `tsc` and lint clean;
+  - **live on the real stack** (`start-all.cmd`, this branch): baseline verify CLEAN ("witness signed 21 SSH
+    sessions; the host reported every one"), then Go silent, then verify gave Observed omission (deploy from
+    203.0.113.45, signature valid, host still 132 lines).
+  - One copy tweak (stale-banner title after a silent attack) came after the e2e run; `tsc` and lint were rerun.
+- **Trust boundary (be honest in the pitch).** The witness is logically isolated (separate key, store and
+  registry), not physically independent: it runs in the same process on the same laptop. A valid signature proves
+  the witness made the claim, not that the claim is true. An omission shows the host stayed silent, not why.
+
 ## S05 status (read first)
 - Laptop B pulled `60fb9a7` (fast-forward, clean) and took over `main`.
 - T-040 steps 1–3 done: `frontend/e2e/story.spec.ts` (page reaches `html.sc-ready`; the browser-computed root equals
@@ -181,6 +214,10 @@ None in the code. For a new teammate: pushing needs a GitHub account with write 
 (`$env:GH_TOKEN=''` in PowerShell, `env -u GH_TOKEN` in bash) before pushing.
 
 ## Exact next task
+**S06 (GHOST branch):** decide T-048 (merge `feature/ghost-protocol`). Then GHOST P1 in this order: T-043 signed
+host heartbeats + REPORTING_GAP, T-045 dispute package committed on-chain, T-044 second witness and 2-of-3 quorum.
+T-047 (Quai) is blocked on the owner: confirm the organizer requirement and provide a funded key in a local `.env`.
+
 **S04: T-040 first** (see NEXT_TASKS). Stop the demo stack, run e2e (add the `/story` smoke test), restart
 `scripts\start-all.cmd`, check `/story` at :3000 including the live-status line, then write the feel-check diff in
 BRIEF.md. After that: T-033 (owner rehearsal).

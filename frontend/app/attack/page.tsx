@@ -5,6 +5,7 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import {
   Check,
   Clock,
+  EyeOff,
   Eraser,
   FilePlus2,
   Link2,
@@ -30,13 +31,14 @@ import { cn } from "@/lib/utils";
 
 const ATTACKER_IP = "203.0.113.45";
 
-type Touch = "delete" | "modify" | "inject";
+type Touch = "delete" | "modify" | "inject" | "silence";
 
 const TOOLKIT: { id: string; label: string; hint: string; icon: React.ComponentType<{ className?: string }>; action: Touch; cmd: string; params?: Record<string, unknown> }[] = [
   { id: "cover_tracks", label: "Erase my trail", hint: "delete every line with the attacker IP", icon: Eraser, action: "delete", cmd: `sed -i '/${ATTACKER_IP}/d' /var/log/auth.log` },
   { id: "alter_evidence", label: "Launder evidence", hint: "swap attacker IP, downgrade severity", icon: PenLine, action: "modify", cmd: `sed -i 's/${ATTACKER_IP}/10.0.4.12/g; s/critical/info/' /var/log/auth.log` },
   { id: "fabricate_alibi", label: "Plant an alibi", hint: "append fake admin logins", icon: FilePlus2, action: "inject", cmd: "printf 'Accepted publickey for alice ...' >> /var/log/auth.log", params: { count: 2 } },
   { id: "timestomp", label: "Timestomp", hint: "shift intrusion times back 3 days", icon: Clock, action: "modify", cmd: "touch -d '-3 days' ...; rewrite timestamps" },
+  { id: "silent_login", label: "Go silent", hint: "kill the logger, then log in", icon: EyeOff, action: "silence", cmd: `systemctl stop rsyslog auditd; ssh deploy@web-prod-01 # from ${ATTACKER_IP}` },
 ];
 
 interface Row {
@@ -78,6 +80,7 @@ export default function AttackLab() {
   const [report, setReport] = useState<VerificationReport | null>(null);
   const [score, setScore] = useState<Score | null>(null);
   const [touched, setTouched] = useState<Map<number, Touch>>(new Map());
+  const [silenced, setSilenced] = useState(false); // a silent attack writes nothing, so it touches no row
   const [stale, setStale] = useState(true);
   const [command, setCommand] = useState<string | null>(null);
   const [chain, setChain] = useState<Record<number, ChainBatch | null>>({});
@@ -133,6 +136,7 @@ export default function AttackLab() {
     setReport(null);
     setScore(null);
     setTouched(new Map());
+    setSilenced(false);
     setStale(true);
     setCommand(null);
     if (ok !== null) await reload();
@@ -160,12 +164,14 @@ export default function AttackLab() {
       r.seqs.forEach((s) => next.set(s, kind));
       return next;
     });
+    if (kind === "silence") setSilenced(true);
     setStale(true);
     await reload();
   };
 
   const hasData = (events.data?.items.length ?? 0) > 0;
-  const attacked = touched.size > 0;
+  const attacked = touched.size > 0 || silenced;
+  const omissions = (!stale && report?.witness?.omissions) || [];
   const detectedNow = !!report && !stale && report.verdict !== "CLEAN";
   const step = !hasData ? 0 : detectedNow ? 4 : !report && !attacked ? 1 : !attacked ? 2 : stale ? 3 : 4;
   const hostCount = (events.data?.items ?? []).filter((i) => i.host_record).length;
@@ -224,6 +230,7 @@ export default function AttackLab() {
         {report && !stale && report.verdict === "CLEAN" && (
           <AlertBanner key="clean" tone="success" title={`Verified — all ${s?.intact} records match the on-chain commitment`}>
             Recomputed {s?.intact} SHA-256 leaves and the Merkle root in {report.duration_ms} ms; chain attestation {report.chain_attestation}.
+            {s?.witness_observations ? ` The gateway witness signed ${s.witness_observations} SSH sessions; the host reported every one.` : ""}
           </AlertBanner>
         )}
         {report && !stale && report.verdict === "TAMPERING_DETECTED" && (
@@ -240,11 +247,23 @@ export default function AttackLab() {
             )}
           </AlertBanner>
         )}
+        {omissions.length > 0 && (
+          <AlertBanner key="omit" tone="warn" title={`Observed omission — the gateway witnessed ${omissions.length === 1 ? "a session" : `${omissions.length} sessions`} the server never reported`}>
+            {omissions.map((o) => (
+              <span key={o.observation.obs_id} className="block">
+                {o.observation.user} from {o.observation.src_ip} at {o.observation.observed_at} · signed by gateway witness {o.observation.witness.slice(0, 10)}… ·{" "}
+                {o.signature_valid ? "signature valid" : "signature INVALID"}
+              </span>
+            ))}
+            Policy {report?.witness?.policy.id} v{report?.witness?.policy.version}: every witnessed session needs a matching host login within ±{report?.witness?.policy.skew_seconds} s. This shows the host stayed
+            silent; it does not by itself show why.
+          </AlertBanner>
+        )}
         {report && !stale && report.verdict === "INCONCLUSIVE" && (
           <AlertBanner key="inc" tone="warn" title="Inconclusive — the blockchain could not be reached">Nothing is reported as clean without the chain.</AlertBanner>
         )}
         {attacked && stale && (
-          <AlertBanner key="stale" tone="warn" title="Host logs changed since the last verification">
+          <AlertBanner key="stale" tone="warn" title={touched.size === 0 ? "The host stopped reporting since the last verification" : "Host logs changed since the last verification"}>
             The server now says everything is fine. Run <b>Verify integrity</b> to check it against the chain.
           </AlertBanner>
         )}

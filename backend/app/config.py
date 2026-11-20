@@ -43,6 +43,16 @@ class Settings:
         return self.data_dir / "vault" / "evidence.db"
 
     @property
+    def witness_db_path(self) -> Path:
+        """GHOST witness observations: OUTSIDE the host's reach (logically isolated in this prototype)."""
+        return self.data_dir / "witness" / "witness.db"
+
+    @property
+    def witness_key_path(self) -> Path:
+        """The gateway witness's own signing key, separate from host and anchor credentials. Never commit it."""
+        return self.data_dir / "witness" / "gateway.key"
+
+    @property
     def lab_db_path(self) -> Path:
         """Attack-lab ground truth, used only to score detection, never by the verifier."""
         return self.data_dir / "lab" / "lab.db"

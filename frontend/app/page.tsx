@@ -12,7 +12,7 @@ import { dur, ease } from "@/lib/motion";
 import type { Batch, EventItem, Status, VerificationReport } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type View = "loading" | "error" | "empty" | "unverified" | "clean" | "tampered" | "inconclusive";
+type View = "loading" | "error" | "empty" | "unverified" | "clean" | "tampered" | "omission" | "inconclusive";
 
 const VERDICT_COPY: Record<View, { word: string; line: string }> = {
   loading: { word: "…", line: "Connecting to the evidence pipeline and the chain." },
@@ -21,6 +21,7 @@ const VERDICT_COPY: Record<View, { word: string; line: string }> = {
   unverified: { word: "Not verified", line: "Evidence is collected and anchored, but nobody has checked the host against it yet." },
   clean: { word: "Clean", line: "Host logs match the on-chain proof." },
   tampered: { word: "Tampered", line: "The host's logs no longer match what was committed on-chain." },
+  omission: { word: "Silent", line: "An independent witness saw a session the host never reported." },
   inconclusive: { word: "Inconclusive", line: "The chain could not be reached, so the host was not attested." },
 };
 
@@ -39,7 +40,7 @@ export default function Dashboard() {
   const last = s?.last_verification ?? null;
   const items = useMemo(() => events.data?.items ?? [], [events.data]);
 
-  const view: View = !s ? (status.error ? "error" : "loading") : s.counts.vault_events + s.counts.host_events === 0 ? "empty" : !last ? "unverified" : last.verdict === "CLEAN" ? "clean" : last.verdict === "TAMPERING_DETECTED" ? "tampered" : "inconclusive";
+  const view: View = !s ? (status.error ? "error" : "loading") : s.counts.vault_events + s.counts.host_events === 0 ? "empty" : !last ? "unverified" : last.verdict === "CLEAN" ? "clean" : last.verdict === "TAMPERING_DETECTED" ? "tampered" : last.verdict === "OBSERVED_OMISSION" ? "omission" : "inconclusive";
 
   // Only trust the report of the run the status names (a stale report must never colour the seal).
   const rep = report.data && last && report.data.run_id === last.run_id ? report.data : null;
@@ -82,7 +83,7 @@ export default function Dashboard() {
   };
 
   const red = view === "tampered";
-  const amber = view === "inconclusive";
+  const amber = view === "inconclusive" || view === "omission";
   const ink = view === "error";
   const copy = VERDICT_COPY[view];
   const diverging = counts.MODIFIED + counts.DELETED + counts.INJECTED;

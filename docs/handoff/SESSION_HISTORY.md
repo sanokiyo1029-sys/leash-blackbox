@@ -229,3 +229,13 @@
   `next.config.ts` rewrites `/api/*` to the backend; e2e uses the proxy too (27 passed + 1 skipped). KI-026.
 - **Left running:** the demo stack (:8545/:8000/:3000, production build) for the owner.
 
+### S06 (laptop A, 2026-11-21): GHOST PROTOCOL P0 on `feature/ghost-protocol`
+- The owner pasted the "GHOST ENTERPRISE" master prompt. Scope was cut to its own P0 (ponytail ultra): enterprise
+  features, the inquiry form, integrations, the forensic graph, extra verdict names and business documents were
+  deferred, with the reasons given to the owner.
+- `main` had moved on the other laptop (`57400da`: T-040, T-041, API through the web origin). It was pulled
+  fast-forward, and the work went on a new branch.
+- **Built:** witness store and registry, the signed gateway witness, the ssh-session-corroboration rule, the
+  OBSERVED_OMISSION verdict, the silent_login attack, `/api/witness`, and UI for Attack Lab and the Dashboard.
+- **Tests:** backend 95 passed; Playwright 27 passed + 1 skipped. Live demo on the real stack: CLEAN with 21
+  corroborated sessions → Go silent → Observed omission, signature valid.

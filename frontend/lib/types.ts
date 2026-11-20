@@ -1,6 +1,6 @@
 export type EventStatus = "INTACT" | "MODIFIED" | "DELETED" | "INJECTED";
 export type Protection = "anchored" | "vault_only" | "unverifiable" | "none";
-export type Verdict = "CLEAN" | "TAMPERING_DETECTED" | "INCONCLUSIVE";
+export type Verdict = "CLEAN" | "TAMPERING_DETECTED" | "OBSERVED_OMISSION" | "INCONCLUSIVE";
 
 export interface EventRecord {
   v: number;
@@ -74,6 +74,33 @@ export interface Summary {
   batches_failed: number;
   host_batches_matching_chain: number;
   first_divergent_seq: number | null;
+  // GHOST witness (absent on runs recorded before the witness existed)
+  witness_observations?: number;
+  witness_corroborated?: number;
+  witness_rejected?: number;
+  omissions?: number;
+}
+
+export interface WitnessClaim {
+  obs_id: string;
+  witness: string;
+  role: string;
+  kind: string;
+  host: string;
+  user: string;
+  src_ip: string;
+  observed_at: string;
+}
+
+export interface WitnessReport {
+  policy: { id: string; version: number; rule: string; skew_seconds: number };
+  signature_scheme: string;
+  trust_assumptions: string[];
+  witnesses: string[];
+  observations: number;
+  corroborated: { obs_id: string; seq: number }[];
+  rejected: { obs_id: string; witness: string; reason: string }[];
+  omissions: { observation: WitnessClaim; signature: string; signature_valid: boolean; explanation: string }[];
 }
 
 export interface Status {
@@ -158,6 +185,7 @@ export interface VerificationReport {
   summary: Summary;
   batches: BatchReport[];
   findings: Finding[];
+  witness?: WitnessReport;
 }
 
 export interface VerifyRun {

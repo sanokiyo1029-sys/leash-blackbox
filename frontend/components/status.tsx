@@ -40,6 +40,7 @@ export function SeverityDot({ severity }: { severity?: string }) {
 const VERDICT = {
   CLEAN: ["success", "CLEAN — host logs match the on-chain proof"],
   TAMPERING_DETECTED: ["danger", "TAMPERING DETECTED"],
+  OBSERVED_OMISSION: ["warn", "OBSERVED OMISSION — a witnessed session the host never reported"],
   INCONCLUSIVE: ["warn", "INCONCLUSIVE — chain unreachable"],
 } as const;
 

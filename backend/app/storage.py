@@ -3,6 +3,7 @@
 host_logs.db  - the monitored host's local log store (attacker can modify it)
 evidence.db   - protected evidence vault, batches, deployments, reports
 lab.db        - attack-lab ground truth (scoring only; the verifier never reads it)
+witness.db    - GHOST witness observations, signed by the witness (outside the host's reach)
 """
 
 from __future__ import annotations
@@ -59,6 +60,16 @@ class VaultEvent(VaultBase):
     ingested_at: Mapped[str] = mapped_column(String(40))
     batch_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     leaf_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class WitnessRegistration(VaultBase):
+    """Witness identities the verifier accepts. Kept in the vault, not in the witness's own store."""
+
+    __tablename__ = "witness_registry"
+
+    witness_id: Mapped[str] = mapped_column(String(42), primary_key=True)  # signer address
+    role: Mapped[str] = mapped_column(String(32))
+    registered_at: Mapped[str] = mapped_column(String(40))
 
 
 class Batch(VaultBase):
@@ -127,6 +138,38 @@ class AttackAction(LabBase):
     detail_json: Mapped[str] = mapped_column(Text, default="{}")
 
 
+# ------------------------------------------------------------------------ witness
+class WitnessBase(DeclarativeBase):
+    pass
+
+
+class WitnessObservation(WitnessBase):
+    """One signed claim by an independent witness. Append-only."""
+
+    __tablename__ = "witness_observations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    obs_id: Mapped[str] = mapped_column(String(64), unique=True)
+    witness_id: Mapped[str] = mapped_column(String(42))
+    claim_json: Mapped[str] = mapped_column(Text)  # canonical JSON, exactly the signed bytes
+    signature: Mapped[str] = mapped_column(String(132))
+    recorded_at: Mapped[str] = mapped_column(String(40))
+
+
+WITNESS_TRIGGERS = [
+    """
+    CREATE TRIGGER IF NOT EXISTS witness_no_delete
+    BEFORE DELETE ON witness_observations
+    BEGIN SELECT RAISE(ABORT, 'witness store is append-only'); END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS witness_no_update
+    BEFORE UPDATE ON witness_observations
+    BEGIN SELECT RAISE(ABORT, 'witness store is append-only'); END;
+    """,
+]
+
+
 # Append-only enforcement inside the vault database. The application never
 # issues UPDATE/DELETE on evidence, except assigning an event to a batch once.
 VAULT_TRIGGERS = [
@@ -193,18 +236,24 @@ class Stores:
         self.host_engine = _sqlite_engine(s.host_db_path)
         self.vault_engine = _sqlite_engine(s.vault_db_path)
         self.lab_engine = _sqlite_engine(s.lab_db_path)
+        self.witness_engine = _sqlite_engine(s.witness_db_path)
         HostBase.metadata.create_all(self.host_engine)
         VaultBase.metadata.create_all(self.vault_engine)
         LabBase.metadata.create_all(self.lab_engine)
+        WitnessBase.metadata.create_all(self.witness_engine)
         with self.vault_engine.begin() as conn:
             for ddl in VAULT_TRIGGERS:
+                conn.execute(text(ddl))
+        with self.witness_engine.begin() as conn:
+            for ddl in WITNESS_TRIGGERS:
                 conn.execute(text(ddl))
         self._host = sessionmaker(self.host_engine, expire_on_commit=False)
         self._vault = sessionmaker(self.vault_engine, expire_on_commit=False)
         self._lab = sessionmaker(self.lab_engine, expire_on_commit=False)
+        self._witness = sessionmaker(self.witness_engine, expire_on_commit=False)
 
     def dispose(self) -> None:
-        for engine in (self.host_engine, self.vault_engine, self.lab_engine):
+        for engine in (self.host_engine, self.vault_engine, self.lab_engine, self.witness_engine):
             engine.dispose()
 
     def wipe(self) -> None:
@@ -215,7 +264,7 @@ class Stores:
         """
         self.dispose()
         s = self.settings
-        for path in (s.host_db_path, s.vault_db_path, s.lab_db_path):
+        for path in (s.host_db_path, s.vault_db_path, s.lab_db_path, s.witness_db_path):
             for suffix in ("", "-wal", "-shm", "-journal"):
                 p = Path(str(path) + suffix)
                 if p.exists():
@@ -230,6 +279,11 @@ class Stores:
     @contextmanager
     def vault(self) -> Iterator[Session]:
         with self._vault() as session, session.begin():
+            yield session
+
+    @contextmanager
+    def witness(self) -> Iterator[Session]:
+        with self._witness() as session, session.begin():
             yield session
 
     @contextmanager

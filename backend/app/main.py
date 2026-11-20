@@ -18,11 +18,12 @@ from .anchor import AnchorError
 from .attack import SCENARIOS, TARGETED, AttackLab
 from .config import REPO_ROOT, Settings, load_settings
 from .export import build_bundle
-from .generator import generate_traffic
-from .records import RawEvent
+from .generator import ATTACKER_IP, HOST, generate_traffic
+from .records import RawEvent, utc_now_iso
 from .service import LeashService, deployment_to_dict
 from .storage import VerificationRun
 from .verify import run_verification, snapshot
+from .witness import POLICY as WITNESS_POLICY, GatewayWitness, list_observations
 
 sys.path.insert(0, str(REPO_ROOT / "verifier"))
 import leash_verify  # noqa: E402  (standalone auditor tool, reused for the portal)
@@ -56,6 +57,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or load_settings()
     svc = LeashService(settings)
     lab = AttackLab(svc.stores.host, svc.stores.lab)
+    witness = GatewayWitness(svc)
 
     app = FastAPI(title="LEASH BLACKBOX", version=__version__,
                   description="The attacker can erase the logs. They cannot erase the proof.")
@@ -137,6 +139,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if not raws:
             return {"ingested": 0, "batches": []}
         records = svc.emit_from_host(raws)
+        witness.observe_traffic(raws)
         batches: list[dict[str, Any]] = []
         error = None
         if req.anchor:
@@ -217,9 +220,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def attack(scenario: str, req: AttackRequest | None = None) -> dict[str, Any]:
         require_demo_mode()
         try:
-            return lab.run(scenario, **((req.params if req else {}) or {}))
+            result = lab.run(scenario, **((req.params if req else {}) or {}))
         except (ValueError, TypeError) as exc:
             raise HTTPException(400, str(exc)) from exc
+        if scenario == "silent_login":
+            # The session happens in the world; only the independent gateway witness gets to record it.
+            result["witness"] = witness.observe_session(HOST, "deploy", ATTACKER_IP, utc_now_iso())
+        return result
+
+    @app.get("/api/witness")
+    def witness_view(limit: int = Query(200, ge=1, le=5000)) -> dict[str, Any]:
+        return {"witness_id": witness.witness_id, "role": witness.role, "policy": WITNESS_POLICY,
+                "observations": list_observations(svc, limit)}
 
     @app.get("/api/attacks")
     def attack_history(limit: int = Query(200, ge=1, le=5000)) -> dict[str, Any]:

@@ -21,6 +21,7 @@ from .hashchain import GENESIS, chain_over
 from .merkle import leaf_hash, merkle_root
 from .records import diff_records, record_from_host, record_leaf, utc_now_iso
 from .storage import Batch, HostEvent, VaultEvent, VerificationRun
+from .witness import check_observations
 
 # Batch states
 VERIFIED = "VERIFIED"
@@ -226,6 +227,7 @@ def snapshot(svc) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str,
 def run_verification(svc, persist: bool = True) -> dict[str, Any]:
     started = time.perf_counter()
     events, batch_reports, chain = snapshot(svc)
+    witness = check_observations(svc)
 
     counts = {INTACT: 0, MODIFIED: 0, DELETED: 0, INJECTED: 0}
     anchored_counts = {INTACT: 0, MODIFIED: 0, DELETED: 0}
@@ -245,9 +247,12 @@ def run_verification(svc, persist: bool = True) -> dict[str, Any]:
     unreachable = any(s == UNREACHABLE for s in batch_states)
     anchored_batches = sum(1 for s in batch_states if s != PENDING)
 
+    # Precedence: proven rewriting of history, then a witnessed session the host never reported, then "can't tell".
     if findings or vault_problem:
         verdict = "TAMPERING_DETECTED"
-    elif unreachable:
+    elif witness["omissions"]:
+        verdict = "OBSERVED_OMISSION"
+    elif unreachable or witness["rejected"]:
         verdict = "INCONCLUSIVE"
     else:
         verdict = "CLEAN"
@@ -275,6 +280,10 @@ def run_verification(svc, persist: bool = True) -> dict[str, Any]:
         "batches_failed": sum(1 for s in batch_states if s in (VAULT_MISMATCH, MISSING_ON_CHAIN)),
         "host_batches_matching_chain": sum(1 for r in batch_reports if r["host_matches_chain"]),
         "first_divergent_seq": min((f["seq"] for f in findings), default=None),
+        "witness_observations": witness["observations"],
+        "witness_corroborated": len(witness["corroborated"]),
+        "witness_rejected": len(witness["rejected"]),
+        "omissions": len(witness["omissions"]),
     }
     duration_ms = int((time.perf_counter() - started) * 1000)
     report = {
@@ -286,6 +295,7 @@ def run_verification(svc, persist: bool = True) -> dict[str, Any]:
         "summary": summary,
         "batches": batch_reports,
         "findings": findings,
+        "witness": witness,
     }
     if persist:
         with svc.stores.vault() as s:
