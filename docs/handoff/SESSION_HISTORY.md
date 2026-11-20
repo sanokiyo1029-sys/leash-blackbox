@@ -243,3 +243,5 @@
 - **T-043:** signed host heartbeats and REPORTING_GAP, judged by the collector's clock (backend 103 passed,
   Playwright 27 passed + 1 skipped). Live: Go silent produced both Observed omission and Reporting gap.
   Declared-count reconciliation was deliberately left out (KI-028).
+- **T-045:** `commitDispute` contract method + dispute packages (contract 11, backend 107, Playwright 27 + 1
+  skipped). Live receipt: dispute #0, block 5, 117,268 gas, chain read-back matches.

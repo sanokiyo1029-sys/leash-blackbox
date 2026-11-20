@@ -23,9 +23,9 @@ import { Button } from "@/components/ui/button";
 import { AlertBanner, EmptyState, HashChip, LiveDot, LoadingRows, PageTitle, Spinner } from "@/components/kit";
 import { HoldButton } from "@/components/dashboard/hold-button";
 import { EvidenceDetail } from "@/components/evidence-detail";
-import { api, useAction, useApi } from "@/lib/api";
+import { api, short, useAction, useApi } from "@/lib/api";
 import { dur, ease, spring, stagger } from "@/lib/motion";
-import type { AttackResult, Batch, Deployment, EventItem, EventRecord, Score, Status, VerificationReport } from "@/lib/types";
+import type { AttackResult, Batch, Deployment, DisputeResult, EventItem, EventRecord, Score, Status, VerificationReport } from "@/lib/types";
 import { readBatch, type ChainBatch } from "@/lib/verify";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +81,7 @@ export default function AttackLab() {
   const [score, setScore] = useState<Score | null>(null);
   const [touched, setTouched] = useState<Map<number, Touch>>(new Map());
   const [silenced, setSilenced] = useState(false); // a silent attack writes nothing, so it touches no row
+  const [dispute, setDispute] = useState<DisputeResult | null>(null);
   const [stale, setStale] = useState(true);
   const [command, setCommand] = useState<string | null>(null);
   const [chain, setChain] = useState<Record<number, ChainBatch | null>>({});
@@ -137,6 +138,7 @@ export default function AttackLab() {
     setScore(null);
     setTouched(new Map());
     setSilenced(false);
+    setDispute(null);
     setStale(true);
     setCommand(null);
     if (ok !== null) await reload();
@@ -152,6 +154,7 @@ export default function AttackLab() {
     await reload();
     setReport(r.rep);
     setScore(r.sc);
+    setDispute(null);
     setStale(false);
   };
 
@@ -174,6 +177,10 @@ export default function AttackLab() {
   const omissions = (!stale && report?.witness?.omissions) || [];
   const gaps = (!stale && report?.heartbeat?.gaps) || [];
   const hb = report?.heartbeat?.policy;
+  const commitDispute = async () => {
+    const r = await action.run("dispute", () => api<DisputeResult>("/api/disputes", { method: "POST" }));
+    if (r) setDispute(r);
+  };
   const detectedNow = !!report && !stale && report.verdict !== "CLEAN";
   const step = !hasData ? 0 : detectedNow ? 4 : !report && !attacked ? 1 : !attacked ? 2 : stale ? 3 : 4;
   const hostCount = (events.data?.items ?? []).filter((i) => i.host_record).length;
@@ -281,6 +288,25 @@ export default function AttackLab() {
           </AlertBanner>
         )}
       </AnimatePresence>
+
+      {(omissions.length > 0 || gaps.length > 0) && (
+        <div className="surface flex flex-wrap items-center gap-x-4 gap-y-2 rounded-sm px-4 py-3 text-[13px]">
+          {dispute ? (
+            <span>
+              <b>Dispute #{dispute.dispute_id} committed on-chain</b> in block {dispute.block_number} · tx {short(dispute.tx_hash)} · digest{" "}
+              {short(dispute.digest)} · {dispute.gas_used.toLocaleString("en-US")} gas ·{" "}
+              {dispute.matches ? "chain read-back matches the package" : `MISMATCH${dispute.chain_error ? ` (${dispute.chain_error})` : ""}`}
+            </span>
+          ) : (
+            <>
+              <Button onClick={commitDispute} disabled={action.busy !== null}>
+                Commit dispute on-chain
+              </Button>
+              <span className="text-muted-foreground">Freezes the evidence above into a package. Only its SHA-256 goes on-chain; the package stays in the vault.</span>
+            </>
+          )}
+        </div>
+      )}
 
       {!hasData && !events.loading ? (
         <div className="surface rounded-2xl">

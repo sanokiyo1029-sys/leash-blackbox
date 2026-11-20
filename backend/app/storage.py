@@ -84,6 +84,21 @@ class Heartbeat(VaultBase):
     received_at: Mapped[str] = mapped_column(String(40))
 
 
+class Dispute(VaultBase):
+    """An off-chain dispute package whose SHA-256 is committed on-chain (LeashAnchor.commitDispute). Append-only."""
+
+    __tablename__ = "disputes"
+
+    dispute_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)  # the on-chain id
+    deployment_id: Mapped[int] = mapped_column(Integer)
+    digest: Mapped[str] = mapped_column(String(64))
+    package_json: Mapped[str] = mapped_column(Text)  # canonical JSON, exactly the hashed bytes
+    tx_hash: Mapped[str] = mapped_column(String(66))
+    block_number: Mapped[int] = mapped_column(Integer)
+    gas_used: Mapped[int] = mapped_column(Integer)
+    committed_at: Mapped[str] = mapped_column(String(40))
+
+
 class Batch(VaultBase):
     __tablename__ = "batches"
 
@@ -213,6 +228,16 @@ VAULT_TRIGGERS = [
     CREATE TRIGGER IF NOT EXISTS heartbeats_no_delete
     BEFORE DELETE ON heartbeats
     BEGIN SELECT RAISE(ABORT, 'heartbeats are append-only'); END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS disputes_no_update
+    BEFORE UPDATE ON disputes
+    BEGIN SELECT RAISE(ABORT, 'dispute packages are append-only'); END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS disputes_no_delete
+    BEFORE DELETE ON disputes
+    BEGIN SELECT RAISE(ABORT, 'dispute packages are append-only'); END;
     """,
     """
     CREATE TRIGGER IF NOT EXISTS batches_no_delete

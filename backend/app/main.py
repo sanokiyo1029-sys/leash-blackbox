@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from . import __version__
+from . import dispute as disputes
 from .anchor import AnchorError
 from .attack import SCENARIOS, TARGETED, AttackLab
 from .config import REPO_ROOT, Settings, load_settings
@@ -261,6 +262,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             # The session happens in the world; only the independent gateway witness gets to record it.
             result["witness"] = witness.observe_session(HOST, "deploy", ATTACKER_IP, utc_now_iso())
         return result
+
+    @app.post("/api/disputes")
+    def dispute_commit() -> dict[str, Any]:
+        # It spends gas with the anchor key and has no operator auth yet, so it is a demo-mode action for now.
+        require_demo_mode()
+        try:
+            return disputes.commit(svc)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        except AnchorError as exc:
+            raise _anchor_error(exc) from exc
+
+    @app.get("/api/disputes")
+    def dispute_list() -> dict[str, Any]:
+        return {"disputes": disputes.list_disputes(svc)}
+
+    @app.get("/api/disputes/{dispute_id}")
+    def dispute_check(dispute_id: int) -> dict[str, Any]:
+        try:
+            return disputes.check(svc, dispute_id)
+        except KeyError as exc:
+            raise HTTPException(404, f"no dispute {dispute_id}") from exc
 
     @app.get("/api/witness")
     def witness_view(limit: int = Query(200, ge=1, le=5000)) -> dict[str, Any]:

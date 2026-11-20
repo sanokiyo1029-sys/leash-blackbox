@@ -51,6 +51,28 @@ _Last updated: 2026-11-20, session S05 (laptop B), T-040 and T-041 done_
     passed, 1 skipped**; `tsc` and lint clean.
   - **Live:** baseline CLEAN with heartbeats arriving → Go silent → after 30 s, verify showed both Observed
     omission and Reporting gap ("silent since 21:02:24Z (36 s)").
+- **T-045 dispute packages committed on-chain (S06, on `main`).**
+  - **Contract.** `LeashAnchor.commitDispute(bytes32 digest)` is anchorer-only and append-only. It stores digest,
+    time, block, the number of anchored batches at commit (tying the dispute to that evidence state) and the
+    submitter. It also adds `disputeCount`, `getDispute` and a `DisputeCommitted` event. The ABI is re-exported to
+    `shared/LeashAnchor.json`; the batch selectors and topics the auditor CLI and browser verifier use are unchanged.
+  - **Backend (`backend/app/dispute.py`).** The latest verification's omissions (signed observations and policy)
+    and/or reporting gaps (heartbeat policy) are frozen into a canonical package. Seconds become integer
+    milliseconds, because canonical JSON allows strings, integers and null only. The package also carries the
+    anchored batches and the trust assumptions.
+  - **Digest = `sha256(canonical_json(package))`.** Only the digest goes on-chain; the package stays in the vault
+    (`disputes` table, append-only).
+  - **API.** `POST /api/disputes` (demo mode only: it spends gas and has no operator auth yet; 409 when there is
+    nothing to dispute). `GET /api/disputes/{id}` re-derives the digest from the stored package and compares it with
+    `getDispute` on-chain (`matches`).
+  - **UI.** The Attack Lab shows "Commit dispute on-chain" under the omission/gap banners, then the receipt line.
+  - **Verified:**
+    - contract **11 passing** (2 new; the "no alter/remove" guard list now includes the append-only `commitDispute`);
+    - backend **107 passed** (4 new in `tests/test_dispute.py`: commit + independent recompute + receipt status,
+      edited package mismatch, nothing-to-dispute 409, append-only, gap-only package);
+    - Playwright **27 passed, 1 skipped**; `tsc` and lint clean.
+  - **Live:** Go silent → Observed omission → Commit → "Dispute #0 … block 5 … 117,268 gas … chain read-back
+    matches the package"; `GET /api/disputes/0` matches = true.
 - **Trust boundary (be honest in the pitch).** The witness is logically isolated (separate key, store and
   registry), not physically independent: it runs in the same process on the same laptop. A valid signature proves
   the witness made the claim, not that the claim is true. An omission shows the host stayed silent, not why.
@@ -234,7 +256,7 @@ None in the code. For a new teammate: pushing needs a GitHub account with write 
 (`$env:GH_TOKEN=''` in PowerShell, `env -u GH_TOKEN` in bash) before pushing.
 
 ## Exact next task
-**S06 (GHOST, merged):** T-043 is done. GHOST P1 next: T-045 dispute package committed on-chain, T-044 second witness and 2-of-3 quorum.
+**S06 (GHOST, merged):** T-043 and T-045 are done. GHOST P1 next: dispute package committed on-chain, T-044 second witness and 2-of-3 quorum.
 T-047 (Quai) is blocked on the owner: confirm the organizer requirement and provide a funded key in a local `.env`.
 
 **S04: T-040 first** (see NEXT_TASKS). Stop the demo stack, run e2e (add the `/story` smoke test), restart

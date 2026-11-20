@@ -87,7 +87,8 @@ describe("LeashAnchor", function () {
       .filter((f) => f.type === "function" && !["view", "pure"].includes(f.stateMutability))
       .map((f) => f.name)
       .sort();
-    expect(mutators).to.deep.equal(["anchorBatch", "setAnchorer", "transferOwnership"]);
+    // commitDispute only appends to a separate dispute list; it cannot touch a batch.
+    expect(mutators).to.deep.equal(["anchorBatch", "commitDispute", "setAnchorer", "transferOwnership"]);
 
     await anchor.anchorBatch(root(1), root(2), root(3), 1, 3, 3);
     // Re-anchoring the same range is rejected rather than overwriting.
@@ -107,5 +108,28 @@ describe("LeashAnchor", function () {
       .to.be.revertedWithCustomError(anchor, "ZeroAddress");
     await anchor.transferOwnership(anchorer.address);
     expect(await anchor.owner()).to.equal(anchorer.address);
+  });
+
+  describe("disputes", function () {
+    it("commits a digest append-only, ties it to the anchored state, and emits DisputeCommitted", async function () {
+      await anchor.anchorBatch(root(1), root(2), root(3), 1, 10, 10);
+      const tx = await anchor.commitDispute(root(9));
+      const receipt = await tx.wait();
+      await expect(tx).to.emit(anchor, "DisputeCommitted").withArgs(0n, root(9), 1n, owner.address);
+      const d = await anchor.getDispute(0);
+      expect(d.digest).to.equal(root(9));
+      expect(d.anchoredBatches).to.equal(1n);
+      expect(d.blockNumber).to.equal(BigInt(receipt.blockNumber));
+      expect(d.submitter).to.equal(owner.address);
+      await anchor.commitDispute(root(10));
+      expect(await anchor.disputeCount()).to.equal(2n);
+      expect((await anchor.getDispute(0)).digest).to.equal(root(9)); // the first one is unchanged
+    });
+
+    it("rejects zero digests, outsiders and unknown ids", async function () {
+      await expect(anchor.commitDispute(ethers.ZeroHash)).to.be.revertedWithCustomError(anchor, "ZeroDigest");
+      await expect(anchor.connect(outsider).commitDispute(root(9))).to.be.revertedWithCustomError(anchor, "NotAnchorer");
+      await expect(anchor.getDispute(0)).to.be.revertedWithCustomError(anchor, "UnknownDispute").withArgs(0n);
+    });
   });
 });

@@ -192,6 +192,27 @@ class AnchorClient:
             submitter=str(submitter),
         )
 
+    def commit_dispute(self, address: str, digest: bytes) -> dict[str, Any]:
+        c = self.contract(address)
+        receipt = self._send(c.functions.commitDispute(digest), self.signer_address())
+        logs = c.events.DisputeCommitted().process_receipt(receipt)
+        if len(logs) != 1 or bytes(logs[0]["args"]["digest"]) != digest:
+            raise AnchorError("dispute transaction did not emit exactly one matching DisputeCommitted event")
+        return {"dispute_id": int(logs[0]["args"]["disputeId"]),
+                "tx_hash": "0x" + bytes(receipt["transactionHash"]).hex(),
+                "block_number": int(receipt["blockNumber"]), "gas_used": int(receipt["gasUsed"])}
+
+    def get_dispute(self, address: str, dispute_id: int) -> dict[str, Any] | None:
+        try:
+            raw = self.contract(address).functions.getDispute(dispute_id).call()
+        except (ContractCustomError, ContractLogicError):
+            return None
+        except Exception as exc:  # noqa: BLE001
+            raise AnchorError(f"cannot read dispute {dispute_id}: {exc}") from exc
+        digest, committed_at, block_number, anchored_batches, submitter = raw
+        return {"digest": bytes(digest).hex(), "committed_at": int(committed_at), "block_number": int(block_number),
+                "anchored_batches": int(anchored_batches), "submitter": str(submitter)}
+
     def get_receipt(self, tx_hash: str) -> dict | None:
         try:
             return dict(self.w3.eth.get_transaction_receipt(tx_hash))

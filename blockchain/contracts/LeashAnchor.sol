@@ -23,9 +23,20 @@ contract LeashAnchor {
         address submitter;
     }
 
+    /// A dispute commits only the SHA-256 of an off-chain evidence package (e.g. a witnessed session the host never
+    /// reported). The package itself, which names users and addresses, never goes on-chain.
+    struct Dispute {
+        bytes32 digest;
+        uint64 committedAt;
+        uint64 blockNumber;
+        uint64 anchoredBatches; // batches anchored when the dispute was committed: ties it to that evidence state
+        address submitter;
+    }
+
     address public owner;
     mapping(address => bool) public isAnchorer;
     Batch[] private _batches;
+    Dispute[] private _disputes;
 
     event BatchAnchored(
         uint256 indexed batchId,
@@ -37,6 +48,7 @@ contract LeashAnchor {
         uint32 eventCount,
         address indexed submitter
     );
+    event DisputeCommitted(uint256 indexed disputeId, bytes32 indexed digest, uint64 anchoredBatches, address indexed submitter);
     event AnchorerUpdated(address indexed account, bool allowed);
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
@@ -48,6 +60,8 @@ contract LeashAnchor {
     error SequenceGap(uint64 expectedFirstSeq, uint64 providedFirstSeq);
     error UnknownBatch(uint256 batchId);
     error ZeroAddress();
+    error ZeroDigest();
+    error UnknownDispute(uint256 disputeId);
 
     modifier onlyOwner() {
         if (msg.sender != owner) revert NotOwner();
@@ -119,6 +133,32 @@ contract LeashAnchor {
     function getBatch(uint256 batchId) external view returns (Batch memory) {
         if (batchId >= _batches.length) revert UnknownBatch(batchId);
         return _batches[batchId];
+    }
+
+    /// @notice Commit the digest of an off-chain dispute package. Append-only: there is no update or delete path.
+    function commitDispute(bytes32 digest) external onlyAnchorer returns (uint256 disputeId) {
+        if (digest == bytes32(0)) revert ZeroDigest();
+        disputeId = _disputes.length;
+        uint64 anchored = uint64(_batches.length);
+        _disputes.push(
+            Dispute({
+                digest: digest,
+                committedAt: uint64(block.timestamp),
+                blockNumber: uint64(block.number),
+                anchoredBatches: anchored,
+                submitter: msg.sender
+            })
+        );
+        emit DisputeCommitted(disputeId, digest, anchored, msg.sender);
+    }
+
+    function disputeCount() external view returns (uint256) {
+        return _disputes.length;
+    }
+
+    function getDispute(uint256 disputeId) external view returns (Dispute memory) {
+        if (disputeId >= _disputes.length) revert UnknownDispute(disputeId);
+        return _disputes[disputeId];
     }
 
     /// @notice Highest committed sequence number (0 when nothing is anchored).

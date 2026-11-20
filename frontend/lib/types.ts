@@ -92,6 +92,18 @@ export interface ReportingGap {
   explanation: string;
 }
 
+export interface DisputeResult {
+  dispute_id: number;
+  digest: string;
+  recomputed_digest: string;
+  tx_hash: string;
+  block_number: number;
+  gas_used: number;
+  matches: boolean;
+  onchain: { digest: string; anchored_batches: number; block_number: number } | null;
+  chain_error: string | null;
+}
+
 export interface HeartbeatReport {
   policy: { id: string; version: number; interval_seconds: number; grace_seconds: number };
   heartbeats: number;
