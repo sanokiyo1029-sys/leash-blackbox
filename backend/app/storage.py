@@ -72,6 +72,18 @@ class WitnessRegistration(VaultBase):
     registered_at: Mapped[str] = mapped_column(String(40))
 
 
+class Heartbeat(VaultBase):
+    """A signed host heartbeat as received by the collector. `received_at` is the collector's clock. Append-only."""
+
+    __tablename__ = "heartbeats"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    host: Mapped[str] = mapped_column(String(128), index=True)
+    claim_json: Mapped[str] = mapped_column(Text)
+    signature: Mapped[str] = mapped_column(String(132))
+    received_at: Mapped[str] = mapped_column(String(40))
+
+
 class Batch(VaultBase):
     __tablename__ = "batches"
 
@@ -191,6 +203,16 @@ VAULT_TRIGGERS = [
       OR (OLD.batch_id IS NOT NULL AND NEW.batch_id IS NOT OLD.batch_id)
       OR (OLD.leaf_index IS NOT NULL AND NEW.leaf_index IS NOT OLD.leaf_index)
     BEGIN SELECT RAISE(ABORT, 'evidence vault is append-only'); END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS heartbeats_no_update
+    BEFORE UPDATE ON heartbeats
+    BEGIN SELECT RAISE(ABORT, 'heartbeats are append-only'); END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS heartbeats_no_delete
+    BEFORE DELETE ON heartbeats
+    BEGIN SELECT RAISE(ABORT, 'heartbeats are append-only'); END;
     """,
     """
     CREATE TRIGGER IF NOT EXISTS batches_no_delete

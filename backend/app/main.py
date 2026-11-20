@@ -5,7 +5,10 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import logging
 import sys
+import threading
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, Query
@@ -19,6 +22,7 @@ from .attack import SCENARIOS, TARGETED, AttackLab
 from .config import REPO_ROOT, Settings, load_settings
 from .export import build_bundle
 from .generator import ATTACKER_IP, HOST, generate_traffic
+from .heartbeat import HostAgentHeartbeats, receive_heartbeat
 from .records import RawEvent, utc_now_iso
 from .service import LeashService, deployment_to_dict
 from .storage import VerificationRun
@@ -58,8 +62,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     svc = LeashService(settings)
     lab = AttackLab(svc.stores.host, svc.stores.lab)
     witness = GatewayWitness(svc)
+    agent = HostAgentHeartbeats(settings, HOST)
+    agent_alive = threading.Event()
+    agent_alive.set()
+    stop = threading.Event()
 
-    app = FastAPI(title="LEASH BLACKBOX", version=__version__,
+    def beat_once() -> None:
+        with svc.lock:  # never interleave with a lab reset
+            if agent_alive.is_set():
+                claim_json, signature = agent.beat(utc_now_iso())
+                receive_heartbeat(svc, claim_json, signature)
+
+    def beat_loop() -> None:
+        while not stop.wait(settings.heartbeat_interval_s):
+            try:
+                beat_once()
+            except Exception:  # noqa: BLE001 - e.g. stores briefly closed; the next beat retries, a gap shows if not
+                logging.getLogger("leash").exception("heartbeat failed")
+
+    @asynccontextmanager
+    async def lifespan(_app: FastAPI):
+        # Demo mode simulates the monitored host's agent; real agents would send their own heartbeats.
+        if settings.demo_mode:
+            threading.Thread(target=beat_loop, name="host-agent-heartbeat", daemon=True).start()
+        yield
+        stop.set()
+
+    app = FastAPI(title="LEASH BLACKBOX", version=__version__, lifespan=lifespan,
                   description="The attacker can erase the logs. They cannot erase the proof.")
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.cors_origins),
                        allow_methods=["*"], allow_headers=["*"])
@@ -108,7 +137,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def reset() -> dict[str, Any]:
         require_demo_mode()
         try:
-            dep = svc.reset()
+            with svc.lock:
+                dep = svc.reset()
+                agent.restart()
+                agent_alive.set()
         except AnchorError as exc:
             raise _anchor_error(exc) from exc
         return {"reset": True, "deployment": deployment_to_dict(dep)}
@@ -223,6 +255,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             result = lab.run(scenario, **((req.params if req else {}) or {}))
         except (ValueError, TypeError) as exc:
             raise HTTPException(400, str(exc)) from exc
+        if scenario in ("silent_login", "stop_agent"):
+            agent_alive.clear()  # the agent is dead: no more heartbeats until a lab reset
         if scenario == "silent_login":
             # The session happens in the world; only the independent gateway witness gets to record it.
             result["witness"] = witness.observe_session(HOST, "deploy", ATTACKER_IP, utc_now_iso())

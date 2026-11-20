@@ -172,6 +172,8 @@ export default function AttackLab() {
   const hasData = (events.data?.items.length ?? 0) > 0;
   const attacked = touched.size > 0 || silenced;
   const omissions = (!stale && report?.witness?.omissions) || [];
+  const gaps = (!stale && report?.heartbeat?.gaps) || [];
+  const hb = report?.heartbeat?.policy;
   const detectedNow = !!report && !stale && report.verdict !== "CLEAN";
   const step = !hasData ? 0 : detectedNow ? 4 : !report && !attacked ? 1 : !attacked ? 2 : stale ? 3 : 4;
   const hostCount = (events.data?.items ?? []).filter((i) => i.host_record).length;
@@ -257,6 +259,17 @@ export default function AttackLab() {
             ))}
             Policy {report?.witness?.policy.id} v{report?.witness?.policy.version}: every witnessed session needs a matching host login within ±{report?.witness?.policy.skew_seconds} s. This shows the host stayed
             silent; it does not by itself show why.
+          </AlertBanner>
+        )}
+        {gaps.length > 0 && (
+          <AlertBanner key="gap" tone="warn" title="Reporting gap — the host's agent stopped checking in">
+            {gaps.map((g) => (
+              <span key={`${g.host}-${g.kind}-${g.from}`} className="block">
+                {g.host}: {g.kind === "silent" ? `silent since ${g.from}` : `${g.kind} gap ${g.from} → ${g.to}`} ({g.seconds} s)
+              </span>
+            ))}
+            Judged by the collector&apos;s clock: a signed heartbeat is due every {hb?.interval_seconds} s, with {hb?.grace_seconds} s grace. A gap
+            alone is not proof of an attack.
           </AlertBanner>
         )}
         {report && !stale && report.verdict === "INCONCLUSIVE" && (

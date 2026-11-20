@@ -1,6 +1,6 @@
 export type EventStatus = "INTACT" | "MODIFIED" | "DELETED" | "INJECTED";
 export type Protection = "anchored" | "vault_only" | "unverifiable" | "none";
-export type Verdict = "CLEAN" | "TAMPERING_DETECTED" | "OBSERVED_OMISSION" | "INCONCLUSIVE";
+export type Verdict = "CLEAN" | "TAMPERING_DETECTED" | "OBSERVED_OMISSION" | "REPORTING_GAP" | "INCONCLUSIVE";
 
 export interface EventRecord {
   v: number;
@@ -79,6 +79,25 @@ export interface Summary {
   witness_corroborated?: number;
   witness_rejected?: number;
   omissions?: number;
+  heartbeats?: number;
+  reporting_gaps?: number;
+}
+
+export interface ReportingGap {
+  host: string;
+  kind: "silent" | "late" | "sequence" | "chain_break";
+  from: string;
+  to: string | null;
+  seconds: number;
+  explanation: string;
+}
+
+export interface HeartbeatReport {
+  policy: { id: string; version: number; interval_seconds: number; grace_seconds: number };
+  heartbeats: number;
+  gaps: ReportingGap[];
+  restarts: { host: string; at: string }[];
+  rejected: { host: string; seq: number; reason: string }[];
 }
 
 export interface WitnessClaim {
@@ -186,6 +205,7 @@ export interface VerificationReport {
   batches: BatchReport[];
   findings: Finding[];
   witness?: WitnessReport;
+  heartbeat?: HeartbeatReport;
 }
 
 export interface VerifyRun {

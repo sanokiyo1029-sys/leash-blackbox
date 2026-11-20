@@ -31,6 +31,9 @@ class Settings:
     # Per-host credentials: (host, SHA-256 hex of that host's token). A host token may only submit events whose
     # "host" is that host. Only hashes are configured; list a host twice to rotate its token.
     host_tokens: tuple[tuple[str, str], ...] = ()
+    # GHOST heartbeats: the host agent checks in every interval; the verifier allows interval + grace (collector clock).
+    heartbeat_interval_s: float = 15.0
+    heartbeat_grace_s: float = 10.0
 
     @property
     def host_db_path(self) -> Path:
@@ -41,6 +44,11 @@ class Settings:
     def vault_db_path(self) -> Path:
         """Protected evidence vault + anchor bookkeeping: OUTSIDE the attacker's reach."""
         return self.data_dir / "vault" / "evidence.db"
+
+    @property
+    def host_agent_key_path(self) -> Path:
+        """The host agent's heartbeat key: INSIDE the host's trust zone, so a compromised host can use it."""
+        return self.data_dir / "host" / "agent.key"
 
     @property
     def witness_db_path(self) -> Path:
@@ -90,6 +98,10 @@ def load_settings() -> Settings:
         kwargs["host_tokens"] = parse_host_tokens(env["LEASH_HOST_TOKENS"])
     if env.get("LEASH_DEMO_MODE"):
         kwargs["demo_mode"] = env["LEASH_DEMO_MODE"].strip().lower() not in ("0", "false", "no", "off")
+    if env.get("LEASH_HEARTBEAT_INTERVAL"):
+        kwargs["heartbeat_interval_s"] = float(env["LEASH_HEARTBEAT_INTERVAL"])
+    if env.get("LEASH_HEARTBEAT_GRACE"):
+        kwargs["heartbeat_grace_s"] = float(env["LEASH_HEARTBEAT_GRACE"])
     if env.get("LEASH_CORS_ORIGINS"):
         kwargs["cors_origins"] = tuple(o.strip() for o in env["LEASH_CORS_ORIGINS"].split(",") if o.strip())
     return Settings(**kwargs)

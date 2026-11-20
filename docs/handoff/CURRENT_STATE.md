@@ -31,6 +31,26 @@ _Last updated: 2026-11-20, session S05 (laptop B), T-040 and T-041 done_
     sessions; the host reported every one"), then Go silent, then verify gave Observed omission (deploy from
     203.0.113.45, signature valid, host still 132 lines).
   - One copy tweak (stale-banner title after a silent attack) came after the e2e run; `tsc` and lint were rerun.
+- **T-043 signed heartbeats + REPORTING_GAP (S06, on `main`).**
+  - **How it works (`backend/app/heartbeat.py`).** The simulated host agent signs a heartbeat every 15 s with
+    `{host, signer, boot_id, seq, prev hash, sent_at}`. Its key is in the host's trust zone (`data/host/agent.key`),
+    on purpose. The collector stores each heartbeat with its own `received_at` in the vault (append-only).
+  - **Rule: `heartbeat-continuity` v1.** Deadlines are judged by the collector's clock only: interval + grace
+    (15 + 10 s, set with `LEASH_HEARTBEAT_INTERVAL` and `LEASH_HEARTBEAT_GRACE`). Within a boot, seq must be
+    consecutive and each heartbeat must name the previous hash. A new boot starts a new chain (a benign restart is
+    recorded, not a gap).
+  - **Gap kinds:** `silent` (still nothing), `late`, `sequence`, `chain_break`.
+  - **Verdict `REPORTING_GAP`** ranks below OBSERVED_OMISSION and above INCONCLUSIVE, and is explicitly not called
+    an intrusion. A heartbeat from an unregistered signer, or with a bad signature, is rejected (INCONCLUSIVE). The
+    first key for a host is registered on first use.
+  - **Driving it.** The heartbeat sender runs in the API lifespan (demo mode only). `stop_agent` (API only) and
+    `silent_login` stop it; a lab reset restarts it. The Attack Lab shows a "Reporting gap" banner; the Dashboard
+    has an amber "Gap" view.
+  - **Verified:** backend **103 passed** (8 new in `tests/test_heartbeat.py`: on time, silent, late, host clock
+    skew, benign restart, dropped heartbeat, forged signer, and stop_agent through the API); Playwright **27
+    passed, 1 skipped**; `tsc` and lint clean.
+  - **Live:** baseline CLEAN with heartbeats arriving → Go silent → after 30 s, verify showed both Observed
+    omission and Reporting gap ("silent since 21:02:24Z (36 s)").
 - **Trust boundary (be honest in the pitch).** The witness is logically isolated (separate key, store and
   registry), not physically independent: it runs in the same process on the same laptop. A valid signature proves
   the witness made the claim, not that the claim is true. An omission shows the host stayed silent, not why.
@@ -214,8 +234,7 @@ None in the code. For a new teammate: pushing needs a GitHub account with write 
 (`$env:GH_TOKEN=''` in PowerShell, `env -u GH_TOKEN` in bash) before pushing.
 
 ## Exact next task
-**S06 (GHOST, merged):** GHOST P1 in this order: T-043 signed
-host heartbeats + REPORTING_GAP, T-045 dispute package committed on-chain, T-044 second witness and 2-of-3 quorum.
+**S06 (GHOST, merged):** T-043 is done. GHOST P1 next: T-045 dispute package committed on-chain, T-044 second witness and 2-of-3 quorum.
 T-047 (Quai) is blocked on the owner: confirm the organizer requirement and provide a funded key in a local `.env`.
 
 **S04: T-040 first** (see NEXT_TASKS). Stop the demo stack, run e2e (add the `/story` smoke test), restart

@@ -35,8 +35,9 @@ SCENARIOS: dict[str, str] = {
     "truncate_tail": "Delete the most recent N records (log truncation).",
     "wipe_all": "Delete the entire host log store (rm -rf /var/log/*).",
     "random_tamper": "Randomly modify, delete and inject records (used for validation trials).",
-    "silent_login": "Kill the host's logger, then log in as deploy from the attacker's IP. Nothing reaches the host "
-                    "log; the gateway witness still sees the session.",
+    "silent_login": "Kill the host's logger and agent, then log in as deploy from the attacker's IP. Nothing reaches "
+                    "the host log; the gateway witness still sees the session.",
+    "stop_agent": "Stop the host's log agent and nothing else: its heartbeats stop.",
 }
 
 
@@ -121,6 +122,9 @@ class AttackLab:
         # The attacker's effect is that nothing gets written: no host record to touch. The independent gateway
         # witness records the session (see main.py); the attacker has no handle on it.
         return []
+
+    def _s_stop_agent(self) -> list:
+        return []  # no record is touched; main.py stops the simulated agent's heartbeats
 
     def _s_cover_tracks(self) -> list:
         with self._host() as s:

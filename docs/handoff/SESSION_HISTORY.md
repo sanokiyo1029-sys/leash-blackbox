@@ -240,3 +240,6 @@
 - **Tests:** backend 95 passed; Playwright 27 passed + 1 skipped. Live demo on the real stack: CLEAN with 21
   corroborated sessions → Go silent → Observed omission, signature valid.
 - Owner approved the merge: `main` fast-forwarded to `feature/ghost-protocol` (main had not moved, so the tested tree is unchanged).
+- **T-043:** signed host heartbeats and REPORTING_GAP, judged by the collector's clock (backend 103 passed,
+  Playwright 27 passed + 1 skipped). Live: Go silent produced both Observed omission and Reporting gap.
+  Declared-count reconciliation was deliberately left out (KI-028).
