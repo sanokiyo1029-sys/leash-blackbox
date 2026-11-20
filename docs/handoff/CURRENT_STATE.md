@@ -17,9 +17,10 @@ compromised host, an attack lab, and a standalone auditor verifier. Hackathon: T
 
 ## Phase
 Phases 1–4 complete and tested. Phase 6 core (auditor CLI, export, negative tests) done.
-Phase 5 web console built and checked manually in a browser; Playwright smoke tests (5) pass.
+Phase 5 web console built and checked manually in a browser; Playwright smoke tests (6) pass.
+Phase 7 started: guided presentation mode at `/demo` (T-017) done.
 Validation experiments (T-015) done; results committed in `docs/validation/RESULTS.md`.
-**Next: T-017 presentation mode (guided demo walkthrough), then polish/pitch material.**
+**Next: T-019 pitch material (demo script + README screenshots), then T-020 hardening; T-018 needs the owner's testnet key.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -55,7 +56,7 @@ Validation experiments (T-015) done; results committed in `docs/validation/RESUL
   flow was verified from bash.
 
 ## Pending
-Presentation mode (T-017), optional public testnet anchoring (T-018).
+Pitch material (T-019), hardening (T-020), optional public testnet anchoring (T-018, needs the owner's key).
 
 ## Working commands (verified)
 - `cd blockchain; npm install; npx hardhat test`
@@ -64,7 +65,7 @@ Presentation mode (T-017), optional public testnet anchoring (T-018).
 - `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
 - `python verifier\leash_verify.py BUNDLE.json --rpc http://127.0.0.1:8545`
 - `cd frontend; npm install; npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`
-- `cd frontend; npm run test:e2e` → **5 passed** (starts its own Hardhat :8546, API :8011, Next :3011;
+- `cd frontend; npm run test:e2e` → **6 passed** (starts its own Hardhat :8546, API :8011, Next :3011;
   uses the installed Microsoft Edge, or set `PW_CHANNEL=chromium` after `npx playwright install chromium`)
 
 ## Failing commands
@@ -86,5 +87,5 @@ None confirmed. See KNOWN_ISSUES.md for limitations.
 None.
 
 ## Exact next task
-T-017: presentation mode, a guided walkthrough page (/demo) that runs reset → traffic → verify →
-attack → verify → auditor check step by step with narration, for the pitch.
+T-019: write `docs/PITCH.md` (3-minute script that follows the `/demo` page step by step and maps to the judging
+criteria) and add screenshots of /demo, /evidence, /auditor to the README.

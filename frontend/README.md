@@ -15,6 +15,7 @@ npm run lint
 
 | Route | Screen |
 |---|---|
+| `/demo` | Live Demo: guided 7-step story for presentations (Run the full story / Next step) |
 | `/` | Security Dashboard |
 | `/evidence` | Evidence Explorer (status filter, field diff, Merkle proof, in-browser proof check) |
 | `/proofs` | Blockchain Proof Explorer (vault vs on-chain values read directly from the contract) |

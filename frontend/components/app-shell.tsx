@@ -9,6 +9,7 @@ import {
   FlaskConical,
   Gauge,
   Network,
+  Presentation,
   ShieldCheck,
   Skull,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import type { Status } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const NAV = [
+  { href: "/demo", label: "Live Demo", icon: Presentation },
   { href: "/", label: "Security Dashboard", icon: Gauge },
   { href: "/evidence", label: "Evidence Explorer", icon: FileSearch },
   { href: "/proofs", label: "Blockchain Proofs", icon: Blocks },

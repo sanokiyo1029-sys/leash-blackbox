@@ -52,6 +52,14 @@ test.describe.serial("LEASH BLACKBOX core screens", () => {
     await expect(page.getByText(/status 1 · 1 log/)).toBeVisible();
   });
 
+  test("live demo: full story runs end to end", async ({ page }) => {
+    await page.goto("/demo");
+    await page.getByRole("button", { name: "Run the full story" }).click();
+    await expect(page.getByText("Protected evidence")).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByText(/12 erased records recovered · 3 fabricated records exposed/)).toBeVisible();
+    await expect(page.getByText(/^VERIFIED$/)).toBeVisible();
+  });
+
   test("auditor portal: vault bundle verifies, tampered host bundle does not", async ({ page }) => {
     await page.goto("/auditor");
     await page.getByRole("button", { name: "Load protected vault evidence" }).click();

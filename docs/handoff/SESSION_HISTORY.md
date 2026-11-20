@@ -29,4 +29,5 @@
     and added a regression test (77 passed).
   - Re-run: recall 100%, precision 100% over 30 trials.
 - **E2E:** added Playwright smoke tests (5 passed, Edge channel, private ports).
-- **Remaining problems:** presentation mode (T-017) not built; optional testnet anchoring (T-018) not started.
+- **Presentation:** `/demo` guided story (7 steps, real API + in-browser auditor), e2e test added (6 passed).
+- **Remaining problems:** none blocking; T-018/T-019/T-020 open.

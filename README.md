@@ -61,11 +61,17 @@ curl.exe "localhost:8000/api/export?source=host" -o host_bundle.json
 python verifier\leash_verify.py host_bundle.json --rpc http://127.0.0.1:8545
 ```
 
+## Web console
+
+`cd frontend; npm install; npm run dev` → http://localhost:3000. Start with **Live Demo** (`/demo`):
+one click runs the whole story: anchor, verify, attack, re-verify, then the independent in-browser audit.
+
 ## Tests
 
 - `blockchain/`: `npx hardhat test` — contract behaviour (append-only, contiguity, access control).
 - `backend/`: `.venv\Scripts\python -m pytest` — integrity primitives, end-to-end anchoring on a real
   local EVM node, every attack scenario, ground-truth scoring, API, auditor CLI exit codes.
+- `frontend/`: `npm run test:e2e` — Playwright smoke tests of the screens against a private stack.
 
 ## Measured results
 
