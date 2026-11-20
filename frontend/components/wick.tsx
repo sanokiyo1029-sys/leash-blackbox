@@ -14,7 +14,7 @@ import { FALLBACK, match, suggestions, type WickAction, type WickContext, type W
 type Msg = { id: number; from: "you" | "wick"; text: string; action?: WickAction };
 
 /** The owner's two knights; CSS shows the one for the active theme, so a theme switch is an instant armour change. */
-function Knight({ className }: { className?: string }) {
+export function Knight({ className }: { className?: string }) {
   return (
     <>
       <Image src="/wick/wick-dark-216.png" alt="" width={102} height={216} unoptimized loading="eager" className={cn("hidden h-full w-auto dark:block", className)} />
@@ -48,7 +48,8 @@ function useKeyboardInset() {
 /** One shared assistant for the whole site (mounted once in the app shell, so it survives navigation and theme switches). */
 export function Wick() {
   const path = usePathname();
-  const { compared } = useCase();
+  const { room, seal } = useCase();
+  const compared = room !== "gate"; // on the homepage tour, the discrepancy is on screen from the courtyard on
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
@@ -71,7 +72,7 @@ export function Wick() {
     const text = question.trim();
     if (!text || pending) return;
     setMsgs((m) => [...m, { id: nextId.current++, from: "you", text }]);
-    const ctx: WickContext = { path, compared };
+    const ctx: WickContext = { path, compared, room, seal };
     const topic = match(text);
     if (topic?.live?.(ctx)) {
       setPending(true);
@@ -97,7 +98,7 @@ export function Wick() {
           draft={draft}
           setDraft={setDraft}
           pending={pending}
-          chips={suggestions({ path, compared })}
+          chips={suggestions({ path, compared, room })}
           portrait={portrait}
           onOpened={() => play(NOD, 650)}
           onAsk={(q, fromDraft) => {

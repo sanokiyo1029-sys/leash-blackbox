@@ -254,3 +254,13 @@
   ("no pics on the site; the whole site a medieval castle; UI first, then backend"). Direction recorded in
   `docs/design/CASTLE_DIRECTION.md`; references in `docs/design/references/`.
 - Stopped near the owner's usage limit; branch pushed for the other laptop.
+
+### S08 (laptop B, 2026-11-21): "The Missing Session" 3D tour on `redesign/castle`
+- Pulled `main` fast-forward to `bed98ce`, switched to `redesign/castle` (`8e8d1bb`). Built the S07 handoff's layered
+  SVG castle first; then the owner sent the 3D brief, which replaced the castle-explorer plan. A tree-levels endpoint
+  written for the explorer was removed again (the seal chamber uses the existing `/api/events/{seq}` proof).
+- Added `three` 0.187 + `@react-three/fiber` 9.8 (owner approved via the brief); fortress scene, five-room tour,
+  live seal check, room-aware Wick, reduced-motion/no-WebGL fallback, e2e for both paths, `scripts/tour-shots.mjs`.
+- Checks: tsc/eslint clean; Playwright 29 passed + 1 skipped; pytest 107 passed; production build; three shots.
+- Left running: the production stack in the "LEASH demo stack (production)" terminal tab (stop with Ctrl+C or
+  `scripts\start-all.ps1 -Stop`).

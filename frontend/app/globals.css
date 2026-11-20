@@ -115,19 +115,31 @@
 
   /* Wick's launcher: muted stone grey so the white knight reads */
   --wick-surface: #b9b2a5;
-  /* Castle at dawn */
-  --sky-top: #c9d3d8;
-  --sky-low: #efe4d0;
-  --far: #b7bfc2;
-  --stone: #d9d2c4;
-  --stone-shade: #b9b1a2;
-  --stone-dark: #8f887c;
-  --window-dark: #6d6a63;
-  --ravine: #4a4d4c;
-  --mist: rgb(245 241 232 / 40%);
-  --glass: #e0a040;
+  /* Castle at dawn: pale limestone, cool mist, a low sun behind the walls (far planes sit closer to the sky) */
+  --sky-top: #b4c3cc;
+  --sky-low: #f0e2cb;
+  --sun: #f7d9a6;
+  --sun-o: 1;
+  --moon: #f4f1ea;
+  --moon-o: 0;
+  --stars-o: 0;
+  --far: #c4cbcc;
+  --far-dark: #a9b1b3;
+  --beacon: transparent;
+  --castle-back: #b8bcb8;
+  --stone: #d8d0c1;
+  --stone-shade: #b1a999;
+  --stone-dark: #7b756a;
+  --roof: #7f8a91;
+  --bridge: #a39b8c;
+  --window-dark: #5f5c56;
+  --rock: #8d877c;
+  --rock-shade: #77726a;
+  --near: #4f504b;
+  --mist: rgb(246 242 234 / 72%);
+  --glass: #d9902f;
   --glass-core: #f6cf7a;
-  --hero-scrim: rgb(245 241 232 / 82%);
+  --hero-scrim: rgb(245 241 232 / 84%);
 }
 
 /* The Midnight Archive (dark) */
@@ -164,18 +176,31 @@
   --shadow-pop: 0 18px 40px -16px rgb(0 0 0 / 70%);
 
   --wick-surface: #33424f;
-  --sky-top: #0b1118;
-  --sky-low: #1b2632;
-  --far: #18222c;
-  --stone: #1f2a34;
-  --stone-shade: #18212a;
-  --stone-dark: #121a22;
-  --window-dark: #0b1016;
-  --ravine: #080c11;
-  --mist: rgb(150 166 182 / 16%);
+  /* Castle at midnight: a moonlit haze on the horizon, the walls darker as they come closer */
+  --sky-top: #070c12;
+  --sky-low: #263544;
+  --sun: transparent;
+  --sun-o: 0;
+  --moon: #d8dee3;
+  --moon-o: 0.62;
+  --stars-o: 1;
+  --far: #1f2b37;
+  --far-dark: #17212b;
+  --beacon: #8fa9bd;
+  --castle-back: #1a2530;
+  --stone: #131b23;
+  --stone-shade: #0f161d;
+  --stone-dark: #0a0f15;
+  --roof: #0c1218;
+  --bridge: #0e151c;
+  --window-dark: #060a0e;
+  --rock: #0b1117;
+  --rock-shade: #080c11;
+  --near: #04070a;
+  --mist: rgb(150 168 186 / 20%);
   --glass: #cead70;
-  --glass-core: #f3d79a;
-  --hero-scrim: rgb(17 24 32 / 78%);
+  --glass-core: #f6dda4;
+  --hero-scrim: rgb(17 24 32 / 80%);
 }
 
 @layer base {
@@ -350,16 +375,85 @@
   }
 }
 
-/* Homepage mist: a slow drift on its own plane. Reduced motion holds it still (rule above). */
-.hero-mist {
-  background:
-    radial-gradient(60% 45% at 30% 70%, var(--mist), transparent 70%),
-    radial-gradient(50% 40% at 75% 80%, var(--mist), transparent 70%);
-  filter: blur(8px);
-  animation: hero-mist-drift 38s ease-in-out infinite alternate;
+/* ---------------------------------------------------------------------------
+   Homepage castle (components/castle-scene.tsx). One 1600×1000 frame shared by every plane. It always covers
+   the stage and parks the lit archive window (--fx, --fy of the frame) at --fs, --fsy of the stage: centred
+   and low on phones, under the copy; right of the copy on desktop.
+   --------------------------------------------------------------------------- */
+.castle-stage {
+  container-type: size;
 }
-@keyframes hero-mist-drift {
-  to {
-    translate: 6% 0;
+/* The 3D tour's sky, behind a transparent canvas; its horizon matches the scene fog (fortress-scene.tsx). */
+.tour-sky {
+  background: linear-gradient(180deg, #c3cfd6 0%, #dcd8cd 46%, #e8dccb 70%);
+}
+.dark .tour-sky {
+  background: linear-gradient(180deg, #0a1119 0%, #172230 46%, #22303f 70%);
+}
+.castle-frame {
+  --fx: 0.70625;
+  --fy: 0.509;
+  --fs: 0.5;
+  --fsy: 0.62;
+  /* Phones and tablets: a wider shot, anchored to the bottom (the sky gradient fills above, under the copy) */
+  --w: max(100cqw, 118cqh);
+  --h: calc(var(--w) / 1.6);
+  position: absolute;
+  width: var(--w);
+  height: var(--h);
+  left: clamp(100cqw - var(--w), var(--fs) * 100cqw - var(--fx) * var(--w), 0px);
+  top: clamp(100cqh - var(--h), var(--fsy) * 100cqh - var(--fy) * var(--h), 14cqh);
+}
+@media (min-width: 1024px) {
+  .castle-frame {
+    --fs: 0.68;
+    --fsy: 0.5;
+    --w: max(100cqw, 160cqh);
   }
+}
+.castle-mist {
+  background:
+    radial-gradient(42% 16% at 30% 84%, var(--mist), transparent 70%),
+    radial-gradient(38% 12% at 62% 78%, var(--mist), transparent 72%),
+    radial-gradient(60% 14% at 50% 96%, var(--mist), transparent 70%),
+    radial-gradient(30% 6% at 72% 73%, var(--mist), transparent 75%);
+}
+/* The window kindles once on load; hover and focus brighten it. Reduced motion: lit at once (rule above). */
+.cs-light,
+.cs-glow {
+  animation: cs-kindle 1.9s 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.cs-glow {
+  transition: opacity 240ms var(--ease-out-expo);
+}
+.cs-window {
+  cursor: pointer;
+}
+.cs-window:hover .cs-glow,
+.cs-window:focus-visible .cs-glow {
+  opacity: 1;
+  animation: none;
+}
+.cs-ring {
+  opacity: 0;
+}
+.cs-window:focus-visible .cs-ring {
+  opacity: 1;
+}
+@keyframes cs-kindle {
+  0% {
+    opacity: 0.05;
+  }
+  34% {
+    opacity: 0.75;
+  }
+  44% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: var(--lit, 0.8);
+  }
+}
+.cs-light {
+  --lit: 1;
 }

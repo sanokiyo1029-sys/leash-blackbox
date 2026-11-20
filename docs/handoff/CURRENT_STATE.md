@@ -1,6 +1,41 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, session S07 (laptop A), redesign on branch `redesign/castle`_
+_Last updated: 2026-11-21, session S08 (laptop B), 3D homepage tour on branch `redesign/castle`_
+
+## S08 status: "The Missing Session" 3D tour (laptop B, branch `redesign/castle`, NOT merged into `main`), read first
+- **Branch `redesign/castle`** now also holds S08. `main` is `bed98ce` (unchanged). Ask the owner before fast-forwarding.
+- **Owner's S08 brief** (pasted in chat, replaces the castle explorer plan in `docs/design/CASTLE_DIRECTION.md`): a
+  cinematic 3D homepage, four connected places, a judge understands the incident, makes one choice and verifies a
+  piece of evidence in about 90 seconds. Owner decisions in S08: React Three Fiber approved; the reference images stay
+  mood only (procedural art), Wick stays the pixel knights; ponytail ultra (smallest complete version).
+- **What exists (homepage `/`):**
+  - `components/fortress-scene.tsx`: one procedural fortress in one coordinate system (metres): bridge with three
+    grooves and a near post, gatehouse arch (extruded, so its soffit is real geometry), raised portcullis,
+    courtyard with the watch desk, inner wall + second gate, maze walls, keep, watchtower (the witness, lit window),
+    archive, stair turret, undercroft vault with the ledger desk and the bronze seal press. Masonry is a generated
+    canvas texture. Native scroll drives the camera through keyframes; the pointer moves it sideways on desktop
+    (the near post uncovers the courtyard). `frameloop="demand"`. Both themes repaint in place.
+  - `app/page.tsx`: five rooms as real HTML sections (`data-room`): Bridge (headline "Know what happened. Even when
+    your server lies.", "Investigate the missing session." + "Open dashboard"), Courtyard (demo case: host
+    timeline with the 02:14:06 gap, witness report `obs-7c41e2a9`, Wick's question, "Inspect witness"; clicking
+    the watchtower in the scene does the same), Wall walk (overhead reveal, "Replay crossing": a marker crosses the
+    inner gate, the watchtower lamp relights, the witness record appears), Undercroft (host ledger vs sealed witness
+    copy, "Remove local entry in demo", "Reset demo", selecting a witness row flashes the crossing), Seal chamber.
+  - **Seal chamber is live, not scripted:** it fetches a real anchored record (`/api/events`, the attacker's
+    203.0.113.45 record when present) and its proof (`/api/events/{seq}`), builds an altered copy (IP laundered),
+    hashes both in the browser (`lib/verify.ts`), climbs the real proof and compares with `LeashAnchor.getBatch`
+    read by the browser over JSON-RPC (falls back to the API's chain read, labelled). Original matches, altered does
+    not. Network shown as the local Hardhat chain; Quai is not connected (T-047), so no explorer link.
+  - Room nav (desktop rail), "Next: <room>" button (phones), "Replay case" resets. Wick (`lib/wick-kb.ts`) gets
+    room-specific suggestions and answers, and quotes the real seal result.
+  - Fallback: reduced motion or no WebGL2 gets the S07 layered SVG castle (`components/castle-scene.tsx`, also the
+    poster before the 3D chunk loads) and the same rooms as plain sections; the comparison and the verdict work.
+- **Checks run in S08 (this branch, final code):** frontend tsc + eslint clean; Playwright **29 passed, 1 skipped**
+  (new: the full tour incl. a real seal check, and reduced motion reaching the verdict); backend pytest **107
+  passed** (backend unchanged); production build via `start-all.cmd`; the three required shots captured from the
+  running production site with `node frontend/scripts/tour-shots.mjs` into `docs/design/tour-shots/`.
+- **Not verified:** a real phone (only the 390 px emulation for the S07 castle; the 3D tour on a phone was not
+  walked through), light theme of the 3D tour, frame rate on a mid-range device. See KI-035.
 
 ## S07 status: redesign (laptop A, branch `redesign/castle`, NOT merged into `main`), read first
 - **Branch `redesign/castle`** holds S07's work; `main` is still `bed98ce` (GHOST, all green). Continue on the

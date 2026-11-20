@@ -10,12 +10,12 @@
  * To add knowledge: add a topic with a few terms and a reply, then a case in e2e/wick.spec.ts.
  */
 import type { Status, Verdict } from "@/lib/types";
-import { CASE_RESULT } from "@/lib/case-state";
+import { CASE_RESULT, type Room, type SealResult } from "@/lib/case-state";
 
 export type WickAction = { label: string; href: string; openHow?: boolean };
 export type WickReply = { text: string; action?: WickAction };
 export type LiveState = { ok: true; last: Status["last_verification"] } | { ok: false; error: string };
-export type WickContext = { path: string; compared: boolean; live?: LiveState };
+export type WickContext = { path: string; compared: boolean; room?: Room; seal?: SealResult | null; live?: LiveState };
 
 const PHRASES: Record<string, string> = {
   "reporting gap": "heartbeat",
@@ -97,6 +97,7 @@ const ATTACK: WickAction = { label: "Open the Attack Lab", href: "/attack" };
 const DEMO: WickAction = { label: "Open the guided demo", href: "/demo" };
 const CASE: WickAction = { label: "Go to the sample case", href: "/#case" };
 const HOW: WickAction = { label: "How was this verified?", href: "/#how-verified", openHow: true };
+const WITNESS: WickAction = { label: "Inspect the witness", href: "/#maze" };
 
 const PAGES: { prefix: string; name: string; what: string }[] = [
   { prefix: "/attack", name: "Attack Lab", what: "the server's log store on the left, as an attacker can change it, and what was committed on-chain on the right. Run an attack, then press Verify integrity." },
@@ -131,16 +132,29 @@ function liveSummary(c: WickContext): WickReply {
 
 type Topic = { id: string; terms: string[]; live?: (c: WickContext) => boolean; reply: (c: WickContext) => WickReply };
 
+/** The seal press's real result, in one or two sentences. */
+const sealSays = (r: SealResult) =>
+  `The seal press checked record #${r.seq} from this stack against the root anchored on chain ${r.chainId ?? "?"}${r.block ? ` (block ${r.block})` : ""}. The original ${r.original ? "matches" : "does not match"}; the altered copy ${r.altered ? "matches" : "does not match"}, because changing one detail changes its digest.`;
+
+/** "What am I looking at?" in each room of the homepage tour (the courtyard uses the case answer below). */
+const ROOM_HERE: Partial<Record<Room, (c: WickContext) => WickReply>> = {
+  gate: () => ({ text: "You're on the bridge outside the fortress. The lit watchtower window is the independent witness. Press Investigate the missing session to follow the trail inside.", action: CASE }),
+  maze: () => ({ text: "From the wall walk you see the junction the intruder reaches, the watchtower and the archive at once. Press Replay crossing: when the marker passes the inner gate, the witness records it with its own key (demo case obs-7c41e2a9)." }),
+  undercroft: () => ({ text: "Two records of the same half hour: the host's ledger and the witness's sealed copy. Remove the 02:14:06 entry from the host ledger and the sealed copy still holds it. Reset puts it back." }),
+  seal: (c) => (c.seal ? { text: sealSays(c.seal), action: HOW } : { text: "The seal press checks a real record from this stack, and a copy with one detail changed, against the root anchored on-chain. Press Verify evidence." }),
+};
+
 export const TOPICS: Topic[] = [
   {
     id: "here",
     terms: ["look at", "what look", "what happen", "this page", "explain page", "explain this", "what page", "where am"],
     live: (c) => isVerifyPage(c.path),
     reply: (c) => {
+      if (c.path === "/" && c.room && c.room !== "case" && ROOM_HERE[c.room]) return ROOM_HERE[c.room]!(c);
       if (c.path === "/") {
         return c.compared
-          ? { text: `${CASE_RESULT} The marked row at 02:14:06 is a session by deploy from 203.0.113.45: the gateway witness signed it, the server logged nothing.`, action: HOW }
-          : { text: "The homepage holds a sample case: web-prod-01's own SSH log for 02:00–02:30 UTC. It looks ordinary. Press Compare records to line it up with the independent record.", action: CASE };
+          ? { text: `${CASE_RESULT} The marked row at 02:14:06 is a session by deploy from 203.0.113.45: the gateway witness signed it, the server logged nothing.`, action: WITNESS }
+          : { text: "The homepage walks through a demo case: web-prod-01's SSH log for 02:00–02:30 UTC and an independent witness. Press Investigate the missing session to start in the courtyard.", action: CASE };
       }
       const p = pageOf(c.path);
       if (!p) return { text: "This page is part of the LEASH console. Ask me what LEASH does, or where to see the demo." };
@@ -155,9 +169,9 @@ export const TOPICS: Topic[] = [
     reply: (c) => ({
       text:
         c.path === "/" && !c.compared
-          ? "Press Compare records first: the gap only shows once the two records are side by side. It proves the records differ: a signed observer saw a session the server never logged. It does not prove who removed it or why."
+          ? "The gap shows in the courtyard, once you start the investigation. It proves the records differ: a signed observer saw a session the server never logged. It does not prove who removed it or why."
           : "It proves the two records differ: a signed observer saw a session that the server never logged. It does not prove who removed the entry or why; a stopped logger, a crash and an attacker look the same until someone investigates.",
-      action: c.path === "/" && c.compared ? HOW : c.path === "/" ? CASE : undefined,
+      action: c.path === "/" && c.seal ? HOW : c.path === "/" && c.compared ? WITNESS : c.path === "/" ? CASE : undefined,
     }),
   },
   {
@@ -175,7 +189,7 @@ export const TOPICS: Topic[] = [
     reply: (c) => {
       if (isVerifyPage(c.path)) return liveSummary(c);
       return {
-        text: "Nothing on the homepage is a live verification: the case is a curated sample. It shows how the real rule works; the Attack Lab runs it against the real witness and chain.",
+        text: c.path === "/" && c.seal ? sealSays(c.seal) : "Nothing on the homepage is a live verification except the seal press: the case is a curated sample. It shows how the real rule works; the Attack Lab runs it against the real witness and chain.",
         action: c.compared ? HOW : ATTACK,
       };
     },
@@ -185,6 +199,7 @@ export const TOPICS: Topic[] = [
     terms: ["result", "result mean", "what result", "this mean", "what mean"],
     live: (c) => isVerifyPage(c.path),
     reply: (c) => {
+      if (c.path === "/" && c.seal) return { text: sealSays(c.seal), action: HOW };
       if (c.path === "/") return { text: `${CASE_RESULT} That is a sample result, not a live one.`, action: c.compared ? HOW : CASE };
       if (c.live?.ok && c.live.last) return { text: `The last run says ${VERDICT_WORD[c.live.last.verdict]}: ${VERDICT_MEANS[c.live.last.verdict]}`, action: { label: "Open the Dashboard", href: "/dashboard" } };
       if (c.live?.ok) return { text: "There is no result yet: nothing has been verified on this stack. Run Verify integrity in the Attack Lab first.", action: c.path.startsWith("/attack") ? undefined : ATTACK };
@@ -316,6 +331,8 @@ export const FALLBACK = (c: WickContext): WickReply => ({
 
 /** Suggested prompts change with the page and the case state. */
 export function suggestions(c: WickContext): string[] {
+  if (c.path === "/" && c.room === "seal") return ["What was verified?", "What does this result mean?", "How can my team try this?"];
+  if (c.path === "/" && (c.room === "maze" || c.room === "undercroft")) return ["What am I looking at?", "Where did the second record come from?", "What does this gap prove?"];
   if (c.path === "/") return c.compared ? ["What does this gap prove?", "Where did the second record come from?", "How can my team try this?"] : ["What does LEASH do?", "Show me the demo.", "What am I looking at?"];
   if (["/attack", "/dashboard", "/auditor", "/evidence", "/proofs"].some((p) => c.path.startsWith(p))) return ["What was verified?", "What does this result mean?", "What am I looking at?"];
   return ["What am I looking at?", "What does LEASH do?", "How can my team try this?"];
