@@ -76,7 +76,19 @@ backend/.venv/Scripts/python -m pip install -r backend/requirements.txt   # macO
 (cd frontend && npm install)
 ```
 
-Run three terminals:
+**One command (Windows).** Starts the chain, the API and the web console, waits until each answers, deploys a
+fresh contract and seeds 120 events. Ctrl+C stops all three:
+
+```powershell
+scripts\start-all.cmd
+```
+
+The same script runs from PowerShell as `powershell -ExecutionPolicy Bypass -File scripts\start-all.ps1`. Options:
+`-Dev` (use `next dev`, no build), `-NoSeed` (empty lab), `-Stop` (stop services left behind by a closed window).
+It refuses to start if port 8545, 8000 or 3000 is already taken and names the program using it. It never stops
+processes it did not start. Logs are written to `logs\`.
+
+Or run three terminals by hand:
 
 ```bash
 cd blockchain && npx hardhat node                                                    # 1. local chain on :8545

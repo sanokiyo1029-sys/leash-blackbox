@@ -2,7 +2,8 @@
 
 > **The attacker can erase the logs. They cannot erase the proof.**
 
-Run the stack (Hardhat node → API → `npm run dev`), open **Live Demo** (`/demo`), press **Next step** while talking.
+Run the stack with `scripts\start-all.cmd` (or Hardhat node → API → `npm run dev` by hand), open **Live Demo** (`/demo`),
+press **Next step** while talking.
 Every number on screen is produced live; the figures below come from `docs/validation/RESULTS.md`.
 
 ## 0:00 – 0:25 · The problem (Impact)
@@ -25,6 +26,8 @@ Every number on screen is produced live; the figures below come from `docs/valid
 - *On screen:* re-verification reports **TAMPERING DETECTED**.
   - All 12 erased records are recovered from the vault and proven against the anchored Merkle root.
   - The 3 fabricated records are exposed.
+  - The batch roots are re-read from the contract and still equal the roots anchored before the attack
+    ("On-chain commitment unchanged").
   - The evidence explorer shows field-level diffs and the Merkle inclusion proof for any record.
 
 ## 1:45 – 2:20 · Don't trust us: independent audit (Innovation, Evidence) — step 7

@@ -43,3 +43,6 @@ playwright-report/
 
 # Local tool configuration
 .claude/
+
+# Local start script output (scripts/start-all.ps1)
+logs/
