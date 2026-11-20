@@ -204,6 +204,7 @@ export function StoryWorld() {
     const follow = one("[data-follow]");
     const edges = q<SVGPathElement>("[data-edge]");
     const nodeLabels = q<SVGGElement>("[data-nlabel]");
+    const treeG = one<SVGGElement>("[data-tree]");
     const rootBox = one("[data-rootbox]");
     const rootChip = one("[data-rootchip]");
     const blockLock = one("[data-lock]");
@@ -361,9 +362,10 @@ export function StoryWorld() {
         set(termLines[i], "text", c.text.slice(0, Math.round(p * c.text.length)));
         set(termLines[i].parentElement!, "opacity", p > 0 ? "1" : "0");
       });
-      const st = ramp(t, T.rootStamp[0], T.rootStamp[0] + 0.06);
-      set(stamp, "opacity", (st * (1 - ramp(t, 2.98, 3.1))).toFixed(3));
-      set(stamp, "transform", `rotate(-7deg) scale(${(1.25 - 0.25 * easeOut(st)).toFixed(3)})`);
+      // Unease, not a shout: the stamp seeps in over a stretch of scroll instead of slamming down.
+      const st = smooth(ramp(t, T.rootStamp[0], T.rootStamp[0] + 0.24));
+      set(stamp, "opacity", (0.82 * st * (1 - ramp(t, 2.98, 3.1))).toFixed(3));
+      set(stamp, "transform", `rotate(-4deg) scale(${(1.05 - 0.05 * st).toFixed(3)})`);
       const tampered = ramp(t, T.unbloom[0] + 0.04, T.unbloom[1]);
       set(hostStatus, "text", t < 3.0 ? `${visible} entries · live` : t < 4.5 ? `${visible} entries` : `${visible} entries · 0 alerts`);
       set(hostBad, "opacity", tampered.toFixed(3));
@@ -382,7 +384,7 @@ export function StoryWorld() {
         const home = r ? ramp(t, r - FLIGHT, r) : 0;
         let u = -1;
         if (home > 0 && home < 1) u = 1 - easeOut(home);
-        else if (out > 0 && out < 1) u = smooth(out);
+        else if (out > 0 && out < 1 && t >= T.wire[0]) u = smooth(out); // the wire stays unseen until ch4 reveals it
         const d = dots[i];
         if (u < 0) set(d, "opacity", "0");
         else {
@@ -396,9 +398,8 @@ export function StoryWorld() {
         set(vrows[i], "opacity", (arrived * (t < T.vaultLight[0] ? 0.45 : light)).toFixed(3));
       }
       vtags.forEach((el) => set(el, "opacity", ramp(t, T.vaultLight[1] - 0.05, T.vaultLight[1] + 0.05).toFixed(2)));
-      set(vault, "opacity", (0.35 + 0.65 * ramp(t, 5.5, 5.95)).toFixed(3));
       const lit = ramp(t, T.wire[0], T.wire[1]);
-      set(wireBase, "opacity", (0.16 + 0.3 * lit).toFixed(3));
+      set(wireBase, "opacity", (0.46 * lit).toFixed(3));
       set(wireLit, "stroke-dashoffset", (1 - fu).toFixed(4));
       set(wireLit, "opacity", Math.min(lit, 1 - ramp(t, 8.1, 8.5) * 0.7).toFixed(3));
       const fo = Math.min(ramp(t, T.follow[0] - 0.04, T.follow[0] + 0.06), 1 - ramp(t, T.follow[1] - 0.04, T.follow[1] + 0.04));
@@ -413,12 +414,16 @@ export function StoryWorld() {
         else set(el, "stroke-dashoffset", (1 - ramp(tr, k / 5, (k + 1) / 5)).toFixed(4));
       });
       nodeLabels.forEach((el) => set(el, "opacity", ramp(tr, (Number(el.dataset.nlabel) + 0.6) / 5, (Number(el.dataset.nlabel) + 1) / 5).toFixed(2)));
-      set(rootBox, "opacity", ramp(t, T.tree[1] - 0.06, T.tree[1] + 0.02).toFixed(3));
       const rise = easeOut(ramp(t, T.rootRise[0], T.rootRise[1]));
       const chipP = { x: lerp(G.rootP.x, G.blockIn.x, rise), y: lerp(G.rootP.y, G.blockIn.y, rise) };
       set(rootChip, "opacity", (ramp(t, T.rootRise[0], T.rootRise[0] + 0.03) * (1 - ramp(t, T.lock[0], T.lock[0] + 0.04))).toFixed(3));
       set(rootChip, "transform", `translate3d(${chipP.x.toFixed(1)}px, ${chipP.y.toFixed(1)}px, 0)`);
       set(blockLock, "opacity", ramp(t, T.lock[0], T.lock[1]).toFixed(3));
+      // One subject at a time: the chain only appears when the root rises to it, then the tree steps back for the lock.
+      const chainOn = ramp(t, T.rootRise[0] - 0.2, T.rootRise[0]);
+      const sealDim = 1 - 0.75 * ramp(t, T.rootRise[1], T.lock[1]) * (1 - ramp(t, 8.1, 8.5));
+      set(treeG, "opacity", sealDim.toFixed(3));
+      set(rootBox, "opacity", (ramp(t, T.tree[1] - 0.06, T.tree[1] + 0.02) * sealDim).toFixed(3));
       set(blockIntact, "opacity", ramp(t, T.unbloom[0] + 0.06, T.unbloom[1] + 0.04).toFixed(3));
 
       // ---------------- the verdict
@@ -452,7 +457,9 @@ export function StoryWorld() {
       // ---------------- the close
       const calm = ramp(t, 11.04, 11.4);
       systemEls.forEach((el) => set(el, "opacity", (1 - 0.72 * calm).toFixed(3)));
-      set(chainEl, "opacity", (1 - 0.72 * calm).toFixed(3));
+      set(chainEl, "opacity", (chainOn * (1 - 0.72 * calm)).toFixed(3));
+      // The vault is discovered in ch4, steps back during the lock, and leaves the frame's edge before the close.
+      set(vault, "opacity", ((0.35 * lit + 0.65 * ramp(t, 5.5, 5.95)) * sealDim * (1 - calm)).toFixed(3));
       set(plate, "opacity", ramp(t, T.consoleIn[0], T.consoleIn[1]).toFixed(3));
 
       // ---------------- copy windows (fixed layer), scrims
@@ -591,29 +598,31 @@ export function StoryWorld() {
           <svg className="st-svg" width="1" height="1" aria-hidden>
             <path data-wire className="st-wire" d={wirePath(G.wire)} />
             <path data-wire-lit className="st-wire-lit" d={wirePath(G.wire)} pathLength={1} strokeDasharray="1" strokeDashoffset="1" />
-            {G.nodes[0].map((p, i) => (
-              <path key={`s${i}`} data-edge="0" className="st-edge" d={`M${p.x} ${G.stemY} L${p.x} ${p.y}`} pathLength={1} strokeDasharray="1" strokeDashoffset="1" />
-            ))}
-            {G.nodes.slice(1).map((lvl, k) =>
-              lvl.map((p, i) =>
-                [0, 1].map((c) => {
-                  const ch = G.nodes[k][2 * i + c];
-                  return <path key={`e${k}-${i}-${c}`} data-edge={k + 1} className="st-edge" d={`M${ch.x} ${ch.y} L${ch.x} ${(ch.y + p.y) / 2} L${p.x} ${(ch.y + p.y) / 2} L${p.x} ${p.y}`} pathLength={1} strokeDasharray="1" strokeDashoffset="1" />;
-                }),
-              ),
-            )}
-            {G.nodes.slice(0, -1).map((lvl, k) =>
-              lvl.map((p, i) => <rect key={`n${k}-${i}`} className="st-node" x={p.x - 2.5} y={p.y - 2.5} width={5} height={5} data-edge={k} />),
-            )}
-            {G.nodes.slice(2, -1).map((lvl, k) =>
-              lvl.map((p, i) => (
-                <g key={`l${k}-${i}`} data-nlabel={k + 2} opacity={0}>
-                  <text className="st-nlabel" x={p.x} y={p.y + (L.tree.step < 0 ? -10 : 18)} textAnchor="middle">
-                    {hex(hx?.levels[k + 2][i], 6)}
-                  </text>
-                </g>
-              )),
-            )}
+            <g data-tree>
+              {G.nodes[0].map((p, i) => (
+                <path key={`s${i}`} data-edge="0" className="st-edge" d={`M${p.x} ${G.stemY} L${p.x} ${p.y}`} pathLength={1} strokeDasharray="1" strokeDashoffset="1" />
+              ))}
+              {G.nodes.slice(1).map((lvl, k) =>
+                lvl.map((p, i) =>
+                  [0, 1].map((c) => {
+                    const ch = G.nodes[k][2 * i + c];
+                    return <path key={`e${k}-${i}-${c}`} data-edge={k + 1} className="st-edge" d={`M${ch.x} ${ch.y} L${ch.x} ${(ch.y + p.y) / 2} L${p.x} ${(ch.y + p.y) / 2} L${p.x} ${p.y}`} pathLength={1} strokeDasharray="1" strokeDashoffset="1" />;
+                  }),
+                ),
+              )}
+              {G.nodes.slice(0, -1).map((lvl, k) =>
+                lvl.map((p, i) => <rect key={`n${k}-${i}`} className="st-node" x={p.x - 2.5} y={p.y - 2.5} width={5} height={5} data-edge={k} />),
+              )}
+              {G.nodes.slice(2, -1).map((lvl, k) =>
+                lvl.map((p, i) => (
+                  <g key={`l${k}-${i}`} data-nlabel={k + 2} opacity={0}>
+                    <text className="st-nlabel" x={p.x} y={p.y + (L.tree.step < 0 ? -10 : 18)} textAnchor="middle">
+                      {hex(hx?.levels[k + 2][i], 6)}
+                    </text>
+                  </g>
+                )),
+              )}
+            </g>
             <path data-vlink className="st-vlink" d={`M${G.hostRootP.x} ${G.hostRootP.y} Q ${L.verifier.x} ${G.hostRootP.y} ${L.verifier.x} ${L.verifier.y}`} pathLength={1} strokeDasharray="1" strokeDashoffset="1" />
             <path data-vlink className="st-vlink" d={`M${G.blockIn.x} ${G.blockIn.y} Q ${L.verifier.x} ${G.blockIn.y} ${L.verifier.x} ${L.verifier.y}`} pathLength={1} strokeDasharray="1" strokeDashoffset="1" />
           </svg>

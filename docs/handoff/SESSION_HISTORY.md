@@ -221,5 +221,8 @@
 - **T-040 steps 4–5:** `scripts\start-all.cmd` started cleanly (132 events, 1 batch). `/story` on :3000: `sc-ready`, root
   `916a1113…`, CTA `/attack`, no overflow, live line "Live now: local chain 31337 · block 2 · 132 events anchored".
   Feel-check diff in BRIEF.md (not cold); follow-ups recorded as T-041. KI-024 resolved.
-- **Left running:** the demo stack (:8545/:8000/:3000) for the owner.
+- **T-041:** stack stopped; `story-world.tsx`, `story-data.ts` and `story.css` changed (stamp, hidden wire/vault before
+  ch4, seal focus, vault out of the close). Checked on the dev stack (`start-all.cmd -Dev`) at 1630×845 and 375×812;
+  `npm run lint` and `tsc` clean; e2e 27 passed + 1 skipped. ScrollCraft harness not re-run. KI-025 recorded.
+- **Left running:** the demo stack (:8545/:8000/:3000, production build) for the owner.
 

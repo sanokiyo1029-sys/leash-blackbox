@@ -106,7 +106,7 @@ export const COMMANDS = [
 ];
 
 export const T = {
-  rootStamp: [2.44, 3.0],
+  rootStamp: [2.5, 3.0], // seeps in after the root shell line is written (2.42)
   coverupGlow: [2.0, 4.6],
   silence: [4.45, 5.0],
   wire: [5.0, 5.2],
@@ -189,7 +189,7 @@ export const LAYOUTS: { wide: Layout; tall: Layout } = {
       { t: 5.9, x: 1400, y: 360, z: 0.88, ax: 0.36, ay: 0.5 },
       { t: 6.45, x: 1400, y: 390, z: 0.92, ax: 0.36, ay: 0.5 },
       { t: 7.15, x: 1400, y: -140, z: 0.7, ax: 0.38, ay: 0.52 },
-      { t: 7.95, x: 1400, y: -340, z: 0.74, ax: 0.38, ay: 0.5 },
+      { t: 7.95, x: 1400, y: -470, z: 0.9, ax: 0.38, ay: 0.5 }, // in on the locking block while the tree steps back
       { t: 8.55, x: 700, y: -60, z: 0.42, ax: 0.54, ay: 0.6 },
       { t: 10.42, x: 700, y: -50, z: 0.45, ax: 0.54, ay: 0.6 },
       { t: 10.68, x: 0, y: 10, z: 0.82, ax: 0.6, ay: 0.5 },

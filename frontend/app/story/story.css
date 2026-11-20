@@ -94,7 +94,7 @@ body:has(.story) {
   stroke: var(--st-ink);
   stroke-width: 1.5;
   stroke-dasharray: 2 7;
-  opacity: 0.16;
+  opacity: 0; /* unseen until ch4 lights it */
 }
 .st-wire-lit {
   fill: none;
@@ -295,10 +295,10 @@ body:has(.story) {
   top: 236px;
   z-index: 3;
   opacity: 0;
-  padding: 2px 16px 0;
-  border: 5px solid var(--st-red-ink);
+  padding: 2px 12px 0;
+  border: 3px solid var(--st-red-ink);
   color: var(--st-red-ink);
-  font: 900 84px/1 var(--st-display);
+  font: 900 56px/1 var(--st-display);
   font-stretch: 72%;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -1007,8 +1007,8 @@ body:has(.story) {
 .story.is-tall .st-stamp {
   right: 22px;
   top: 190px;
-  font-size: 58px;
-  border-width: 4px;
+  font-size: 40px;
+  border-width: 2px;
 }
 .story.is-tall .st-term {
   font-size: 10px;

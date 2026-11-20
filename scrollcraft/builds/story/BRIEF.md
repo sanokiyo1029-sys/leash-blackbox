@@ -135,10 +135,19 @@ Specific checks: the peak reads as the peak (only full-screen colour change, 2.8
 silence in front of it; the end resolves (headline, CTA, live line "Live now: local chain 31337 · block 2 · 132 events
 anchored" all hold on the last frame).
 
-**What changed:** nothing yet. Fixing the page means rebuilding `.next`, which breaks the running demo stack (KI-022),
-and the owner was using the live site. Proposed follow-ups (T-041): soften chapter 2's stamp (or delay it) so unease
-builds; hide the wire until chapter 4's reveal; give chapter 5 one subject at a time (tree, then block); keep the vault
-list out of frame on the close at wide viewports. Re-run the harness after each.
+**What changed (T-041, S05).** The page was fixed, not the intended curve:
+- Chapter 2: the ROOT stamp seeps in over 0.24 vh of scroll (was a 0.06 vh slam from 125% scale), at 56 px with a
+  3 px rule (was 84 px / 5 px; phone 40 px), starting at 2.50 just after the root-shell line is written.
+- Chapter 4: the wire, the outbound packets and the vault are unseen until chapter 4 starts (5.0); the wire then draws
+  from the host to the vault with the followed login line. Each row's small "forwarded" tick still hints at it.
+- Chapter 5: the chain appears only as the root rises to it (7.08); while the block locks, the tree, the vault and the
+  root box step back to 25%, and the camera moves in on the block (z 0.74 → 0.9). Everything returns for "Now verify.".
+- Close: the vault fades out with the rest of the system, so no fragment sits behind the skip button.
+
+Re-check (dev server, 1630×845 and 375×812, motion on; again not cold): chapter 2 now reads as unease, chapter 4 as a
+reveal, chapter 5 as the tree then the block, and the close stands alone. e2e 27 passed + 1 skipped afterwards. The
+ScrollCraft harness was not re-run (its scripts were not executed on this laptop), so dead-scroll and contrast numbers
+are still the S04 ones; a cold feel check by someone who has not read this brief is still open (T-033 rehearsal).
 
 ---
 
