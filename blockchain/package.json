@@ -1,0 +1,21 @@
+{
+  "name": "leash-blackbox-chain",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LEASH BLACKBOX anchoring contract (Solidity) and local EVM tooling",
+  "license": "MIT",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "node": "hardhat node --hostname 127.0.0.1 --port 8545",
+    "export-abi": "hardhat run scripts/export-abi.js",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-chai-matchers": "^2.1.2",
+    "@nomicfoundation/hardhat-ethers": "^3.1.3",
+    "chai": "^4.5.0",
+    "ethers": "^6.17.0",
+    "hardhat": "^2.29.2"
+  }
+}
