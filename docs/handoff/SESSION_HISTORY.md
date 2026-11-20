@@ -31,4 +31,6 @@
 - **E2E:** added Playwright smoke tests (5 passed, Edge channel, private ports).
 - **Presentation:** `/demo` guided story (7 steps, real API + in-browser auditor), e2e test added (6 passed).
 - **Hardening:** lab endpoints gated by `LEASH_DEMO_MODE` (78 passed).
-- **Remaining problems:** none blocking; T-018, T-019 and the rest of T-020 are open.
+- **Pitch:** `docs/PITCH.md`, plus 6 real screenshots captured by Playwright (`docs/img/`). Fixed a premature-match bug
+  in the demo e2e wait condition.
+- **Remaining problems:** none blocking; T-018 and the rest of T-020 are open.

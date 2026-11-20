@@ -18,6 +18,16 @@ server nor us:
 5. Auditors get an evidence bundle (records plus Merkle inclusion proofs) and check it with a
    single-file, dependency-free verifier against any RPC node they trust.
 
+## Screenshots
+
+| Live demo | Evidence explorer |
+|---|---|
+| ![Live demo](docs/img/demo.jpg) | ![Evidence explorer](docs/img/evidence.jpg) |
+| **Independent auditor (in-browser)** | **Dashboard after an attack** |
+| ![Auditor portal](docs/img/auditor.jpg) | ![Dashboard](docs/img/dashboard.jpg) |
+
+Pitch and demo script: [`docs/PITCH.md`](docs/PITCH.md). Measured results: [`docs/validation/RESULTS.md`](docs/validation/RESULTS.md).
+
 ## Architecture
 
 ```

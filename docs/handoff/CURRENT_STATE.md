@@ -20,7 +20,8 @@ Phases 1–4 complete and tested. Phase 6 core (auditor CLI, export, negative te
 Phase 5 web console built and checked manually in a browser; Playwright smoke tests (6) pass.
 Phase 7 started: guided presentation mode at `/demo` (T-017) done.
 Validation experiments (T-015) done; results committed in `docs/validation/RESULTS.md`.
-**Next: T-019 pitch material (demo script + README screenshots), then T-020 hardening; T-018 needs the owner's testnet key.**
+Pitch script (`docs/PITCH.md`) and real screenshots (`docs/img/`) done (T-019).
+**Next: rest of T-020 (ingest authentication); T-018 needs the owner's testnet key.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -56,7 +57,7 @@ Validation experiments (T-015) done; results committed in `docs/validation/RESUL
   flow was verified from bash.
 
 ## Pending
-Pitch material (T-019), hardening (T-020), optional public testnet anchoring (T-018, needs the owner's key).
+Ingest authentication (rest of T-020), optional public testnet anchoring (T-018, needs the owner's key).
 
 ## Working commands (verified)
 - `cd blockchain; npm install; npx hardhat test`
@@ -87,5 +88,5 @@ None confirmed. See KNOWN_ISSUES.md for limitations.
 None.
 
 ## Exact next task
-T-019: write `docs/PITCH.md` (3-minute script that follows the `/demo` page step by step and maps to the judging
-criteria) and add screenshots of /demo, /evidence, /auditor to the README.
+T-020 (remainder): authenticate `/api/events/ingest` with per-host bearer tokens (hash stored in the vault,
+token provisioned out of band). Add a test that an unauthenticated ingest gets 401. Keep the demo flow working.

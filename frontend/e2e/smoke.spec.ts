@@ -55,7 +55,8 @@ test.describe.serial("LEASH BLACKBOX core screens", () => {
   test("live demo: full story runs end to end", async ({ page }) => {
     await page.goto("/demo");
     await page.getByRole("button", { name: "Run the full story" }).click();
-    await expect(page.getByText("Protected evidence")).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByText(/12 erased records recovered/)).toBeVisible({ timeout: 45_000 });
+    await expect(page.getByText("Protected evidence", { exact: true })).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText(/12 erased records recovered · 3 fabricated records exposed/)).toBeVisible();
     await expect(page.getByText(/^VERIFIED$/)).toBeVisible();
   });

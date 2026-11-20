@@ -22,5 +22,5 @@ Statuses: TODO · IN_PROGRESS · BLOCKED · DONE
 | T-016 | Playwright smoke tests for the core screens (runs on installed Edge) | P2 | T-010..T-013 | `npx playwright test` passes | DONE |
 | T-017 | Architecture documentation page + presentation mode (`/demo` guided 7-step story) | P3 | T-010 | Story runs end to end; e2e test passes | DONE |
 | T-018 | Optional: public testnet anchoring (Sepolia/L2) behind env flag. Needs the owner's funded testnet key in a local `.env` | P3 | T-005 | Documented, never commits keys; one real testnet tx hash recorded | TODO |
-| T-019 | Pitch material: 3-minute demo script mapped to judging criteria + screenshots in README | P2 | T-017 | `docs/PITCH.md` + images under `docs/img/` | TODO |
+| T-019 | Pitch material: 3-minute demo script mapped to judging criteria + screenshots in README (regenerate with `CAPTURE=1 npx playwright test screenshots`) | P2 | T-017 | `docs/PITCH.md` + images under `docs/img/` | DONE |
 | T-020 | Hardening: lab endpoints gated by `LEASH_DEMO_MODE` (DONE, tested). Still TODO: authenticate `/api/events/ingest` (per-host token or mTLS), rate limits, structured logging | P3 | — | Lab endpoints 403 when `LEASH_DEMO_MODE=0`; ingest rejects unauthenticated hosts | IN_PROGRESS |
