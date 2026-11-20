@@ -1,15 +1,20 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageHeader } from "@/components/status";
+import { AlertTriangle, ArrowRight, Blocks, Database, Server, ShieldCheck, Workflow } from "lucide-react";
+import { PageTitle, Panel, Reveal } from "@/components/kit";
+import { cn } from "@/lib/utils";
 
 const ZONES = [
   {
     title: "Monitored host (attacker has root)",
-    tone: "border-bad/40 bg-bad/5",
+    icon: Server,
+    border: "border-t-bad/60",
+    text: "text-bad",
     items: ["Synthetic telemetry: sshd, sudo, auditd, nginx, firewall, EDR", "Host agent forwards each event at ingest", "Local log store host_logs.db, attackable"],
   },
   {
     title: "Collector & evidence vault",
-    tone: "border-warn/40 bg-warn/5",
+    icon: Database,
+    border: "border-t-warn/60",
+    text: "text-warn",
     items: [
       "Assigns sequence numbers; canonical JSON",
       "leaf = SHA256(0x00 ‖ record); chain = SHA256(0x02 ‖ prev ‖ leaf)",
@@ -19,12 +24,16 @@ const ZONES = [
   },
   {
     title: "Anchor service",
-    tone: "border-info/40 bg-info/5",
+    icon: Workflow,
+    border: "border-t-info/60",
+    text: "text-info",
     items: ["Holds the signing key, which never touches the host", "anchorBatch(root, chainHead, manifestHash, firstSeq, lastSeq, count)", "Checks the receipt status and the BatchAnchored event"],
   },
   {
     title: "Independent EVM chain",
-    tone: "border-ok/40 bg-ok/5",
+    icon: Blocks,
+    border: "border-t-ok/60",
+    text: "text-ok",
     items: ["LeashAnchor.sol: append-only, no update/delete", "Enforces contiguous sequence ranges on-chain", "Anyone can read; only allow-listed anchorers can write"],
   },
 ];
@@ -47,58 +56,64 @@ const LIMITS = [
 
 export default function Architecture() {
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="space-y-5">
+      <PageTitle
+        eyebrow="Threat model"
         title="Architecture & Threat Model"
         description="Trust boundaries, hashing scheme and what is and is not guaranteed. Full reasoning: docs/handoff/ARCHITECTURE_DECISIONS.md."
       />
+
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {ZONES.map((z, i) => (
-          <Card key={z.title} className={z.tone}>
-            <CardHeader>
-              <CardDescription className="font-hash text-xs">zone {i + 1}</CardDescription>
-              <CardTitle className="text-sm">{z.title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="list-disc space-y-1 pl-4 text-xs text-foreground/85">
+          <Reveal key={z.title} delay={i * 0.06} className="relative">
+            <div className={cn("surface surface-hover h-full rounded-2xl border-t-2 p-4", z.border)}>
+              <div className="flex items-center justify-between">
+                <span className="font-hash text-[11px] text-muted-foreground">zone {i + 1}</span>
+                <z.icon className={cn("size-4", z.text)} />
+              </div>
+              <h2 className="mt-1.5 text-sm font-semibold tracking-tight">{z.title}</h2>
+              <ul className="mt-3 space-y-1.5 text-xs text-foreground/85">
                 {z.items.map((it) => (
-                  <li key={it}>{it}</li>
+                  <li key={it} className="flex gap-2">
+                    <span className={cn("mt-1.5 size-1 shrink-0 rounded-full bg-current", z.text)} />
+                    <span className="min-w-0 break-words">{it}</span>
+                  </li>
                 ))}
               </ul>
-            </CardContent>
-          </Card>
+            </div>
+            {i < ZONES.length - 1 && <ArrowRight aria-hidden className="absolute top-1/2 -right-3 z-10 hidden size-4 -translate-y-1/2 text-muted-foreground xl:block" />}
+          </Reveal>
         ))}
       </div>
+
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>What gets detected</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
+        <Panel title="What gets detected" description="Each case is covered by the backend test suite (backend/tests/test_pipeline.py)." tone="safe">
+          <ul className="space-y-3 text-sm">
             {GUARANTEES.map(([k, v]) => (
-              <div key={k}>
-                <div className="font-medium">{k}</div>
-                <div className="text-xs text-muted-foreground">{v}</div>
-              </div>
+              <li key={k} className="flex gap-3">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-ok" />
+                <div className="min-w-0">
+                  <div className="font-medium">{k}</div>
+                  <div className="text-xs text-muted-foreground">{v}</div>
+                </div>
+              </li>
             ))}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Honest limitations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="list-disc space-y-2 pl-4 text-sm text-muted-foreground">
-              {LIMITS.map((l) => (
-                <li key={l}>{l}</li>
-              ))}
-            </ul>
-            <div className="mt-6 rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
-              Three independent implementations of the hashing spec agree: the backend (Python), the auditor CLI (Python standard library with its own
-              Keccak-256) and this web app (TypeScript + WebCrypto). A test checks that the backend and the CLI produce identical leaves, roots and chains.
-            </div>
-          </CardContent>
-        </Card>
+          </ul>
+        </Panel>
+        <Panel title="Honest limitations" description="What the blockchain does not protect.">
+          <ul className="space-y-2.5 text-sm text-muted-foreground">
+            {LIMITS.map((l) => (
+              <li key={l} className="flex gap-3">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warn" />
+                <span className="min-w-0">{l}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6 rounded-xl border bg-card/40 p-3 text-xs text-muted-foreground">
+            Three independent implementations of the hashing spec agree: the backend (Python), the auditor CLI (Python standard library with its own Keccak-256) and this web
+            app (TypeScript + WebCrypto). A test checks that the backend and the CLI produce identical leaves, roots and chains.
+          </div>
+        </Panel>
       </div>
     </div>
   );
