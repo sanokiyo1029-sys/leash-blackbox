@@ -116,11 +116,21 @@ Keep the e2e selectors working whenever the UI changes: "Run the full story", "L
 "Verify in my browser", "status 1 · 1 log", "Protected evidence".
 
 ## UI architecture notes (for the next session)
-- Tokens: `frontend/app/globals.css` (`.dark` block: background/primary/violet/ok/warn/bad, shadows; utilities
-  `.surface`, `.surface-hover`, `.app-backdrop`, `.font-hash`; reduced-motion override).
-- Motion: `frontend/lib/motion.ts` (ease, dur, spring, fadeUp, stagger). `MotionConfig reducedMotion="user"` lives in `AppShell`.
-- Components: `frontend/components/kit.tsx` (Panel, PageTitle, MetricCard/AnimatedNumber, LiveDot, AlertBanner,
-  EmptyState, Skeleton/LoadingRows, Spinner, Modal, Reveal, HashChip). Legacy helpers remain in `components/status.tsx`.
+- **Design language (S02): print/manga, from the inspected reference reel.** Spec and what was actually seen:
+  `docs/design/REFERENCE_SPEC.md`. Paper background, ink frames, one red, spot colours for status; no gradients, blur
+  or glass. The previous dark/glass look is gone (no `.dark` class on `<html>` any more).
+- Tokens: `frontend/app/globals.css` `:root` (`--paper`, `--ink`, `--primary` red, `--ok/--warn/--info` spot colours,
+  `--spot-yellow`, radius 0.25rem, hard ink offset shadows). Utilities: `.surface` (2px ink frame; use `bg-…!` to
+  override its background), `.surface-hover` (hard offset shadow), `.label-caps`, `.ink-grain`, `.hatch`,
+  `.speed-lines` (+ `.speed-lines-right`), `.font-hash`, `.tabular`. Display font: Playfair Display (`font-display`).
+- Motion: `frontend/lib/motion.ts` (ease, dur, spring, fadeUp, stagger). `MotionConfig reducedMotion="user"` lives in
+  `AppShell`, which also renders the pointer-trailing cursor (fine pointer + no reduced motion only).
+- Shell: paper top bar with uppercase tabs (red active block) from `xl`, a serif drawer menu below `xl`, chain status
+  as a white tag (keeps the "Chain 31337 · block N" text the e2e test reads), ink footer band.
+- Components: `frontend/components/kit.tsx` (Panel, PageTitle with `variant="scene"` red band + ink disc or
+  `variant="action"` paper + speed lines, MetricCard with serif numbers, AlertBanner print blocks, EmptyState,
+  Skeleton/LoadingRows, Spinner, Modal, Reveal, HashChip). Legacy badges remain in `components/status.tsx`.
+- Screenshots: `CAPTURE=1 npx playwright test screenshots` (runs with reduced motion so frames are settled).
 - Attack Lab: `frontend/app/attack/page.tsx`. Rows are a single 3-column grid on desktop (`lg:contents` wrapper);
   verdicts come only from the explicit `/api/verify` report (never from live diffing), and the on-chain root is
   read directly via `lib/verify.ts readBatch`.

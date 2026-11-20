@@ -111,3 +111,18 @@
   - PITCH: test counts, next steps, two judge Q&A rows (real log files, per-host tokens), demo-day checklist.
   - Checks: lint clean, tsc ok, e2e 23 passed + 1 skipped. `scripts\start-all.cmd` was run through cmd.exe
     (default production build): ready, `/demo` 200, 132 events anchored; `start-all.cmd -Stop` stopped all three.
+- **Reference-driven redesign T-032 (same session, later):**
+  - Opened the owner's reference reel in the browser (dismissed Instagram's sign-up overlay; no sign-in), paused the
+    23.5 s video and sampled ~15 frames. It shows a website in a red/ink/paper manga print style, not a dark
+    dashboard. Spec of what was visible: `docs/design/REFERENCE_SPEC.md`.
+  - Stage order: tokens + fonts + shell + kit + dashboard first, screenshot, compare, refine (added a focal ink disc,
+    hatched chart fills, red CTA band), then Attack Lab (speed-line scene, comic stepper, ink terminal, IMMUTABLE stamp)
+    and Guided Demo (red opening scene, comic-strip progress, numbered panels, red/green verdict blocks), then the
+    supporting pages (inherit via kit; evidence filter bar fixed).
+  - Bugs found and fixed on the way: the Attack Lab scan line never finished its exit animation (it inherited
+    `repeat: Infinity`); `.surface` background overrode `bg-ink` on the current stepper step (white on white); the demo
+    progress bar animated from full width on first render; white titles vanished over a paper-filled disc; a 1 px
+    overflow of the evidence filter bar at 375 px; screenshot shots caught the decorative cursor.
+  - Checks: tsc and lint clean; e2e 23 passed + 1 skipped (production build; all 8 routes at 375/768 px with no
+    overflow and no console errors); screenshots regenerated. No backend, contract or verification code changed.
+  - Also confirmed live: Ctrl+C in the start-all window stops all three services.
