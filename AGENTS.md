@@ -24,6 +24,8 @@ EVM chain. A verifier detects modified / deleted / injected host records.
 - `backend/app/` FastAPI + SQLAlchemy. Key modules: `service.py` (collector, host agent, anchoring),
   `verify.py` (verification engine), `attack.py` (attack lab), `export.py` (evidence bundles).
 - `verifier/leash_verify.py` standalone stdlib-only auditor CLI. Must not import backend code.
+- `agent/tail_agent.py` stdlib-only log-file agent (`ingest`, `check`); it imports only `verifier/leash_verify.py`, never backend code.
+- `scripts/start-all.ps1` (+ `.cmd`) one-command local start; `-Stop` stops only the processes it started.
 - `docs/handoff/` relay documentation. Update `CURRENT_STATE.md` and `SESSION_HISTORY.md` at each checkpoint.
 
 ## Checks

@@ -145,6 +145,29 @@ python verifier/leash_verify.py host_bundle.json --rpc http://127.0.0.1:8545 --c
 # exit 0 = VERIFIED, exit 2 = TAMPERING_DETECTED
 ```
 
+## Forward a real log file
+
+`agent/tail_agent.py` (Python standard library only) forwards a syslog / auth.log style or JSON-lines file to the
+collector and later checks the file against the chain:
+
+```bash
+cp agent/sample/auth.log data/demo-auth.log                     # synthetic auth.log with an intrusion
+python agent/tail_agent.py ingest data/demo-auth.log --seal     # forward new lines, anchor them right away
+python agent/tail_agent.py check data/demo-auth.log             # MATCHES (exit 0)
+# now delete or edit a line in data/demo-auth.log, as an attacker with root would
+python agent/tail_agent.py check data/demo-auth.log             # TAMPERING_DETECTED (exit 2), with the original text
+```
+
+- **No duplicates:** `ingest` sends only complete new lines, in file order, and keeps its byte offset in
+  `<file>.leash-state.json`. `--follow` keeps polling.
+- **Refuses a rewritten file:** if lines it already sent have changed, it stops (exit 2) instead of resending them.
+- **Nothing silently dropped:** lines in an unknown format are still committed as `unparsed` raw text. Lines longer than
+  4096 characters are reported and skipped.
+- **Independent check:** `check` first proves the vault evidence against the chain with `verifier/leash_verify.py`.
+  It then compares the file line by line and reports `ERASED` (with the original text), `ALTERED`, `INJECTED`, and
+  trailing lines that are not committed yet.
+- **Token:** set `LEASH_INGEST_TOKEN` when the API requires one.
+
 ## Test results
 
 All of these were measured on a real local EVM node:
@@ -152,7 +175,7 @@ All of these were measured on a real local EVM node:
 | Suite | Command | Result |
 |---|---|---|
 | Contract | `cd blockchain && npx hardhat test` | 9 passing |
-| Backend + verifier | `cd backend && .venv/Scripts/python -m pytest` | 81 passed |
+| Backend + verifier + file agent | `cd backend && .venv/Scripts/python -m pytest` | 86 passed |
 | Web end-to-end (screens, attack flow, mobile/tablet overflow, console errors) | `cd frontend && npm run test:e2e` | 23 passed |
 | Validation experiments | `backend/.venv/Scripts/python scripts/run_validation.py --trials 30` | see below |
 
@@ -180,6 +203,11 @@ statistical accuracy claim.
 - **Ingest authentication:** host ingest uses one shared bearer token (`LEASH_INGEST_TOKEN`), not per-host
   credentials.
 - **Local chain state:** the Hardhat node keeps its state in memory. Restarting it requires a lab reset.
+- **File agent:**
+  - Edits to a forwarded file are found by `tail_agent.py check`, not by the dashboard's `/api/verify`, which checks
+    the simulated host store.
+  - Records are matched to a file by its file name.
+  - RFC 3164 timestamps carry no year or zone, so the current year and UTC are assumed.
 
 ## Repository layout
 
@@ -189,8 +217,9 @@ statistical accuracy claim.
 | `shared/` | Exported ABI and bytecode |
 | `backend/` | FastAPI app (`app/`) and pytest suite (`tests/`) |
 | `verifier/` | Standalone auditor CLI |
+| `agent/` | Log-file forwarding agent and a synthetic sample `auth.log` |
 | `frontend/` | Web console and Playwright tests |
-| `scripts/` | Validation experiments |
+| `scripts/` | One-command start (`start-all`), validation experiments |
 | `docs/` | Validation results, pitch script, screenshots, development handoff notes |
 
 ## Licence

@@ -46,3 +46,5 @@ playwright-report/
 
 # Local start script output (scripts/start-all.ps1)
 logs/
+*.leash-state.json
+!agent/sample/auth.log
