@@ -1,22 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, MotionConfig, motion } from "motion/react";
-import {
-  Activity,
-  Blocks,
-  FileSearch,
-  FlaskConical,
-  Gauge,
-  Menu,
-  Network,
-  Presentation,
-  ShieldCheck,
-  Swords,
-  X,
-} from "lucide-react";
+import { AnimatePresence, MotionConfig, motion, useMotionValue, useSpring } from "motion/react";
+import { Activity, Menu, X } from "lucide-react";
 import { LiveDot } from "@/components/kit";
 import { useApi } from "@/lib/api";
 import { dur, ease, spring } from "@/lib/motion";
@@ -24,20 +12,21 @@ import type { Status } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/attack", label: "Attack Lab", icon: Swords, featured: true },
-  { href: "/", label: "Security Dashboard", icon: Gauge },
-  { href: "/evidence", label: "Evidence Explorer", icon: FileSearch },
-  { href: "/auditor", label: "Auditor", icon: ShieldCheck },
-  { href: "/proofs", label: "Blockchain Proofs", icon: Blocks },
-  { href: "/demo", label: "Guided Demo", icon: Presentation },
-  { href: "/validation", label: "Validation", icon: FlaskConical },
-  { href: "/architecture", label: "Architecture", icon: Network },
+  { href: "/attack", label: "Attack Lab", short: "Attack Lab", featured: true },
+  { href: "/", label: "Security Dashboard", short: "Dashboard" },
+  { href: "/evidence", label: "Evidence Explorer", short: "Evidence" },
+  { href: "/auditor", label: "Auditor", short: "Auditor" },
+  { href: "/proofs", label: "Blockchain Proofs", short: "Proofs" },
+  { href: "/demo", label: "Guided Demo", short: "Demo" },
+  { href: "/validation", label: "Validation", short: "Validation" },
+  { href: "/architecture", label: "Architecture", short: "Architecture" },
 ];
 
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
+/** The small white tag fixed top-right, as in the reference: live chain state. */
 function ChainStatus({ compact = false }: { compact?: boolean }) {
   const { data, error } = useApi<Status>("/api/status", 5000);
   const ok = !!data?.chain.connected && data.chain.contract_present !== false && !error;
@@ -52,51 +41,68 @@ function ChainStatus({ compact = false }: { compact?: boolean }) {
         : data.chain.connected
           ? "Contract missing — reset lab"
           : "Chain unreachable";
+  const bad = !ok && (!!data || !!error);
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-full border px-3 py-1 text-xs whitespace-nowrap transition-colors",
-        ok ? "border-ok/25 bg-ok/[0.07] text-ok" : data || error ? "border-bad/30 bg-bad/[0.08] text-bad" : "border-border text-muted-foreground",
+        "flex items-center gap-2 border-2 border-ink px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] whitespace-nowrap uppercase",
+        bad ? "bg-primary text-primary-foreground" : "bg-card text-ink",
       )}
       title={error ?? data?.chain.error ?? data?.chain.rpc_url}
       aria-live="polite"
     >
-      <LiveDot tone={ok ? "ok" : data || error ? "bad" : "muted"} pulse={ok} />
+      <LiveDot tone={ok ? "ok" : "muted"} pulse={ok} />
       <span className="tabular">{label}</span>
     </div>
   );
 }
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function TopNav() {
   const pathname = usePathname();
   return (
-    <nav className="flex flex-col gap-0.5" aria-label="Primary">
-      {NAV.map(({ href, label, icon: Icon, featured }) => {
+    <nav className="hidden self-stretch xl:flex" aria-label="Primary">
+      {NAV.map(({ href, short, featured }) => {
         const active = isActive(pathname, href);
         return (
           <Link
             key={href}
             href={href}
-            onClick={onNavigate}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm outline-none transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-ring",
-              active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+              "label-caps relative flex items-center gap-1.5 px-3 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              active ? "text-primary-foreground" : "text-ink/70 hover:text-ink",
             )}
           >
-            {active && (
-              <motion.span
-                layoutId="nav-active"
-                transition={spring.snappy}
-                className="absolute inset-0 rounded-xl bg-sidebar-accent ring-1 ring-primary/25"
-              />
-            )}
-            <Icon className={cn("relative size-4 transition-colors", active ? "text-primary" : "group-hover:text-foreground", featured && !active && "text-bad/80")} />
-            <span className="relative">{label}</span>
-            {featured && (
-              <span className="relative ml-auto rounded-md border border-bad/30 bg-bad/10 px-1.5 py-px text-[10px] font-semibold tracking-wide text-bad">LIVE</span>
-            )}
+            {active && <motion.span layoutId="nav-active" transition={spring.snappy} className="absolute inset-x-0.5 inset-y-2.5 bg-primary" />}
+            <span className="relative">{short}</span>
+            {featured && <span className={cn("relative size-1.5 rounded-full", active ? "bg-primary-foreground" : "bg-primary")} aria-label="live" />}
           </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+function DrawerNav({ onNavigate }: { onNavigate: () => void }) {
+  const pathname = usePathname();
+  return (
+    <nav className="flex flex-col" aria-label="Primary">
+      {NAV.map(({ href, label }, i) => {
+        const active = isActive(pathname, href);
+        return (
+          <motion.div key={href} initial={{ x: -24, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ ...spring.soft, delay: 0.04 * i }}>
+            <Link
+              href={href}
+              onClick={onNavigate}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "block border-b-2 border-ink px-5 py-3 font-display text-2xl font-black uppercase outline-none focus-visible:bg-muted",
+                active ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+              )}
+            >
+              {label}
+            </Link>
+          </motion.div>
         );
       })}
     </nav>
@@ -105,15 +111,60 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 
 function Brand() {
   return (
-    <Link href="/" className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring">
-      <div className="relative grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary/25 to-violet/20 text-primary ring-1 ring-primary/30">
-        <Activity className="size-[18px]" />
+    <Link href="/" className="flex shrink-0 items-center gap-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <div className="grid size-8 place-items-center border-2 border-ink bg-primary text-primary-foreground">
+        <Activity className="size-4" />
       </div>
-      <div className="leading-tight">
-        <div className="text-[13px] font-semibold tracking-[0.12em]">LEASH BLACKBOX</div>
-        <div className="text-[11px] text-muted-foreground">tamper-evident evidence</div>
+      <div className="leading-none">
+        <div className="font-display text-[17px] font-black tracking-tight uppercase">Leash Blackbox</div>
+        <div className="mt-0.5 hidden text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase sm:block">tamper-evident evidence</div>
       </div>
     </Link>
+  );
+}
+
+const CURSOR_QUERY = "(pointer: fine) and (prefers-reduced-motion: no-preference)";
+const subscribeCursor = (cb: () => void) => {
+  const m = window.matchMedia(CURSOR_QUERY);
+  m.addEventListener("change", cb);
+  return () => m.removeEventListener("change", cb);
+};
+
+/** The reference's small circle that trails the pointer; grows over anything clickable. Decorative only. */
+function CursorDot() {
+  const enabled = useSyncExternalStore(subscribeCursor, () => window.matchMedia(CURSOR_QUERY).matches, () => false);
+  const x = useMotionValue(-40);
+  const y = useMotionValue(-40);
+  const sx = useSpring(x, { stiffness: 700, damping: 45, mass: 0.35 });
+  const sy = useSpring(y, { stiffness: 700, damping: 45, mass: 0.35 });
+  const [over, setOver] = useState(false);
+  useEffect(() => {
+    if (!enabled) return;
+    const move = (e: PointerEvent) => {
+      x.set(e.clientX);
+      y.set(e.clientY);
+      setOver(!!(e.target as Element | null)?.closest?.("a,button,[role=option],input,label,select,textarea"));
+    };
+    window.addEventListener("pointermove", move, { passive: true });
+    return () => window.removeEventListener("pointermove", move);
+  }, [enabled, x, y]);
+  if (!enabled) return null;
+  // White dot with an ink outline (readable on paper, red and ink); over a target an ink ring opens around it.
+  return (
+    <>
+      <motion.div
+        aria-hidden
+        className="pointer-events-none fixed top-0 left-0 z-[70] -mt-5 -ml-5 size-10 rounded-full border-2 border-ink"
+        style={{ x: sx, y: sy }}
+        animate={{ scale: over ? 1 : 0.3, opacity: over ? 1 : 0 }}
+        transition={spring.snappy}
+      />
+      <motion.div
+        aria-hidden
+        className="pointer-events-none fixed top-0 left-0 z-[70] -mt-1.5 -ml-1.5 size-3 rounded-full border-2 border-ink bg-white"
+        style={{ x: sx, y: sy }}
+      />
+    </>
   );
 }
 
@@ -121,69 +172,59 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <MotionConfig reducedMotion="user" transition={{ duration: dur.base, ease: ease.out }}>
-      <div className="app-backdrop flex min-h-screen">
-        {/* Desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col border-r border-sidebar-border bg-sidebar/70 px-3 backdrop-blur-xl lg:flex">
-          <div className="px-2 py-5">
+      <div className="app-backdrop flex min-h-screen flex-col">
+        <header className="sticky top-0 z-30 border-b-2 border-ink bg-paper">
+          <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center gap-3 px-4 sm:px-6 lg:px-8">
+            <button className="-ml-1 p-1.5 text-ink hover:bg-ink/[0.06] xl:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
+              <Menu className="size-5" />
+            </button>
             <Brand />
+            <div className="mx-3 hidden h-6 w-0.5 bg-ink xl:block" aria-hidden />
+            <TopNav />
+            <div className="ml-auto hidden sm:block">
+              <ChainStatus />
+            </div>
+            <div className="ml-auto sm:hidden">
+              <ChainStatus compact />
+            </div>
           </div>
-          <NavLinks />
-          <div className="mt-auto space-y-3 px-2 py-5">
-            <ChainStatus />
-            <p className="text-[11px] leading-relaxed text-muted-foreground">
-              The attacker can erase the logs.
-              <br />
-              <span className="text-foreground/85">They cannot erase the proof.</span>
-            </p>
-          </div>
-        </aside>
+        </header>
 
-        {/* Mobile drawer */}
+        {/* Menu below xl: a paper panel with big serif entries */}
         <AnimatePresence>
           {open && (
-            <motion.div className="fixed inset-0 z-40 lg:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
+            <motion.div className="fixed inset-0 z-40 xl:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="absolute inset-0 bg-ink/50" onClick={() => setOpen(false)} />
               <motion.aside
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={spring.soft}
-                className="absolute inset-y-0 left-0 flex w-[280px] flex-col border-r bg-sidebar px-3 shadow-[var(--shadow-pop)]"
+                className="absolute inset-y-0 left-0 flex w-[min(320px,88vw)] flex-col border-r-2 border-ink bg-paper"
               >
-                <div className="flex items-center justify-between px-2 py-5">
+                <div className="flex h-14 items-center justify-between border-b-2 border-ink px-4">
                   <Brand />
-                  <button className="rounded-lg p-2 text-muted-foreground hover:bg-muted" onClick={() => setOpen(false)} aria-label="Close menu">
+                  <button className="p-1.5 hover:bg-ink/[0.06]" onClick={() => setOpen(false)} aria-label="Close menu">
                     <X className="size-5" />
                   </button>
                 </div>
-                <NavLinks onNavigate={() => setOpen(false)} />
+                <DrawerNav onNavigate={() => setOpen(false)} />
               </motion.aside>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-border/70 bg-background/65 px-4 backdrop-blur-xl sm:px-6">
-            <div className="flex min-w-0 items-center gap-3">
-              <button className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
-                <Menu className="size-5" />
-              </button>
-              <div className="lg:hidden">
-                <Brand />
-              </div>
-              <div className="hidden truncate text-xs text-muted-foreground lg:block">
-                The Big Hack 2.0 · Cybersecurity &amp; Blockchain · B3 — Logs the attacker can&apos;t erase
-              </div>
-            </div>
-            <div className="hidden sm:block">
-              <ChainStatus />
-            </div>
-            <div className="sm:hidden">
-              <ChainStatus compact />
-            </div>
-          </header>
-          <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
-        </div>
+        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+
+        <footer className="border-t-2 border-ink bg-ink text-paper">
+          <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
+            <p className="font-display text-lg font-black uppercase sm:text-xl">
+              The attacker can erase the logs. <span className="text-primary">They cannot erase the proof.</span>
+            </p>
+            <p className="text-[10px] font-semibold tracking-[0.18em] text-paper/60 uppercase">The Big Hack 2.0 · Cybersecurity &amp; Blockchain · B3</p>
+          </div>
+        </footer>
+        <CursorDot />
       </div>
     </MotionConfig>
   );

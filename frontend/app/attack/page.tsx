@@ -176,6 +176,7 @@ export default function AttackLab() {
   return (
     <div className="space-y-5">
       <PageTitle
+        variant="action"
         eyebrow="Live attack lab"
         title="Compromise the server. Watch the proof survive."
         description="Left: the monitored server's own log store, which you control as root. Right: the same records as committed on an independent blockchain. Every change below is a real write to the host database; every verdict comes from the real verifier."
@@ -189,9 +190,9 @@ export default function AttackLab() {
       <Stepper step={step} />
 
       {/* Command bar */}
-      <div className="surface flex flex-col gap-3 rounded-2xl p-3 lg:flex-row lg:items-center">
-        <div className="flex items-center gap-2 px-1 text-xs font-medium tracking-[0.14em] text-muted-foreground uppercase">
-          <Terminal className="size-4 text-bad" /> Attacker toolkit
+      <div className="surface flex flex-col gap-3 rounded-sm p-3 lg:flex-row lg:items-center">
+        <div className="label-caps flex items-center gap-2 bg-ink px-2 py-1.5 text-paper">
+          <Terminal className="size-4 text-primary" /> Attacker toolkit
         </div>
         <div className="flex flex-1 flex-wrap gap-2">
           {TOOLKIT.map((t) => (
@@ -226,7 +227,7 @@ export default function AttackLab() {
             {s?.injected ? `${s.injected} fabricated · ` : ""}
             first divergence at seq {s?.first_divergent_seq}. The on-chain commitment is unchanged.
             {score && (
-              <span className="text-foreground/60">
+              <span className="text-primary-foreground/75">
                 {" "}
                 Lab ground truth: {score.true_positive}/{score.ground_truth_tampered} caught, {score.false_positive} false alarms.
               </span>
@@ -263,10 +264,10 @@ export default function AttackLab() {
             {verifying && (
               <motion.div
                 key="scan"
-                className="pointer-events-none absolute inset-x-0 top-0 z-20 h-24 bg-gradient-to-b from-transparent via-primary/15 to-transparent"
+                className="pointer-events-none absolute inset-x-0 top-0 z-20 h-1.5 bg-primary shadow-[0_0_0_2px_var(--ink)]"
                 initial={{ y: 0, opacity: 0 }}
                 animate={{ y: ["0%", "900%"], opacity: [0, 1, 1, 0] }}
-                exit={{ opacity: 0 }}
+                exit={{ opacity: 0, transition: { duration: 0.2 } }} // own transition: the looping one below would never let exit finish
                 transition={{ duration: 1.1, repeat: Infinity, ease: "linear" }}
               />
             )}
@@ -357,16 +358,22 @@ function Stepper({ step }: { step: number }) {
         const done = step > i;
         const current = step === i;
         return (
-          <li key={label} className={cn("surface flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs transition-colors", current && "border-primary/40")}>
+          <li
+            key={label}
+            className={cn(
+              "surface flex items-center gap-3 rounded-sm px-3 py-2.5 text-xs transition-[background-color,color] duration-300",
+              current && "bg-ink! text-paper", // ! beats the .surface background
+            )}
+          >
             <span
               className={cn(
-                "grid size-6 shrink-0 place-items-center rounded-full border text-[11px] font-semibold transition-colors duration-300",
-                done ? "border-ok/40 bg-ok/15 text-ok" : current ? "border-primary/50 bg-primary/15 text-primary" : "border-border text-muted-foreground",
+                "grid size-7 shrink-0 place-items-center rounded-full border-2 font-display text-sm font-black transition-colors duration-300",
+                done ? "border-ink bg-ok text-paper" : current ? "border-paper bg-primary text-paper" : "border-ink text-ink",
               )}
             >
               {done ? <Check className="size-3.5" /> : i + 1}
             </span>
-            <span className={cn("font-medium", !done && !current && "text-muted-foreground")}>{label}</span>
+            <span className={cn("label-caps", !done && !current && "text-muted-foreground")}>{label}</span>
           </li>
         );
       })}
@@ -376,7 +383,7 @@ function Stepper({ step }: { step: number }) {
 
 function HostHeader({ attacked, command, busy, hostCount, vaultCount }: { attacked: boolean; command: string | null; busy: boolean; hostCount: number; vaultCount: number }) {
   return (
-    <div className={cn("surface flex flex-col rounded-2xl p-4 transition-colors duration-500", attacked && "border-bad/35 bg-bad/[0.04]")}>
+    <div className={cn("surface flex flex-col rounded-sm p-4 transition-shadow duration-500", attacked && "shadow-[6px_6px_0_0_var(--bad)]")}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className={cn("grid size-8 place-items-center rounded-lg transition-colors", attacked ? "bg-bad/15 text-bad" : "bg-muted text-muted-foreground")}>
@@ -406,7 +413,7 @@ function HostHeader({ attacked, command, busy, hostCount, vaultCount }: { attack
             transition={{ duration: dur.base, ease: ease.out }}
             className="overflow-hidden"
           >
-            <div className="mt-3 flex items-center gap-2 overflow-hidden rounded-lg border border-bad/20 bg-black/40 px-3 py-2 font-hash text-[11.5px] text-bad/90">
+            <div className="mt-3 flex items-center gap-2 overflow-hidden rounded-sm border-2 border-ink bg-ink px-3 py-2 font-hash text-[11.5px] text-paper">
               <span className="text-bad">root@web-prod-01:~#</span>
               <motion.span
                 className="truncate"
@@ -451,7 +458,7 @@ function ChainHeader({
 }) {
   const match = verified && !!onchain && hostRoot === onchain.merkle_root;
   return (
-    <div className="surface rounded-2xl border-info/20 p-4">
+    <div className="surface rounded-sm p-4 shadow-[6px_6px_0_0_var(--ink)]">
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className="grid size-8 place-items-center rounded-lg bg-info/15 text-info">
@@ -464,7 +471,7 @@ function ChainHeader({
             </div>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-ok/25 bg-ok/[0.07] px-2.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-ok">
+        <span className="label-caps inline-flex -rotate-3 items-center gap-1.5 border-2 border-ink bg-ink px-2 py-0.5 whitespace-nowrap text-paper">
           <Lock className="size-3" /> immutable
         </span>
       </div>

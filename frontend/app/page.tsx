@@ -260,10 +260,11 @@ export default function Dashboard() {
                       ["elev", "var(--violet)"],
                       ["rout", "var(--info)"],
                     ].map(([id, c]) => (
-                      <linearGradient key={id} id={id} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={c} stopOpacity={0.45} />
-                        <stop offset="100%" stopColor={c} stopOpacity={0.02} />
-                      </linearGradient>
+                      // Ink hatching instead of gradients (print look, docs/design/REFERENCE_SPEC.md)
+                      <pattern key={id} id={id} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                        <rect width="6" height="6" fill={c} fillOpacity={0.1} />
+                        <line x1="0" y1="0" x2="0" y2="6" stroke={c} strokeWidth={1.6} strokeOpacity={0.6} />
+                      </pattern>
                     ))}
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -297,7 +298,7 @@ export default function Dashboard() {
                 </ResponsiveContainer>
                 <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
                   <div>
-                    <div className={cn("text-2xl font-semibold tabular", integrity === 100 ? "text-ok" : "text-bad")}>{integrity !== null ? pct(integrity) : "—"}</div>
+                    <div className={cn("font-display text-xl font-black tabular", integrity === 100 ? "text-ok" : "text-bad")}>{integrity !== null ? pct(integrity) : "—"}</div>
                     <div className="text-[11px] text-muted-foreground">intact</div>
                   </div>
                 </div>
@@ -338,18 +339,17 @@ export default function Dashboard() {
 
       <Link
         href="/attack"
-        className="surface surface-hover group flex items-center justify-between gap-4 rounded-2xl border-bad/25 p-5"
+        className="group relative flex items-center justify-between gap-4 overflow-hidden rounded-sm border-2 border-ink bg-primary p-6 text-primary-foreground transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--ink)] sm:p-8"
       >
-        <div className="flex items-center gap-3">
-          <div className="grid size-10 place-items-center rounded-xl bg-bad/15 text-bad">
-            <Swords className="size-5" />
-          </div>
-          <div>
-            <div className="text-sm font-semibold">Run the live attack</div>
-            <div className="text-xs text-muted-foreground">Take root on web-prod-01, erase the trail, and watch the chain-backed verifier catch it.</div>
-          </div>
+        <div aria-hidden className="ink-grain absolute inset-0 opacity-50" />
+        <div className="relative min-w-0">
+          <div className="label-caps mb-2 inline-block border-2 border-ink bg-card px-2 py-0.5 text-ink">Attack lab · live</div>
+          <div className="font-display text-[clamp(1.6rem,4vw,2.6rem)] leading-none font-black uppercase">Run the live attack</div>
+          <div className="mt-2 text-sm text-primary-foreground/90">Take root on web-prod-01, erase the trail, and watch the chain-backed verifier catch it.</div>
         </div>
-        <span className="text-sm text-bad transition-transform duration-300 group-hover:translate-x-1">→</span>
+        <span className="relative grid size-14 shrink-0 place-items-center rounded-full border-2 border-ink bg-card text-ink transition-transform duration-300 group-hover:translate-x-1">
+          <Swords className="size-6" />
+        </span>
       </Link>
     </div>
   );

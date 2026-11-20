@@ -8,6 +8,8 @@ const shot = (name: string) => ({ path: path.join(OUT, `${name}.jpg`), type: "jp
 
 test.describe.serial("screenshots", () => {
   test.skip(!process.env.CAPTURE, "set CAPTURE=1 to regenerate docs/img");
+  // Settled frames for docs: no pointer-trailing cursor, no mid-animation states.
+  test.use({ reducedMotion: "reduce" });
 
   test("capture core screens", async ({ page }) => {
     await page.goto("/demo");

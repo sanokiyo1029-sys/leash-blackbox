@@ -33,16 +33,16 @@ export function Panel({
     <motion.section
       {...fadeUp}
       className={cn(
-        "surface relative flex min-w-0 flex-col rounded-2xl",
-        tone === "danger" && "border-bad/30 shadow-[0_0_0_1px_oklch(0.64_0.22_22/10%),var(--shadow-panel)]",
-        tone === "safe" && "border-ok/25",
+        "surface relative flex min-w-0 flex-col rounded-sm",
+        tone === "danger" && "shadow-[5px_5px_0_0_var(--bad)]",
+        tone === "safe" && "shadow-[5px_5px_0_0_var(--ok)]",
         className,
       )}
     >
       {(title || actions) && (
         <header className="flex flex-wrap items-start justify-between gap-3 px-5 pt-4 pb-3">
           <div className="min-w-0">
-            {title && <h2 className="text-sm font-semibold tracking-tight">{title}</h2>}
+            {title && <h2 className="label-caps text-foreground">{title}</h2>}
             {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
           </div>
           {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
@@ -53,16 +53,75 @@ export function Panel({
   );
 }
 
-export function PageTitle({ eyebrow, title, description, actions }: { eyebrow?: string; title: string; description?: React.ReactNode; actions?: React.ReactNode }) {
+/**
+ * Scene band. "scene": a framed red field with ink grain and a hatched disc, white tag, big serif title, white action card.
+ * "action": a paper field with radial ink speed lines and a red serif title (the reference's action frames).
+ */
+export function PageTitle({
+  eyebrow,
+  title,
+  description,
+  actions,
+  variant = "scene",
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: React.ReactNode;
+  actions?: React.ReactNode;
+  variant?: "scene" | "action";
+}) {
+  const act = variant === "action";
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div className="min-w-0">
-        {eyebrow && <div className="mb-1 text-[11px] font-medium tracking-[0.22em] text-primary uppercase">{eyebrow}</div>}
-        <h1 className="text-balance text-2xl font-semibold tracking-tight sm:text-[28px]">{title}</h1>
-        {description && <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">{description}</p>}
+    <motion.header
+      initial={{ clipPath: "inset(0 100% 0 0)" }}
+      animate={{ clipPath: "inset(0 0% 0 0)" }}
+      transition={{ duration: dur.slow, ease: ease.inOut }}
+      className={cn("relative mb-6 overflow-hidden rounded-sm border-2 border-ink", act ? "bg-card text-ink" : "bg-primary text-primary-foreground")}
+    >
+      {act ? (
+        <motion.div
+          aria-hidden
+          initial={{ scale: 1.25, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: dur.dramatic, ease: ease.out }}
+          className="speed-lines speed-lines-right absolute -inset-y-48 right-[-25%] left-[45%]"
+        />
+      ) : (
+        <SceneArt />
+      )}
+      <div className="relative flex flex-wrap items-end justify-between gap-5 px-5 py-6 sm:px-8 sm:py-8">
+        <div className="min-w-0">
+          {eyebrow && (
+            <div className={cn("label-caps mb-3 inline-block border-2 border-ink px-2 py-0.5", act ? "bg-ink text-paper" : "bg-card text-ink")}>{eyebrow}</div>
+          )}
+          <h1 className={cn("font-display text-[clamp(1.9rem,6vw,4rem)] leading-[0.95] font-black tracking-tight text-balance uppercase", act && "text-primary")}>{title}</h1>
+          {description && <p className={cn("mt-3 text-sm", act ? "max-w-xl text-ink/80" : "max-w-3xl text-primary-foreground/90")}>{description}</p>}
+        </div>
+        {actions && (
+          <div className="flex flex-wrap gap-2 rounded-sm border-2 border-ink bg-card p-2 text-foreground shadow-[4px_4px_0_0_var(--ink)]">{actions}</div>
+        )}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
-    </div>
+    </motion.header>
+  );
+}
+
+function SceneArt() {
+  return (
+    <>
+      <div aria-hidden className="ink-grain absolute inset-0 opacity-60" />
+      {/* Focal object of the scene: a hatched paper disc, cropped by the frame (original art) */}
+      <motion.div
+        aria-hidden
+        initial={{ scale: 0.6, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: dur.dramatic, ease: ease.out, delay: 0.15 }}
+        className="absolute -right-24 -bottom-56 hidden size-[30rem] rounded-full border-2 border-ink md:block"
+      >
+        {/* Ink-only drawing (no paper fill), so white titles stay legible where they cross it */}
+        <div className="absolute inset-0 rounded-full bg-[repeating-linear-gradient(-45deg,var(--ink)_0_1.5px,transparent_1.5px_9px)] opacity-45" />
+        <div className="absolute inset-10 rounded-full border-2 border-ink/70" />
+      </motion.div>
+    </>
   );
 }
 
@@ -104,12 +163,12 @@ export function MetricCard({
 }) {
   const toneCls = { ok: "text-ok", bad: "text-bad", warn: "text-warn", info: "text-info", violet: "text-violet" };
   return (
-    <motion.div {...fadeUp} className="surface surface-hover rounded-2xl p-4">
-      <div className="flex items-center justify-between text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+    <motion.div {...fadeUp} className="surface surface-hover rounded-sm p-4">
+      <div className="label-caps flex items-center justify-between gap-2 text-muted-foreground">
         {label}
-        {Icon && <Icon className={cn("size-4 opacity-70", tone && toneCls[tone])} />}
+        {Icon && <Icon className={cn("size-4 shrink-0", tone ? toneCls[tone] : "text-ink")} />}
       </div>
-      <div className={cn("mt-2 text-[28px] leading-none font-semibold tracking-tight", tone && toneCls[tone])}>
+      <div className={cn("mt-2 font-display text-[clamp(1.6rem,4.2vw,2.6rem)] leading-none font-black tracking-tight", tone && toneCls[tone])}>
         <AnimatedNumber value={value} format={format} />
       </div>
       {hint && <div className="mt-2 text-xs text-muted-foreground">{hint}</div>}
@@ -128,11 +187,12 @@ export function LiveDot({ tone = "ok", pulse = true, className }: { tone?: "ok" 
   );
 }
 
+// Print blocks: tampering is a solid red block; the other tones are paper with a spot colour.
 const ALERT = {
-  success: { icon: CheckCircle2, cls: "border-ok/30 bg-ok/[0.08] text-ok" },
-  danger: { icon: ShieldAlert, cls: "border-bad/35 bg-bad/[0.09] text-bad" },
-  warn: { icon: AlertTriangle, cls: "border-warn/30 bg-warn/[0.08] text-warn" },
-  info: { icon: Info, cls: "border-info/30 bg-info/[0.08] text-info" },
+  success: { icon: CheckCircle2, cls: "bg-card text-ok shadow-[4px_4px_0_0_var(--ok)]", body: "text-foreground/80" },
+  danger: { icon: ShieldAlert, cls: "bg-primary text-primary-foreground shadow-[4px_4px_0_0_var(--ink)]", body: "text-primary-foreground/90" },
+  warn: { icon: AlertTriangle, cls: "bg-spot-yellow/45 text-ink shadow-[4px_4px_0_0_var(--ink)]", body: "text-ink/80" },
+  info: { icon: Info, cls: "bg-card text-info shadow-[4px_4px_0_0_var(--info)]", body: "text-foreground/80" },
 };
 
 export function AlertBanner({
@@ -148,7 +208,7 @@ export function AlertBanner({
   onDismiss?: () => void;
   className?: string;
 }) {
-  const { icon: Icon, cls } = ALERT[tone];
+  const { icon: Icon, cls, body } = ALERT[tone];
   return (
     <motion.div
       layout
@@ -157,12 +217,12 @@ export function AlertBanner({
       exit={{ opacity: 0, y: -6 }}
       transition={{ duration: dur.base, ease: ease.out }}
       role={tone === "danger" ? "alert" : "status"}
-      className={cn("flex items-start gap-3 rounded-2xl border px-4 py-3.5", cls, className)}
+      className={cn("flex items-start gap-3 rounded-sm border-2 border-ink px-4 py-3.5", cls, className)}
     >
       <Icon className="mt-0.5 size-5 shrink-0" />
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold tracking-tight">{title}</div>
-        {children && <div className="mt-0.5 text-sm text-foreground/80">{children}</div>}
+        <div className="text-sm font-bold tracking-tight">{title}</div>
+        {children && <div className={cn("mt-0.5 text-sm", body)}>{children}</div>}
       </div>
       {onDismiss && (
         <button onClick={onDismiss} className="rounded-md p-1 text-foreground/60 transition-colors hover:bg-foreground/10 hover:text-foreground" aria-label="Dismiss">
@@ -177,7 +237,7 @@ export function AlertBanner({
 export function EmptyState({ icon: Icon = Inbox, title, hint, action }: { icon?: React.ComponentType<{ className?: string }>; title: string; hint?: React.ReactNode; action?: React.ReactNode }) {
   return (
     <motion.div {...fadeUp} className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-      <div className="grid size-10 place-items-center rounded-xl bg-muted/60 text-muted-foreground">
+      <div className="grid size-10 place-items-center rounded-sm border-2 border-ink bg-card text-ink">
         <Icon className="size-5" />
       </div>
       <div className="text-sm font-medium">{title}</div>
@@ -217,7 +277,7 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
     <AnimatePresence>
       {open && (
         <motion.div className="fixed inset-0 z-50 grid place-items-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+          <div className="absolute inset-0 bg-ink/60" onClick={onClose} />
           <motion.div
             role="dialog"
             aria-modal="true"
@@ -226,9 +286,9 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: dur.base, ease: ease.out }}
-            className="relative w-full max-w-md rounded-2xl border bg-popover p-5 shadow-[var(--shadow-pop)]"
+            className="relative w-full max-w-md rounded-sm border-2 border-ink bg-popover p-5 shadow-[var(--shadow-pop)]"
           >
-            <div className="mb-3 text-sm font-semibold">{title}</div>
+            <div className="label-caps mb-3">{title}</div>
             {children}
           </motion.div>
         </motion.div>

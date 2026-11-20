@@ -44,7 +44,7 @@ export default function EvidenceExplorer() {
       {error && <AlertBanner tone="danger" title="Could not load events">{error}</AlertBanner>}
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="surface flex rounded-xl p-1">
+        <div className="surface flex max-w-full flex-wrap rounded-sm p-1">
           {FILTERS.map((f) => (
             <button
               key={f}
@@ -52,9 +52,9 @@ export default function EvidenceExplorer() {
                 setFilter(f);
                 setPage(0);
               }}
-              className={cn("relative rounded-lg px-3 py-1.5 text-xs font-medium transition-colors", filter === f ? "text-foreground" : "text-muted-foreground hover:text-foreground")}
+              className={cn("relative px-2.5 py-1.5 text-xs font-semibold transition-colors", filter === f ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground")}
             >
-              {filter === f && <motion.span layoutId="ev-filter" className="absolute inset-0 rounded-lg bg-primary/20 ring-1 ring-primary/40" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
+              {filter === f && <motion.span layoutId="ev-filter" className="absolute inset-0 bg-primary" transition={{ type: "spring", stiffness: 500, damping: 38 }} />}
               <span className="relative">{f}</span>
             </button>
           ))}
