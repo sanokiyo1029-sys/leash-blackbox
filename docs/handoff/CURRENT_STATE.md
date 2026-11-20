@@ -2,9 +2,9 @@
 
 _Last updated: 2026-11-20, session S05 (laptop B), T-040 and T-041 done_
 
-## S06 status: GHOST PROTOCOL P0 (branch `feature/ghost-protocol`, laptop A, read first)
-- **Not merged into `main`.** `main` was being advanced from the other laptop (T-040, T-041, API proxy), so this work
-  is on its own branch. Merging is the owner's decision (T-048).
+## S06 status: GHOST PROTOCOL P0 (laptop A, read first)
+- **Merged into `main` (fast-forward, owner approved, T-048).** It was built on `feature/ghost-protocol` while
+  `main` was moving on the other laptop. `main` had not moved since, so the merged tree is exactly the tested one.
 - **What exists: the first independent witness and the first evidence-of-silence rule.**
   - **The witness (`backend/app/witness.py`).** A gateway witness signs every SSH session it observes. The signature
     is secp256k1 ECDSA over EIP-191 of the canonical claim, made with `eth_account`, which was already installed.
@@ -214,7 +214,7 @@ None in the code. For a new teammate: pushing needs a GitHub account with write 
 (`$env:GH_TOKEN=''` in PowerShell, `env -u GH_TOKEN` in bash) before pushing.
 
 ## Exact next task
-**S06 (GHOST branch):** decide T-048 (merge `feature/ghost-protocol`). Then GHOST P1 in this order: T-043 signed
+**S06 (GHOST, merged):** GHOST P1 in this order: T-043 signed
 host heartbeats + REPORTING_GAP, T-045 dispute package committed on-chain, T-044 second witness and 2-of-3 quorum.
 T-047 (Quai) is blocked on the owner: confirm the organizer requirement and provide a funded key in a local `.env`.
 

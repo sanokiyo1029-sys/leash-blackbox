@@ -239,3 +239,4 @@
   OBSERVED_OMISSION verdict, the silent_login attack, `/api/witness`, and UI for Attack Lab and the Dashboard.
 - **Tests:** backend 95 passed; Playwright 27 passed + 1 skipped. Live demo on the real stack: CLEAN with 21
   corroborated sessions → Go silent → Observed omission, signature valid.
+- Owner approved the merge: `main` fast-forwarded to `feature/ghost-protocol` (main had not moved, so the tested tree is unchanged).
