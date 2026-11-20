@@ -249,7 +249,7 @@ export default function AttackLab() {
             {s?.injected ? `${s.injected} fabricated · ` : ""}
             first divergence at seq {s?.first_divergent_seq}. The on-chain commitment is unchanged.
             {score && (
-              <span className="text-primary-foreground/75">
+              <span className="text-paper/80">
                 {" "}
                 Lab ground truth: {score.true_positive}/{score.ground_truth_tampered} caught, {score.false_positive} false alarms.
               </span>
@@ -417,7 +417,7 @@ export default function AttackLab() {
       <AnimatePresence>
         {proofSeq !== null && (
           <motion.div className="fixed inset-0 z-50 flex justify-end" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="absolute inset-0 bg-ink/45" onClick={() => setProofSeq(null)} />
+            <div className="absolute inset-0 bg-black/50" onClick={() => setProofSeq(null)} />
             <motion.div
               role="dialog"
               aria-modal="true"
@@ -455,13 +455,13 @@ function Stepper({ step }: { step: number }) {
             key={label}
             className={cn(
               "surface flex items-center gap-3 rounded-sm px-3 py-2.5 text-xs transition-[border-color] duration-300",
-              current && "border-ink!",
+              current && "border-primary!",
             )}
           >
             <span
               className={cn(
                 "grid size-7 shrink-0 place-items-center rounded-full border text-[12px] font-semibold transition-colors duration-300",
-                done ? "border-ok bg-ok text-white" : current ? "border-primary bg-primary text-white" : "border-ink/30 text-ink/60",
+                done ? "border-ok bg-ok text-paper" : current ? "border-primary bg-primary text-primary-foreground" : "border-ink/30 text-ink/60",
               )}
             >
               {done ? <Check className="size-3.5" /> : i + 1}
@@ -506,8 +506,8 @@ function HostHeader({ attacked, command, busy, hostCount, vaultCount }: { attack
             transition={{ duration: dur.base, ease: ease.out }}
             className="overflow-hidden"
           >
-            <div className="mt-3 flex items-center gap-2 overflow-hidden rounded-sm bg-ink px-3 py-2 font-hash text-[11.5px] text-paper">
-              <span className="text-bad">root@web-prod-01:~#</span>
+            <div className="mt-3 flex items-center gap-2 overflow-hidden rounded-sm bg-[#0b1117] px-3 py-2 font-hash text-[11.5px] text-[#e9e2d3]">
+              <span className="text-[#f08a7b]">root@web-prod-01:~#</span>
               <motion.span
                 className="truncate"
                 initial={{ clipPath: "inset(0 100% 0 0)" }}
@@ -564,7 +564,7 @@ function ChainHeader({
             </div>
           </div>
         </div>
-        <span className="label-caps inline-flex items-center gap-1.5 rounded-[2px] border border-ink bg-white px-2 py-0.5 whitespace-nowrap text-ink">
+        <span className="label-caps inline-flex items-center gap-1.5 rounded-[3px] border border-border bg-background px-2 py-0.5 whitespace-nowrap text-foreground">
           <Lock className="size-3" /> immutable
         </span>
       </div>

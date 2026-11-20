@@ -35,7 +35,7 @@ it caught 476 of 476 tampered records, with no false alarms 📏.
    - The host agent forwards each event at ingest. The collector assigns a sequence number and canonicalizes the
      record (sorted-key JSON, strings and integers only).
    - Leaf = `SHA-256(0x00 ‖ record)`. Hash chain: `chain = SHA-256(0x02 ‖ prev ‖ leaf)`.
-   - ▶ Dashboard "Evidence lifecycle" band: host / vault / chain counts side by side.
+   - ▶ Dashboard (`/dashboard`) "Evidence lifecycle" band: host / vault / chain counts side by side.
 3. **Merkle batching and anchoring (0:50–1:20).**
    - Events are batched into a Merkle tree (node = `SHA-256(0x01 ‖ L ‖ R)`). The anchor service calls
      `LeashAnchor.anchorBatch(root, chainHead, manifestHash, firstSeq, lastSeq, count)`.

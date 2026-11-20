@@ -20,7 +20,7 @@ test.describe.serial("screenshots", () => {
     await page.waitForTimeout(800);
     await page.screenshot({ ...shot("demo"), fullPage: true });
 
-    await page.goto("/");
+    await page.goto("/dashboard");
     await page.getByRole("button", { name: "Verify now" }).click();
     await expect(page.getByText("TAMPERING DETECTED")).toBeVisible();
     await page.waitForTimeout(2500);

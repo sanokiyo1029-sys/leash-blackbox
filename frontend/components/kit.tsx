@@ -74,13 +74,13 @@ export function PageTitle({
     <motion.header {...fadeUp} className="mb-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
       <div className="min-w-0">
         {eyebrow && (
-          <div className="label-caps mb-3 flex items-center gap-2 text-ink/70">
+          <div className="label-caps mb-3 flex items-center gap-2 text-muted-foreground">
             {variant === "action" && <span className="inline-block h-[3px] w-6 bg-primary" aria-hidden />}
             {eyebrow}
           </div>
         )}
-        <h1 className="font-display text-[clamp(1.75rem,4.2vw,3rem)] leading-[0.98] font-black tracking-[-0.01em] text-balance uppercase">{title}</h1>
-        {description && <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-ink/75">{description}</p>}
+        <h1 className="font-display text-[clamp(1.75rem,4.2vw,3rem)] leading-[0.98] font-semibold tracking-[-0.01em] text-balance">{title}</h1>
+        {description && <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </motion.header>
@@ -128,9 +128,9 @@ export function MetricCard({
     <motion.div {...fadeUp} className="surface surface-hover rounded-sm p-4">
       <div className="label-caps flex items-center justify-between gap-2 text-muted-foreground">
         {label}
-        {Icon && <Icon className={cn("size-4 shrink-0", tone ? toneCls[tone] : "text-ink")} />}
+        {Icon && <Icon className={cn("size-4 shrink-0", tone ? toneCls[tone] : "text-muted-foreground")} />}
       </div>
-      <div className={cn("mt-2 font-display text-[clamp(1.6rem,4.2vw,2.6rem)] leading-none font-black tracking-tight", tone && toneCls[tone])}>
+      <div className={cn("mt-2 font-display text-[clamp(1.6rem,4.2vw,2.6rem)] leading-none font-semibold tracking-tight", tone && toneCls[tone])}>
         <AnimatedNumber value={value} format={format} />
       </div>
       {hint && <div className="mt-2 text-xs text-muted-foreground">{hint}</div>}
@@ -152,8 +152,8 @@ export function LiveDot({ tone = "ok", pulse = true, className }: { tone?: "ok" 
 // Print blocks: tampering is a solid red block; the other tones are paper with a spot colour.
 const ALERT = {
   success: { icon: CheckCircle2, cls: "border-ok/40 bg-card text-ok", body: "text-foreground/80" },
-  danger: { icon: ShieldAlert, cls: "border-transparent bg-primary text-primary-foreground", body: "text-primary-foreground/90" },
-  warn: { icon: AlertTriangle, cls: "border-transparent bg-[#f4c542] text-ink", body: "text-ink/80" },
+  danger: { icon: ShieldAlert, cls: "border-transparent bg-bad text-paper", body: "text-paper/90" },
+  warn: { icon: AlertTriangle, cls: "border-transparent bg-warn text-paper", body: "text-paper/90" },
   info: { icon: Info, cls: "border-info/35 bg-card text-info", body: "text-foreground/80" },
 };
 
@@ -199,7 +199,7 @@ export function AlertBanner({
 export function EmptyState({ icon: Icon = Inbox, title, hint, action }: { icon?: React.ComponentType<{ className?: string }>; title: string; hint?: React.ReactNode; action?: React.ReactNode }) {
   return (
     <motion.div {...fadeUp} className="flex flex-col items-center justify-center gap-2 py-10 text-center">
-      <div className="grid size-10 place-items-center rounded-sm border-2 border-ink bg-card text-ink">
+      <div className="grid size-10 place-items-center rounded-sm border border-border bg-card text-muted-foreground">
         <Icon className="size-5" />
       </div>
       <div className="text-sm font-medium">{title}</div>
@@ -239,7 +239,7 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
     <AnimatePresence>
       {open && (
         <motion.div className="fixed inset-0 z-50 grid place-items-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0 bg-ink/60" onClick={onClose} />
+          <div className="absolute inset-0 bg-black/60" onClick={onClose} />
           <motion.div
             role="dialog"
             aria-modal="true"
@@ -248,7 +248,7 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: dur.base, ease: ease.out }}
-            className="relative w-full max-w-md rounded-sm border-2 border-ink bg-popover p-5 shadow-[var(--shadow-pop)]"
+            className="relative w-full max-w-md rounded-md border border-border bg-popover p-5 shadow-[var(--shadow-pop)]"
           >
             <div className="label-caps mb-3">{title}</div>
             {children}

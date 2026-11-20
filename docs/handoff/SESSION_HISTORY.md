@@ -245,3 +245,12 @@
   Declared-count reconciliation was deliberately left out (KI-028).
 - **T-045:** `commitDispute` contract method + dispute packages (contract 11, backend 107, Playwright 27 + 1
   skipped). Live receipt: dispute #0, block 5, 117,268 gas, chain read-back matches.
+
+### S07 (laptop A, 2026-11-21): redesign + Wick on `redesign/castle`
+- Started from `bed98ce`. Implemented the owner's redesign brief: two themes with a no-flash System/Light/Dark
+  control, new fonts, Dashboard → `/dashboard`, `/story` retired, homepage sample case, Wick assistant.
+- Tests: backend 107 passed; Playwright 28 passed + 1 skipped; tsc and lint clean; production build OK.
+- The owner then supplied 20 mood references; a photo-based hero was built and then removed at the owner's request
+  ("no pics on the site; the whole site a medieval castle; UI first, then backend"). Direction recorded in
+  `docs/design/CASTLE_DIRECTION.md`; references in `docs/design/references/`.
+- Stopped near the owner's usage limit; branch pushed for the other laptop.

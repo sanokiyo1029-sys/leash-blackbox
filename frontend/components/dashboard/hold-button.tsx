@@ -74,7 +74,7 @@ export function HoldButton({
       style={{ WebkitTapHighlightColor: "transparent" }}
     >
       <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full -rotate-90" aria-hidden>
-        <circle cx="50" cy="50" r={R} fill={tone === "white" ? "transparent" : "#fff"} stroke={fg} strokeWidth="1.5" />
+        <circle cx="50" cy="50" r={R} fill={tone === "white" ? "transparent" : "var(--d-plate, var(--card))"} stroke={fg} strokeWidth="1.5" />
         <circle
           cx="50"
           cy="50"

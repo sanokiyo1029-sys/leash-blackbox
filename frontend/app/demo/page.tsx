@@ -219,19 +219,19 @@ export default function DemoMode() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
-      {/* Opening scene: red field, ink grain, the two-line claim in big serif, controls on a white card */}
+      {/* Opening scene: the two-line claim in the display serif, then the controls */}
       <motion.section
         initial={{ clipPath: "inset(0 100% 0 0)" }}
         animate={{ clipPath: "inset(0 0% 0 0)" }}
         transition={{ duration: dur.slow, ease: ease.inOut }}
-        className="relative overflow-hidden rounded-sm bg-primary px-5 py-12 text-center text-primary-foreground sm:px-10 sm:py-16"
+        className="surface relative overflow-hidden rounded-md px-5 py-12 text-center sm:px-10 sm:py-16"
       >
         
         <div className="relative">
-          <div className="label-caps inline-block text-primary-foreground/85">Live demo · seven scenes</div>
-          <h1 className="mt-4 font-display text-[clamp(2rem,6vw,4.5rem)] leading-[0.95] font-black text-balance uppercase">The attacker can erase the logs.</h1>
-          <h2 className="mt-1 font-display text-[clamp(2rem,6vw,4.5rem)] leading-[0.95] font-black text-balance text-ink uppercase">They cannot erase the proof.</h2>
-          <p className="mx-auto mt-4 max-w-xl text-sm text-primary-foreground/90">
+          <div className="label-caps inline-block text-muted-foreground">Live demo · seven scenes</div>
+          <h1 className="mt-4 font-display text-[clamp(2rem,6vw,4.5rem)] leading-[0.95] font-semibold text-balance">The attacker can erase the logs.</h1>
+          <h2 className="mt-1 font-display text-[clamp(2rem,6vw,4.5rem)] leading-[0.95] font-semibold text-balance text-primary">They cannot erase the proof.</h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm text-muted-foreground">
             Seven steps against the real backend and chain. Nothing on this page is scripted output: every value comes from the API, the contract or your browser.
           </p>
           <div className="mt-7 inline-flex flex-wrap justify-center gap-2 text-foreground">
@@ -255,7 +255,7 @@ export default function DemoMode() {
         </div>
         <ol className="grid grid-cols-7 gap-1.5" aria-hidden>
           {STEPS.map((s, i) => (
-            <li key={s.title} className={cn("h-1.5 rounded-full transition-colors duration-300", i < next ? "bg-primary" : running === i ? "bg-ink" : "bg-ink/15")} />
+            <li key={s.title} className={cn("h-1.5 rounded-full transition-colors duration-300", i < next ? "bg-primary" : running === i ? "bg-foreground" : "bg-foreground/15")} />
           ))}
         </ol>
       </div>
@@ -285,14 +285,14 @@ export default function DemoMode() {
                 <div
                   className={cn(
                     "grid size-10 shrink-0 place-items-center rounded-full border border-ink/30 text-base font-semibold transition-colors duration-300",
-                    done ? "bg-ok text-paper" : active ? "bg-primary text-paper" : "bg-card text-ink",
+                    done ? "bg-ok text-paper" : active ? "bg-primary text-primary-foreground" : "bg-card text-foreground",
                   )}
                 >
                   {active ? <Spinner /> : done ? <CheckCircle2 className="size-5" /> : <span>{i + 1}</span>}
                 </div>
                 <div className="min-w-0 flex-1 space-y-3">
                   <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-display text-xl leading-tight font-black uppercase sm:text-2xl">{step.title}</h3>
+                    <h3 className="font-display text-xl leading-tight font-semibold sm:text-2xl">{step.title}</h3>
                     {!done && i === next && (
                       <Button size="sm" variant="ghost" onClick={() => runStep(i)} disabled={running !== null}>
                         <Play /> Run
@@ -327,9 +327,9 @@ function Facts({ items }: { items: [string, React.ReactNode][] }) {
 function AuditCard({ title, r }: { title: string; r: BrowserVerdict }) {
   const ok = r.verdict !== "TAMPERING_DETECTED";
   return (
-    <div className={cn("rounded-sm p-4", ok ? "bg-ok text-paper" : "bg-primary text-primary-foreground")}>
+    <div className={cn("rounded-sm p-4", ok ? "bg-ok text-paper" : "bg-bad text-paper")}>
       <div className="text-xs font-semibold opacity-90">{title}</div>
-      <div className="mt-1 flex items-center gap-2 font-display text-2xl font-black">
+      <div className="mt-1 flex items-center gap-2 font-display text-2xl font-semibold">
         {ok ? <CheckCircle2 className="size-6" /> : <ShieldX className="size-6" />}
         <span>{r.verdict.replace(/_/g, " ")}</span>
       </div>

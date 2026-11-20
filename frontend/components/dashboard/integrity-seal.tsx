@@ -84,7 +84,7 @@ export function IntegritySeal({
     setHover({ i, x: e.clientX - box.left, y: e.clientY - box.top });
   };
 
-  const core = tone === "red" ? "var(--d-red)" : tone === "muted" ? "color-mix(in oklch, var(--d-ink) 55%, white)" : "var(--d-ink)";
+  const core = tone === "red" ? "var(--d-red)" : tone === "muted" ? "color-mix(in oklch, var(--d-night) 62%, var(--d-plate))" : "var(--d-night)";
   const hovered = hover ? records[hover.i] : null;
 
   return (
@@ -149,12 +149,12 @@ export function IntegritySeal({
           .filter((t) => t.r.status === "MODIFIED")
           .map(({ r, a }) => {
             const [cx, cy] = polar(R_IN - 9, a);
-            return <circle key={`m${r.seq}`} cx={cx} cy={cy} r={2.6} fill="var(--d-warn)" stroke="var(--d-ink)" strokeWidth={0.6} />;
+            return <circle key={`m${r.seq}`} cx={cx} cy={cy} r={2.6} fill="var(--d-warn)" stroke="var(--d-night)" strokeWidth={0.6} />;
           })}
         <circle cx={C} cy={C} r={R_CORE} fill={core} style={{ transition: "fill 0.45s cubic-bezier(.22,1,.36,1)" }} />
         <foreignObject x={C - R_CORE} y={C - R_CORE} width={R_CORE * 2} height={R_CORE * 2}>
           <div className="flex h-full w-full flex-col items-center justify-center px-4 text-center text-white">
-            <div className="font-display text-[54px] leading-none font-black tabular">{centerTop}</div>
+            <div className="font-display text-[54px] leading-none font-semibold tabular">{centerTop}</div>
             <div className="mt-1.5 text-[10.5px] font-semibold tracking-[0.16em] uppercase opacity-85">{centerBottom}</div>
           </div>
         </foreignObject>
@@ -162,7 +162,7 @@ export function IntegritySeal({
 
       {hovered && hover && (
         <div
-          className="caption pointer-events-none absolute z-10 w-60 px-3 py-2 text-xs shadow-[3px_3px_0_0_var(--d-ink)]"
+          className="caption pointer-events-none absolute z-10 w-60 px-3 py-2 text-xs shadow-[var(--shadow-pop)]"
           style={{ left: Math.min(Math.max(hover.x + 14, 0), 220), top: Math.max(hover.y - 70, 0) }}
           role="tooltip"
         >

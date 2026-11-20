@@ -1,21 +1,12 @@
 # Continuation guide (send this to whoever continues)
 
-**State at handoff (2026-11-20, end of S04, laptop A):** `main` is clean and pushed at the commit after `14c5fdc`.
-- **New in S04:** the ScrollCraft story at `/story` (brief: `scrollcraft/builds/story/BRIEF.md`).
-- **Verified in S04 on the dev server (:3100):**
-  - frontend `tsc` and lint clean;
-  - ScrollCraft harness clean at desktop, 390×844 and reduced motion;
-  - roots match the backend's Python code;
-  - no overflow at 360–1280 px;
-  - keyboard OK.
-- **Backend, contract, verifier and agent are unchanged since S03**, when backend 90 passed and contract 9 passing
-  were last run.
-- **NOT yet run with S04's changes:** the Playwright e2e suite, and `/story` on the production build at :3000.
-- **Next task: T-040** (exact steps in NEXT_TASKS). Then T-033 (owner rehearsal), and optionally T-034 and T-018.
-
-To view the story on a fresh machine: `scripts\start-all.cmd` builds production, then open
-http://localhost:3000/story. Or run the dev server alongside it: `npm --prefix frontend run dev -- -p 3100`, then
-open http://localhost:3100/story; on that port the live-chain line says "offline" because of CORS (KI-024).
+**State at handoff (2026-11-21, S07, laptop A):** work is on branch **`redesign/castle`** (pushed); `main` is
+unchanged at `bed98ce`.
+- Get it: `git fetch origin`, then `git switch redesign/castle` (tracks `origin/redesign/castle`).
+- Read `docs/handoff/CURRENT_STATE.md` → "S07 status", then **`docs/design/CASTLE_DIRECTION.md`**.
+- **Next:** build the animated castle UI on `/` (no photos; references in `docs/design/references/`), then the
+  backend support it needs; rerun tsc, lint, e2e (stack stopped, KI-022) and the brief's browser checks; then ask
+  the owner before fast-forwarding `main`.
 
 ## 1. Fresh machine (once)
 Requirements: Git, Node.js 20+, Python 3.11+ (3.12 used on Windows), optionally GitHub CLI.

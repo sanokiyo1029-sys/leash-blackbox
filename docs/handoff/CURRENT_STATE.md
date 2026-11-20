@@ -1,6 +1,46 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-20, session S05 (laptop B), T-040 and T-041 done_
+_Last updated: 2026-11-21, session S07 (laptop A), redesign on branch `redesign/castle`_
+
+## S07 status: redesign (laptop A, branch `redesign/castle`, NOT merged into `main`), read first
+- **Branch `redesign/castle`** holds S07's work; `main` is still `bed98ce` (GHOST, all green). Continue on the
+  branch, run the checks, then fast-forward `main` when the owner approves.
+- **Owner's latest direction (overrides parts of `docs/design/REDESIGN_BRIEF.md`):** no photos on the site; the
+  whole site should feel like an animated medieval castle; UI first, then backend; "the castle is the data inside a
+  server". Read **`docs/design/CASTLE_DIRECTION.md`** (honest metaphor mapping and build plan). Mood references:
+  `docs/design/references/` (owner's images, reference only, never ship them).
+- **Done in S07 (verified):**
+  - **Themes.** Midnight Archive (dark) and Archive at Dawn (light) as shared tokens in `app/globals.css`
+    (`--ink` is always text, `--paper` the page, status colours flip so `bg-bad text-paper` works in both).
+    System/Light/Dark radio group in the desktop header and the mobile menu (`components/theme-control.tsx`,
+    `lib/theme.ts`); pre-paint script `lib/theme-script.ts` in `<head>`, so there is no flash.
+  - **Fonts.** Cormorant Garamond 600 (headlines), Inter (UI), IBM Plex Mono (evidence, `.font-hash`).
+  - **Routes.** Dashboard moved to `/dashboard`; `/story` retired (route, components, assets, spec, nav link).
+    The cursor dot was removed.
+  - **Homepage `/`.** Hero copy and CTA "Inspect the missing session."; the sample case ("Sample case" label, server
+    timeline, Compare records, aligned table on desktop and stacked records on phones, the discrepancy marked
+    with a word and an icon, the one-sentence result, "How was this verified?" separating "records differ" from
+    "who or why"); "How LEASH keeps the second record"; next step = Attack Lab (Go silent) and Guided Demo.
+    **The castle art is a plain sky placeholder** pending the castle UI (the photo version was built, then
+    removed at the owner's request).
+  - **Wick** (`components/wick.tsx`, `lib/wick-kb.ts`): "Ask Wick" launcher at the lower right; desktop panel,
+    phone bottom sheet (lifts above the iOS keyboard); Enter submits, Escape closes and returns focus, replies
+    announced through one polite live region; conversation and draft survive minimise, navigation and theme switches;
+    the owner's pixel knights trimmed and bottom-aligned at one scale (`scripts/trim-wick.mjs` →
+    `public/wick/*-216.png`), dark/light swapped by CSS; nod on open, settle on reply, still under reduced motion.
+    Answers come from a local knowledge base (no API key) with aliases and paraphrase matching; page- and
+    case-aware; "what was verified / what does this mean" read the real `/api/status`; honest fallback for unknown
+    questions; pricing questions say there is no pricing or contact destination (KI-031).
+- **Checks run in S07:**
+  - backend `pytest` **107 passed**;
+  - Playwright **28 passed, 1 skipped** (adds `e2e/home.spec.ts`: matcher paraphrases, one-click case, compare,
+    explanation, Wick keyboard/escape/unsupported/theme switch keeps draft/reload persists/action navigates);
+  - `tsc` and eslint clean after the photo removal;
+  - production build through `scripts\start-all.cmd` succeeded.
+- **Not done / not verified:** the e2e run was on the photo version (the text-only version passed tsc/lint only);
+  browser checks of the six brief scenarios at 390/768/1440 were partly done on the dev server (1440 dark hero,
+  375 light hero + Wick sheet), not the full set; no handoff screenshots (the owner dropped the photo look);
+  the castle UI and its backend support (CASTLE_DIRECTION.md).
 
 ## S06 status: GHOST PROTOCOL P0 (laptop A, read first)
 - **Merged into `main` (fast-forward, owner approved, T-048).** It was built on `feature/ghost-protocol` while

@@ -1,21 +1,21 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatePresence, MotionConfig, motion, useMotionValue, useSpring } from "motion/react";
-import { Activity, Menu, X } from "lucide-react";
+import { AnimatePresence, MotionConfig, motion } from "motion/react";
+import { Archive, Menu, X } from "lucide-react";
 import { LiveDot } from "@/components/kit";
+import { ThemeControl } from "@/components/theme-control";
+import { Wick } from "@/components/wick";
 import { useApi } from "@/lib/api";
 import { dur, ease, spring } from "@/lib/motion";
 import type { Status } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  // Hidden in the desktop bar below 1360px, where the live chain tag needs the room; always in the menu.
-  { href: "/story", label: "The Story", short: "Story", roomy: true },
   { href: "/attack", label: "Attack Lab", short: "Attack Lab", featured: true },
-  { href: "/", label: "Security Dashboard", short: "Dashboard" },
+  { href: "/dashboard", label: "Security Dashboard", short: "Dashboard" },
   { href: "/evidence", label: "Evidence Explorer", short: "Evidence" },
   { href: "/auditor", label: "Auditor", short: "Auditor" },
   { href: "/proofs", label: "Blockchain Proofs", short: "Proofs" },
@@ -24,9 +24,7 @@ const NAV = [
   { href: "/architecture", label: "Architecture", short: "Architecture" },
 ];
 
-function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
-}
+const isActive = (pathname: string, href: string) => pathname.startsWith(href);
 
 /** The small white tag fixed top-right, as in the reference: live chain state. */
 function ChainStatus({ compact = false }: { compact?: boolean }) {
@@ -47,8 +45,8 @@ function ChainStatus({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-[2px] border border-ink px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] whitespace-nowrap uppercase",
-        bad ? "bg-primary text-primary-foreground" : "bg-card text-ink",
+        "flex items-center gap-2 rounded-[3px] border px-2.5 py-1 font-hash text-[11px] font-medium whitespace-nowrap",
+        bad ? "border-transparent bg-bad text-paper" : "border-border bg-card text-muted-foreground",
       )}
       title={error ?? data?.chain.error ?? data?.chain.rpc_url}
       aria-live="polite"
@@ -63,7 +61,7 @@ function TopNav() {
   const pathname = usePathname();
   return (
     <nav className="hidden self-stretch xl:flex" aria-label="Primary">
-      {NAV.map(({ href, short, featured, roomy }) => {
+      {NAV.map(({ href, short, featured }) => {
         const active = isActive(pathname, href);
         return (
           <Link
@@ -71,14 +69,13 @@ function TopNav() {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "label-caps relative items-center gap-1.5 px-2.5 whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-              roomy ? "hidden min-[1360px]:flex" : "flex",
-              active ? "text-ink" : "text-ink/60 hover:text-ink",
+              "relative flex items-center gap-1.5 px-2.5 text-[13px] font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {active && <motion.span layoutId="nav-active" transition={spring.snappy} className="absolute inset-x-0.5 inset-y-3 rounded-[2px] border border-ink bg-white" />}
+            {active && <motion.span layoutId="nav-active" transition={spring.snappy} className="absolute inset-x-1 bottom-0 h-0.5 rounded-full bg-primary" />}
             <span className="relative">{short}</span>
-            {featured && <span className="relative size-1.5 rounded-full bg-primary" aria-label="live" />}
+            {featured && <span className="relative size-1.5 rounded-full bg-primary" aria-hidden />}
           </Link>
         );
       })}
@@ -99,8 +96,8 @@ function DrawerNav({ onNavigate }: { onNavigate: () => void }) {
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "block border-b-2 border-ink px-5 py-3 font-display text-2xl font-black uppercase outline-none focus-visible:bg-muted",
-                active ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+                "block border-b border-border px-5 py-3 text-[15px] font-medium outline-none focus-visible:bg-muted",
+                active ? "bg-card text-primary" : "hover:bg-muted",
               )}
             >
               {label}
@@ -115,85 +112,42 @@ function DrawerNav({ onNavigate }: { onNavigate: () => void }) {
 function Brand() {
   return (
     <Link href="/" className="flex shrink-0 items-center gap-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring">
-      <div className="grid size-8 place-items-center border-2 border-ink bg-primary text-primary-foreground">
-        <Activity className="size-4" />
+      <div className="grid size-8 place-items-center rounded-[3px] border border-primary/60 text-primary">
+        <Archive className="size-4" />
       </div>
       <div className="leading-none">
-        <div className="font-display text-[17px] font-black tracking-tight uppercase">Leash Blackbox</div>
-        <div className="mt-0.5 hidden text-[10px] font-semibold tracking-[0.18em] text-muted-foreground uppercase sm:block">tamper-evident evidence</div>
+        <div className="font-display text-[20px] font-semibold tracking-[0.01em]">Leash Blackbox</div>
+        <div className="mt-0.5 hidden text-[10px] font-medium tracking-[0.14em] text-muted-foreground uppercase sm:block">tamper-evident evidence</div>
       </div>
     </Link>
-  );
-}
-
-const CURSOR_QUERY = "(pointer: fine) and (prefers-reduced-motion: no-preference)";
-const subscribeCursor = (cb: () => void) => {
-  const m = window.matchMedia(CURSOR_QUERY);
-  m.addEventListener("change", cb);
-  return () => m.removeEventListener("change", cb);
-};
-
-/** The reference's small circle that trails the pointer; grows over anything clickable. Decorative only. */
-function CursorDot() {
-  const enabled = useSyncExternalStore(subscribeCursor, () => window.matchMedia(CURSOR_QUERY).matches, () => false);
-  const x = useMotionValue(-40);
-  const y = useMotionValue(-40);
-  const sx = useSpring(x, { stiffness: 700, damping: 45, mass: 0.35 });
-  const sy = useSpring(y, { stiffness: 700, damping: 45, mass: 0.35 });
-  const [over, setOver] = useState(false);
-  useEffect(() => {
-    if (!enabled) return;
-    const move = (e: PointerEvent) => {
-      x.set(e.clientX);
-      y.set(e.clientY);
-      setOver(!!(e.target as Element | null)?.closest?.("a,button,[role=option],input,label,select,textarea"));
-    };
-    window.addEventListener("pointermove", move, { passive: true });
-    return () => window.removeEventListener("pointermove", move);
-  }, [enabled, x, y]);
-  if (!enabled) return null;
-  // White dot with an ink outline (readable on paper, red and ink); over a target an ink ring opens around it.
-  return (
-    <>
-      <motion.div
-        aria-hidden
-        className="pointer-events-none fixed top-0 left-0 z-[70] -mt-5 -ml-5 size-10 rounded-full border-2 border-ink"
-        style={{ x: sx, y: sy }}
-        animate={{ scale: over ? 1 : 0.3, opacity: over ? 1 : 0 }}
-        transition={spring.snappy}
-      />
-      <motion.div
-        aria-hidden
-        className="pointer-events-none fixed top-0 left-0 z-[70] -mt-1.5 -ml-1.5 size-3 rounded-full border-2 border-ink bg-white"
-        style={{ x: sx, y: sy }}
-      />
-    </>
   );
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  // The Dashboard uses full-bleed scenes and no footer.
-  const scene = pathname === "/";
-  // /story is an immersive scroll world with its own chrome (map, skip control).
-  if (pathname === "/story") return <MotionConfig reducedMotion="user">{children}</MotionConfig>;
+  // The homepage and the Dashboard use full-bleed scenes; the Dashboard has no footer.
+  const dashboard = pathname.startsWith("/dashboard");
+  const scene = pathname === "/" || dashboard;
   return (
     <MotionConfig reducedMotion="user" transition={{ duration: dur.base, ease: ease.out }}>
       <div className="app-backdrop flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 border-b border-ink/15 bg-white">
+        <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur-sm">
           <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center gap-3 px-4 sm:px-6 lg:px-8">
-            <button className="-ml-1 p-1.5 text-ink hover:bg-ink/[0.06] xl:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
+            <button className="-ml-1 rounded-[3px] p-1.5 text-foreground hover:bg-muted xl:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
               <Menu className="size-5" />
             </button>
             <Brand />
-            <div className="mx-3 hidden h-6 w-0.5 bg-ink xl:block" aria-hidden />
+            <div className="mx-2 hidden h-6 w-px bg-border xl:block" aria-hidden />
             <TopNav />
             <div className="ml-auto hidden sm:block">
               <ChainStatus />
             </div>
             <div className="ml-auto sm:hidden">
               <ChainStatus compact />
+            </div>
+            <div className="hidden xl:block">
+              <ThemeControl name="theme-desktop" />
             </div>
           </div>
         </header>
@@ -202,21 +156,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <AnimatePresence>
           {open && (
             <motion.div className="fixed inset-0 z-40 xl:hidden" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <div className="absolute inset-0 bg-ink/50" onClick={() => setOpen(false)} />
+              <div className="absolute inset-0 bg-black/55" onClick={() => setOpen(false)} />
               <motion.aside
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
                 transition={spring.soft}
-                className="absolute inset-y-0 left-0 flex w-[min(320px,88vw)] flex-col border-r-2 border-ink bg-paper"
+                className="absolute inset-y-0 left-0 flex w-[min(320px,88vw)] flex-col overflow-y-auto border-r border-border bg-background"
               >
-                <div className="flex h-14 items-center justify-between border-b-2 border-ink px-4">
+                <div className="flex h-14 items-center justify-between border-b border-border px-4">
                   <Brand />
-                  <button className="p-1.5 hover:bg-ink/[0.06]" onClick={() => setOpen(false)} aria-label="Close menu">
+                  <button className="rounded-[3px] p-1.5 hover:bg-muted" onClick={() => setOpen(false)} aria-label="Close menu">
                     <X className="size-5" />
                   </button>
                 </div>
                 <DrawerNav onNavigate={() => setOpen(false)} />
+                <div className="mt-auto border-t border-border px-5 py-4">
+                  <div className="mb-2 text-xs font-medium text-muted-foreground">Appearance</div>
+                  <ThemeControl name="theme-mobile" labels />
+                </div>
               </motion.aside>
             </motion.div>
           )}
@@ -224,15 +182,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <main className={cn("flex-1", scene ? "w-full" : "mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8")}>{children}</main>
 
-        {!scene && <footer className="border-t-2 border-ink bg-ink text-paper">
-          <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
-            <p className="font-display text-lg font-black uppercase sm:text-xl">
-              The attacker can erase the logs. <span className="text-primary">They cannot erase the proof.</span>
-            </p>
-            <p className="text-[10px] font-semibold tracking-[0.18em] text-paper/60 uppercase">The Big Hack 2.0 · Cybersecurity &amp; Blockchain · B3</p>
-          </div>
-        </footer>}
-        <CursorDot />
+        {!dashboard && (
+          <footer className="border-t border-border bg-card">
+            <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-between gap-3 px-4 py-5 pr-28 sm:px-6 sm:pr-32 lg:px-8 lg:pr-36">
+              <p className="font-display text-lg font-semibold sm:text-xl">
+                The attacker can erase the logs. <span className="text-primary">They cannot erase the proof.</span>
+              </p>
+              <p className="text-[11px] font-medium tracking-[0.12em] text-muted-foreground uppercase">The Big Hack 2.0 · Cybersecurity &amp; Blockchain · B3</p>
+            </div>
+          </footer>
+        )}
+        <Wick />
       </div>
     </MotionConfig>
   );

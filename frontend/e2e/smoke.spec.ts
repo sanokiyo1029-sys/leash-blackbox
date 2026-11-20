@@ -14,7 +14,7 @@ async function freshHost(request: APIRequestContext) {
 test.describe.serial("LEASH BLACKBOX core screens", () => {
   test("dashboard shows live chain state and a CLEAN verdict", async ({ page, request }) => {
     const { ingested } = await freshHost(request);
-    await page.goto("/");
+    await page.goto("/dashboard");
     await expect(page.getByText(/Chain 31337 · block \d+/).first()).toBeVisible();
     await page.getByRole("button", { name: "Verify now" }).click();
     await expect(page.locator("#verdict")).toHaveText(/clean/i);

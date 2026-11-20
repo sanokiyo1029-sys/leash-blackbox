@@ -7,10 +7,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-playfair);
-  --font-display: var(--font-playfair);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-plex-mono);
+  --font-heading: var(--font-cormorant);
+  --font-display: var(--font-cormorant);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -60,56 +60,122 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* Print palette (docs/design/REFERENCE_SPEC.md): paper, ink, one red, and spot colours for status. */
+/* Two themes (docs/design/REDESIGN_BRIEF.md). "ink" is always the text colour and "paper" the page, so a fill of
+   a status colour takes text-paper in both themes. Status colours are light on Midnight and dark on Dawn. */
+
+/* Archive at Dawn (light) */
 :root {
-  --paper: #fbfaf7;
-  --ink: #111111;
-  --spot-yellow: oklch(0.86 0.16 92);
+  color-scheme: light;
+  --paper: #f5f1e8;
+  --ink: #20262b;
+  --spot-yellow: #b07a1e;
 
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: #ffffff;
+  --card: #e8e2d6;
   --card-foreground: var(--ink);
-  --popover: #ffffff;
+  --popover: #ece7dc;
   --popover-foreground: var(--ink);
-  --primary: #d81e1e;
-  --primary-foreground: #ffffff;
-  --secondary: oklch(0.92 0.014 85);
+  --primary: #725124;
+  --primary-foreground: #f5f1e8;
+  --secondary: #ddd6c8;
   --secondary-foreground: var(--ink);
-  --muted: oklch(0.915 0.014 85);
-  --muted-foreground: oklch(0.42 0.012 65);
-  --accent: oklch(0.915 0.014 85);
+  --muted: #ddd6c8;
+  --muted-foreground: #4f565c;
+  --accent: #ddd6c8;
   --accent-foreground: var(--ink);
-  --destructive: oklch(0.56 0.215 28);
-  --border: oklch(0.17 0.008 60 / 14%);
-  --input: oklch(0.17 0.008 60 / 55%);
-  --ring: oklch(0.56 0.215 28 / 60%);
+  --destructive: #a2332a;
+  --border: rgb(32 38 43 / 16%);
+  --input: rgb(32 38 43 / 40%);
+  --ring: rgb(114 81 36 / 70%);
 
-  /* Semantic: spot colours, dark enough to read as text on paper */
-  --ok: oklch(0.5 0.13 150);
-  --warn: oklch(0.55 0.12 72);
-  --bad: oklch(0.56 0.215 28);
-  --info: oklch(0.48 0.15 255);
-  --violet: oklch(0.48 0.17 300);
-  --chart-1: oklch(0.48 0.15 255);
-  --chart-2: oklch(0.5 0.13 150);
-  --chart-3: oklch(0.72 0.15 85);
-  --chart-4: oklch(0.56 0.215 28);
-  --chart-5: oklch(0.48 0.17 300);
+  --ok: #2c6a43;
+  --warn: #8a4e0b;
+  --bad: #a2332a;
+  --info: #2d5c94;
+  --violet: #5d47a0;
+  --chart-1: #2d5c94;
+  --chart-2: #2c6a43;
+  --chart-3: #8a4e0b;
+  --chart-4: #a2332a;
+  --chart-5: #5d47a0;
 
-  --radius: 0.125rem;
+  --radius: 0.25rem;
   --sidebar: var(--paper);
   --sidebar-foreground: var(--ink);
-  --sidebar-primary: oklch(0.56 0.215 28);
-  --sidebar-primary-foreground: oklch(0.985 0.006 85);
-  --sidebar-accent: oklch(0.915 0.014 85);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--muted);
   --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: var(--ink);
-  --sidebar-ring: oklch(0.56 0.215 28 / 60%);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 
-  /* Elevation is a hard ink offset, never a blur */
   --shadow-panel: none;
-  --shadow-pop: 3px 3px 0 0 var(--ink);
+  --shadow-pop: 0 18px 40px -18px rgb(32 38 43 / 45%);
+
+  /* Wick's launcher: muted stone grey so the white knight reads */
+  --wick-surface: #b9b2a5;
+  /* Castle at dawn */
+  --sky-top: #c9d3d8;
+  --sky-low: #efe4d0;
+  --far: #b7bfc2;
+  --stone: #d9d2c4;
+  --stone-shade: #b9b1a2;
+  --stone-dark: #8f887c;
+  --window-dark: #6d6a63;
+  --ravine: #4a4d4c;
+  --mist: rgb(245 241 232 / 40%);
+  --glass: #e0a040;
+  --glass-core: #f6cf7a;
+  --hero-scrim: rgb(245 241 232 / 82%);
+}
+
+/* The Midnight Archive (dark) */
+.dark {
+  color-scheme: dark;
+  --paper: #111820;
+  --ink: #e9e2d3;
+  --spot-yellow: #e0b45c;
+
+  --card: #202c36;
+  --popover: #24313c;
+  --primary: #cead70;
+  --primary-foreground: #111820;
+  --secondary: #19232c;
+  --muted: #19232c;
+  --muted-foreground: #acb7bc;
+  --accent: #19232c;
+  --destructive: #f08a7b;
+  --border: rgb(233 226 211 / 14%);
+  --input: rgb(233 226 211 / 35%);
+  --ring: rgb(206 173 112 / 75%);
+
+  --ok: #7cc99a;
+  --warn: #e7a24f;
+  --bad: #f08a7b;
+  --info: #8db4e8;
+  --violet: #b9a2e8;
+  --chart-1: #8db4e8;
+  --chart-2: #7cc99a;
+  --chart-3: #e7a24f;
+  --chart-4: #f08a7b;
+  --chart-5: #b9a2e8;
+
+  --shadow-pop: 0 18px 40px -16px rgb(0 0 0 / 70%);
+
+  --wick-surface: #33424f;
+  --sky-top: #0b1118;
+  --sky-low: #1b2632;
+  --far: #18222c;
+  --stone: #1f2a34;
+  --stone-shade: #18212a;
+  --stone-dark: #121a22;
+  --window-dark: #0b1016;
+  --ravine: #080c11;
+  --mist: rgb(150 166 182 / 16%);
+  --glass: #cead70;
+  --glass-core: #f3d79a;
+  --hero-scrim: rgb(17 24 32 / 78%);
 }
 
 @layer base {
@@ -129,26 +195,21 @@
 }
 
 @layer utilities {
-  /* v2 (REFERENCE_SPEC.md): a quiet field with faint ink grain; content sits on flat white plates */
   .app-backdrop {
     background-color: var(--background);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='120'%3E%3Cg fill='none' stroke='%23111' stroke-linecap='round' opacity='.05'%3E%3Cpath stroke-width='1.2' d='M0 8C70 3 140 14 210 8S320 3 360 8'/%3E%3Cpath stroke-width='1.8' d='M0 31C80 37 150 25 230 32S330 27 360 31'/%3E%3Cpath stroke-width='.9' d='M0 55C60 49 130 61 200 55S310 47 360 55'/%3E%3Cpath stroke-width='1.5' d='M0 79C90 86 160 72 240 80S330 75 360 79'/%3E%3Cpath stroke-width='1' d='M0 103C70 97 140 109 210 103S320 96 360 103'/%3E%3C/g%3E%3C/svg%3E");
-    background-size: 360px 120px;
   }
   .surface {
     background: var(--card);
-    border: 1px solid oklch(0.17 0.008 60 / 16%);
+    border: 1px solid var(--border);
   }
   .surface-hover {
-    transition: transform 180ms var(--ease-out-expo), box-shadow 180ms var(--ease-out-expo), border-color 180ms;
+    transition: border-color 180ms var(--ease-out-expo);
   }
   .surface-hover:hover {
-    transform: translate(-1px, -1px);
-    border-color: var(--ink);
-    box-shadow: 3px 3px 0 0 var(--ink);
+    border-color: color-mix(in oklab, var(--primary) 60%, transparent);
   }
   .font-hash {
-    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-family: var(--font-plex-mono), ui-monospace, monospace;
     font-variant-ligatures: none;
     letter-spacing: -0.01em;
   }
@@ -160,33 +221,13 @@
   }
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: oklch(0.17 0.008 60 / 35%) transparent;
+    scrollbar-color: var(--input) transparent;
   }
   .label-caps {
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-  }
-  /* Original ink textures (no images from the reference) */
-  .ink-grain {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='160'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round' opacity='.42'%3E%3Cpath stroke-width='1.6' d='M0 10C60 4 120 18 180 10S280 4 320 10'/%3E%3Cpath stroke-width='2.4' d='M0 27C70 35 130 20 200 29S290 23 320 27'/%3E%3Cpath stroke-width='1.1' d='M0 44C50 38 110 52 170 44S270 36 320 44'/%3E%3Cpath stroke-width='1.9' d='M0 61C80 69 150 54 220 63S300 58 320 61'/%3E%3Cpath stroke-width='1.3' d='M0 78C60 72 140 86 200 78S280 70 320 78'/%3E%3Cpath stroke-width='2.2' d='M0 96C70 104 120 90 190 98S290 92 320 96'/%3E%3Cpath stroke-width='1' d='M0 113C50 107 120 121 180 113S270 105 320 113'/%3E%3Cpath stroke-width='1.8' d='M0 131C80 139 150 125 220 133S300 127 320 131'/%3E%3Cpath stroke-width='1.4' d='M0 149C60 143 140 157 200 149S280 141 320 149'/%3E%3C/g%3E%3C/svg%3E");
-    background-size: 320px 160px;
-  }
-  .hatch {
-    background-image: repeating-linear-gradient(-45deg, oklch(0.17 0.008 60 / 16%) 0 1px, transparent 1px 7px);
-  }
-  .speed-lines {
-    background-image: repeating-conic-gradient(from 0deg at 50% 50%, var(--ink) 0deg 0.7deg, transparent 0.7deg 3.6deg);
-    -webkit-mask-image: radial-gradient(closest-side, transparent 38%, #000 100%);
-    mask-image: radial-gradient(closest-side, transparent 38%, #000 100%);
-  }
-  /* Keep the burst off the text on the left: fade it in across the first third of its box */
-  .speed-lines-right {
-    -webkit-mask-image: radial-gradient(closest-side, transparent 30%, #000 100%), linear-gradient(90deg, transparent 0%, #000 35%);
-    -webkit-mask-composite: source-in;
-    mask-image: radial-gradient(closest-side, transparent 30%, #000 100%), linear-gradient(90deg, transparent 0%, #000 35%);
-    mask-composite: intersect;
   }
 }
 
@@ -206,14 +247,16 @@
    routes keep their presentation until the direction is approved.
    --------------------------------------------------------------------------- */
 .dash {
-  --d-field: #fbfaf7;
-  --d-plate: #ffffff;
-  --d-ink: #111111;
-  --d-red: #d81e1e;
-  --d-ok: #1f9d55;
-  --d-warn: #e8a400;
-  --d-info: #2f6fde;
-  --d-amber-field: #f4c542;
+  /* Mapped onto the site theme; the alarm field and the night bands stay dark in both themes. */
+  --d-field: var(--background);
+  --d-plate: var(--card);
+  --d-ink: var(--foreground);
+  --d-red: #8f2b23;
+  --d-ok: var(--ok);
+  --d-warn: var(--warn);
+  --d-info: var(--info);
+  --d-amber-field: #d9a441;
+  --d-night: #20262b;
   --dur-quick: 0.18s;
   --dur-base: 0.28s;
   --dur-scene: 0.6s;
@@ -221,12 +264,11 @@
   --ease-out-d: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-io-d: cubic-bezier(0.65, 0, 0.35, 1);
   color: var(--d-ink);
-  /* Unrevealed bands show ink, so the peek below the verdict scene always reads as the next scene */
-  background: var(--d-ink);
+  /* Unrevealed bands show night, so the peek below the verdict scene always reads as the next scene */
+  background: var(--d-night);
 }
-.dash .grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='120'%3E%3Cg fill='none' stroke='%23111' stroke-linecap='round' opacity='.07'%3E%3Cpath stroke-width='1.2' d='M0 8C70 3 140 14 210 8S320 3 360 8'/%3E%3Cpath stroke-width='1.8' d='M0 31C80 37 150 25 230 32S330 27 360 31'/%3E%3Cpath stroke-width='.9' d='M0 55C60 49 130 61 200 55S310 47 360 55'/%3E%3Cpath stroke-width='1.5' d='M0 79C90 86 160 72 240 80S330 75 360 79'/%3E%3Cpath stroke-width='1' d='M0 103C70 97 140 109 210 103S320 96 360 103'/%3E%3C/g%3E%3C/svg%3E");
-  background-size: 360px 120px;
+.dark .dash {
+  --d-night: #0b1117;
 }
 .dash .label {
   font-size: 11px;
@@ -256,23 +298,22 @@
   transition: transform var(--dur-quick) var(--ease-out-d), box-shadow var(--dur-quick) var(--ease-out-d), background-color var(--dur-quick);
 }
 .dash .btn-caption:hover:not(:disabled) {
-  box-shadow: 3px 3px 0 0 var(--d-ink);
-  transform: translate(-1px, -1px);
+  border-color: var(--primary);
 }
 .dash .btn-caption:active:not(:disabled) {
-  box-shadow: none;
-  transform: translate(1px, 1px);
+  transform: translate(0, 1px);
 }
 .dash .btn-caption:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 .dash .btn-caption.solid {
-  background: var(--d-ink);
-  color: var(--d-plate);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
 }
 .dash :focus-visible {
-  outline: 2px solid var(--d-ink);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 .dash .on-red :focus-visible {
@@ -306,5 +347,19 @@
   .dash .seal-tick {
     transition-delay: 0s !important;
     animation: none !important;
+  }
+}
+
+/* Homepage mist: a slow drift on its own plane. Reduced motion holds it still (rule above). */
+.hero-mist {
+  background:
+    radial-gradient(60% 45% at 30% 70%, var(--mist), transparent 70%),
+    radial-gradient(50% 40% at 75% 80%, var(--mist), transparent 70%);
+  filter: blur(8px);
+  animation: hero-mist-drift 38s ease-in-out infinite alternate;
+}
+@keyframes hero-mist-drift {
+  to {
+    translate: 6% 0;
   }
 }
