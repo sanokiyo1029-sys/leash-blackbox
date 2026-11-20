@@ -25,7 +25,7 @@ macOS/Linux: use `backend/.venv/bin/python` instead of `backend\.venv\Scripts\py
 
 ## Environment variables (names only, see `.env.example`)
 `LEASH_RPC_URL`, `LEASH_ANCHOR_PRIVATE_KEY`, `LEASH_DATA_DIR`, `LEASH_MAX_BATCH_SIZE`,
-`LEASH_CORS_ORIGINS`, `LEASH_DEMO_MODE` (1 = lab endpoints on), `NEXT_PUBLIC_LEASH_API_URL`,
+`LEASH_CORS_ORIGINS`, `LEASH_DEMO_MODE` (1 = lab endpoints on), `LEASH_INGEST_TOKEN` (bearer token for ingest), `NEXT_PUBLIC_LEASH_API_URL`,
 `LEASH_TEST_RPC_URL` (tests only), `LEASH_PYTHON` / `PW_CHANNEL` (Playwright only).
 All are optional for local development.
 

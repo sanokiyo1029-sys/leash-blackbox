@@ -21,7 +21,8 @@ Phase 5 web console built and checked manually in a browser; Playwright smoke te
 Phase 7 started: guided presentation mode at `/demo` (T-017) done.
 Validation experiments (T-015) done; results committed in `docs/validation/RESULTS.md`.
 Pitch script (`docs/PITCH.md`) and real screenshots (`docs/img/`) done (T-019).
-**Next: rest of T-020 (ingest authentication); T-018 needs the owner's testnet key.**
+Hardening T-020 done (lab gating + ingest token).
+**Next: T-022 real log-file agent, T-023 start script, T-021 per-host credentials; T-018 needs the owner's testnet key.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -30,7 +31,7 @@ Pitch script (`docs/PITCH.md`) and real screenshots (`docs/img/`) done (T-019).
   transaction on Hardhat → receipt and event checked → verification (host vs vault vs chain).
 - Attack lab: cover_tracks, alter_evidence, fabricate_alibi, timestomp, truncate_tail, wipe_all, random_tamper.
 - Evidence export (vault/host, full/selective) and `verifier/leash_verify.py` (stdlib only, own Keccak).
-- `backend/.venv/Scripts/python -m pytest` → **78 passed** (latest run, after adding the `LEASH_DEMO_MODE` gating test).
+- `backend/.venv/Scripts/python -m pytest` → **80 passed** (latest run, includes demo-mode gating and ingest-token tests).
 - `backend/.venv/Scripts/python scripts/run_validation.py --trials 30` → 30 trials, 476 tampered
   records: recall 100%, precision 100%, 0 clean-run false alarms, independent CLI agreed 30/30
   (about 42 s; full tables in docs/validation/RESULTS.md).
@@ -57,7 +58,8 @@ Pitch script (`docs/PITCH.md`) and real screenshots (`docs/img/`) done (T-019).
   flow was verified from bash.
 
 ## Pending
-Ingest authentication (rest of T-020), optional public testnet anchoring (T-018, needs the owner's key).
+Real log-file agent (T-022), start script (T-023), per-host credentials (T-021), optional public testnet anchoring
+(T-018, needs the owner's key).
 
 ## Working commands (verified)
 - `cd blockchain; npm install; npx hardhat test`
@@ -88,5 +90,6 @@ None confirmed. See KNOWN_ISSUES.md for limitations.
 None.
 
 ## Exact next task
-T-020 (remainder): authenticate `/api/events/ingest` with per-host bearer tokens (hash stored in the vault,
-token provisioned out of band). Add a test that an unauthenticated ingest gets 401. Keep the demo flow working.
+T-022: `agent/tail_agent.py`, which tails a real auth.log-style file, parses lines into events and POSTs them to
+`/api/events/ingest` with `LEASH_INGEST_TOKEN`. Then show in a test that editing the file after ingest is caught
+(the agent keeps its host-side copy in host_logs.db as today).

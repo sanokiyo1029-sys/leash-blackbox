@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import hmac
 import json
 import sys
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -111,7 +112,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # -------------------------------------------------------------- ingestion
     @app.post("/api/events/ingest")
-    def ingest(req: IngestRequest) -> dict[str, Any]:
+    def ingest(req: IngestRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+        if settings.ingest_token:
+            presented = (authorization or "").removeprefix("Bearer ").strip()
+            if not hmac.compare_digest(presented.encode(), settings.ingest_token.encode()):
+                raise HTTPException(401, "invalid or missing ingest token", headers={"WWW-Authenticate": "Bearer"})
+        elif not settings.demo_mode:
+            raise HTTPException(403, "ingest disabled: set LEASH_INGEST_TOKEN")
         records = svc.emit_from_host(req.events)
         return {"ingested": len(records), "first_seq": records[0]["seq"], "last_seq": records[-1]["seq"]}
 

@@ -33,4 +33,5 @@
 - **Hardening:** lab endpoints gated by `LEASH_DEMO_MODE` (78 passed).
 - **Pitch:** `docs/PITCH.md`, plus 6 real screenshots captured by Playwright (`docs/img/`). Fixed a premature-match bug
   in the demo e2e wait condition.
-- **Remaining problems:** none blocking; T-018 and the rest of T-020 are open.
+- **Hardening:** ingest bearer token (`LEASH_INGEST_TOKEN`, constant-time compare); 80 tests passed.
+- **Remaining problems:** none blocking; T-018 (needs the owner's testnet key), T-021, T-022 and T-023 are open.

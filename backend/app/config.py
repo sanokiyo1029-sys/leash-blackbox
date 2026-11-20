@@ -24,6 +24,9 @@ class Settings:
     # Lab endpoints (reset, synthetic traffic, attack simulation) are for demos only.
     # Set LEASH_DEMO_MODE=0 to refuse them; verification and read endpoints stay available.
     demo_mode: bool = True
+    # Shared bearer token host agents must present to /api/events/ingest. When unset,
+    # ingest is open in demo mode and refused otherwise.
+    ingest_token: str | None = None
 
     @property
     def host_db_path(self) -> Path:
@@ -54,6 +57,8 @@ def load_settings() -> Settings:
         kwargs["contract_artifact"] = Path(env["LEASH_CONTRACT_ARTIFACT"])
     if env.get("LEASH_MAX_BATCH_SIZE"):
         kwargs["max_batch_size"] = int(env["LEASH_MAX_BATCH_SIZE"])
+    if env.get("LEASH_INGEST_TOKEN"):
+        kwargs["ingest_token"] = env["LEASH_INGEST_TOKEN"]
     if env.get("LEASH_DEMO_MODE"):
         kwargs["demo_mode"] = env["LEASH_DEMO_MODE"].strip().lower() not in ("0", "false", "no", "off")
     if env.get("LEASH_CORS_ORIGINS"):

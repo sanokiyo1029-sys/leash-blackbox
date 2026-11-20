@@ -72,6 +72,33 @@ def test_lab_endpoints_refused_outside_demo_mode(settings):
     app.state.svc.stores.dispose()
 
 
+INGEST_BODY = {"events": [{"ts": "2026-11-20T10:00:00.000Z", "host": "h1", "source": "sshd", "type": "login_success",
+                           "severity": "info", "actor": "alice", "msg": "Accepted publickey for alice"}]}
+
+
+def test_ingest_requires_token_when_configured(settings):
+    from dataclasses import replace
+
+    app = create_app(replace(settings, ingest_token="s3cret-token"))
+    with TestClient(app) as c:
+        assert c.post("/api/events/ingest", json=INGEST_BODY).status_code == 401
+        bad = c.post("/api/events/ingest", json=INGEST_BODY, headers={"Authorization": "Bearer nope"})
+        assert bad.status_code == 401
+        ok = c.post("/api/events/ingest", json=INGEST_BODY, headers={"Authorization": "Bearer s3cret-token"})
+        assert ok.status_code == 200 and ok.json()["ingested"] == 1
+    app.state.svc.stores.dispose()
+
+
+def test_ingest_refused_without_token_outside_demo_mode(settings):
+    from dataclasses import replace
+
+    app = create_app(replace(settings, demo_mode=False))
+    with TestClient(app) as c:
+        r = c.post("/api/events/ingest", json=INGEST_BODY)
+        assert r.status_code == 403 and "LEASH_INGEST_TOKEN" in r.json()["detail"]
+    app.state.svc.stores.dispose()
+
+
 def test_unknown_attack_scenario_is_rejected(client):
     assert client.post("/api/attacks/format_c").status_code == 400
 
