@@ -85,8 +85,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             last_run = None if last is None else {
                 "run_id": last.id, "verified_at": last.verified_at, "verdict": last.verdict,
                 "duration_ms": last.duration_ms, "summary": json.loads(last.summary_json)}
-        return {"version": __version__, "chain": chain, "deployment": deployment_to_dict(dep),
-                "counts": svc.counts(), "last_verification": last_run}
+        return {"version": __version__, "demo_mode": settings.demo_mode, "chain": chain,
+                "deployment": deployment_to_dict(dep), "counts": svc.counts(), "last_verification": last_run}
+
+    def require_demo_mode() -> None:
+        if not settings.demo_mode:
+            raise HTTPException(403, "lab endpoint disabled (LEASH_DEMO_MODE=0)")
 
     # ---------------------------------------------------------------- system
     @app.post("/api/system/deploy")
@@ -98,6 +102,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/demo/reset")
     def reset() -> dict[str, Any]:
+        require_demo_mode()
         try:
             dep = svc.reset()
         except AnchorError as exc:
@@ -112,6 +117,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/simulate/traffic")
     def traffic(req: TrafficRequest) -> dict[str, Any]:
+        require_demo_mode()
         raws = generate_traffic(req.count, seed=req.seed, include_intrusion=req.include_intrusion)
         if not raws:
             return {"ingested": 0, "batches": []}
@@ -193,6 +199,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/attacks/{scenario}")
     def attack(scenario: str, req: AttackRequest | None = None) -> dict[str, Any]:
+        require_demo_mode()
         try:
             return lab.run(scenario, **((req.params if req else {}) or {}))
         except (ValueError, TypeError) as exc:

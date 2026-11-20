@@ -58,6 +58,20 @@ def test_full_demo_flow_over_http(client):
     assert [r["verdict"] for r in runs[:2]] == ["TAMPERING_DETECTED", "CLEAN"]
 
 
+def test_lab_endpoints_refused_outside_demo_mode(settings):
+    from dataclasses import replace
+
+    app = create_app(replace(settings, demo_mode=False))
+    with TestClient(app) as c:
+        assert c.get("/api/status").json()["demo_mode"] is False
+        for path in ("/api/demo/reset", "/api/simulate/traffic", "/api/attacks/cover_tracks"):
+            r = c.post(path, json={})
+            assert r.status_code == 403, path
+            assert "LEASH_DEMO_MODE" in r.json()["detail"]
+        assert c.post("/api/verify").status_code == 200  # verification stays available
+    app.state.svc.stores.dispose()
+
+
 def test_unknown_attack_scenario_is_rejected(client):
     assert client.post("/api/attacks/format_c").status_code == 400
 

@@ -21,6 +21,9 @@ class Settings:
     rpc_timeout_s: float = 10.0
     receipt_timeout_s: float = 60.0
     cors_origins: tuple[str, ...] = ("http://localhost:3000", "http://127.0.0.1:3000")
+    # Lab endpoints (reset, synthetic traffic, attack simulation) are for demos only.
+    # Set LEASH_DEMO_MODE=0 to refuse them; verification and read endpoints stay available.
+    demo_mode: bool = True
 
     @property
     def host_db_path(self) -> Path:
@@ -51,6 +54,8 @@ def load_settings() -> Settings:
         kwargs["contract_artifact"] = Path(env["LEASH_CONTRACT_ARTIFACT"])
     if env.get("LEASH_MAX_BATCH_SIZE"):
         kwargs["max_batch_size"] = int(env["LEASH_MAX_BATCH_SIZE"])
+    if env.get("LEASH_DEMO_MODE"):
+        kwargs["demo_mode"] = env["LEASH_DEMO_MODE"].strip().lower() not in ("0", "false", "no", "off")
     if env.get("LEASH_CORS_ORIGINS"):
         kwargs["cors_origins"] = tuple(o.strip() for o in env["LEASH_CORS_ORIGINS"].split(",") if o.strip())
     return Settings(**kwargs)

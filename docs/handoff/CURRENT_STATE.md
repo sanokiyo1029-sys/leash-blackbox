@@ -29,7 +29,7 @@ Validation experiments (T-015) done; results committed in `docs/validation/RESUL
   transaction on Hardhat → receipt and event checked → verification (host vs vault vs chain).
 - Attack lab: cover_tracks, alter_evidence, fabricate_alibi, timestomp, truncate_tail, wipe_all, random_tamper.
 - Evidence export (vault/host, full/selective) and `verifier/leash_verify.py` (stdlib only, own Keccak).
-- `backend/.venv/Scripts/python -m pytest` → **77 passed** (re-run after the ground-truth fix).
+- `backend/.venv/Scripts/python -m pytest` → **78 passed** (latest run, after adding the `LEASH_DEMO_MODE` gating test).
 - `backend/.venv/Scripts/python scripts/run_validation.py --trials 30` → 30 trials, 476 tampered
   records: recall 100%, precision 100%, 0 clean-run false alarms, independent CLI agreed 30/30
   (about 42 s; full tables in docs/validation/RESULTS.md).

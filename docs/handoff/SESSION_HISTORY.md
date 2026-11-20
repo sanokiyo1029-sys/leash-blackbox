@@ -30,4 +30,5 @@
   - Re-run: recall 100%, precision 100% over 30 trials.
 - **E2E:** added Playwright smoke tests (5 passed, Edge channel, private ports).
 - **Presentation:** `/demo` guided story (7 steps, real API + in-browser auditor), e2e test added (6 passed).
-- **Remaining problems:** none blocking; T-018/T-019/T-020 open.
+- **Hardening:** lab endpoints gated by `LEASH_DEMO_MODE` (78 passed).
+- **Remaining problems:** none blocking; T-018, T-019 and the rest of T-020 are open.
