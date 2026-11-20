@@ -175,10 +175,13 @@ class AttackLab:
         truth: dict[int, str] = {}
         with self._lab() as s:
             for r in s.scalars(select(AttackAction).order_by(AttackAction.id)):
-                if r.action == "delete" and truth.get(r.seq) == "inject":
-                    truth.pop(r.seq)
-                elif r.action == "modify" and truth.get(r.seq) == "inject":
-                    continue
+                prior = truth.get(r.seq)
+                if r.action == "delete" and prior == "inject":
+                    truth.pop(r.seq)  # fabricated then removed again: no net change
+                elif r.action == "modify" and prior == "inject":
+                    continue  # still a fabricated record
+                elif r.action == "inject" and prior == "delete":
+                    truth[r.seq] = "modify"  # committed record replaced by a fabricated one
                 else:
                     truth[r.seq] = r.action
         return truth

@@ -128,6 +128,18 @@ def test_timestomp_truncate_and_wipe_detected(svc):
     assert report["summary"]["intact"] == 0
 
 
+def test_replacing_a_deleted_committed_record_is_reported_as_modified(svc):
+    """Delete the newest record, then fabricate a new one under the same anchored seq."""
+    _populate(svc, 30, intrusion=False)
+    lab = _lab(svc)
+    deleted = lab.run("truncate_tail", count=1)["seqs"]
+    injected = lab.run("fabricate_alibi", count=1)["seqs"]
+    assert deleted == injected == [30]
+    report = run_verification(svc)
+    assert [(f["seq"], f["status"]) for f in report["findings"]] == [(30, "MODIFIED")]
+    assert lab.ground_truth() == {30: "modify"}
+
+
 @pytest.mark.parametrize("seed", [11, 12, 13])
 def test_random_tampering_matches_ground_truth(svc, seed):
     _populate(svc, 80, seed=seed)
