@@ -12,7 +12,7 @@
   - Backend phases 1–4: three stores, collector/host agent, Merkle sealing, web3 anchoring,
     verification engine, attack lab, evidence export, FastAPI.
   - Standalone auditor verifier, pytest suite, and handoff docs.
-  - Moved the project to `C:\Users\sreea\leash-blackbox` (Windows path-length limit).
+  - Moved the project to `C:\Users\<user>\leash-blackbox` (Windows path-length limit).
 - **Files substantially changed:** everything (initial import).
 - **Tests executed and results:**
   - `npx hardhat test` → 9 passing
