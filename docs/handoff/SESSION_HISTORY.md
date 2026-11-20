@@ -2,7 +2,8 @@
 
 ## S01 — 2026-11-20 — laptop A
 - **Starting commit:** none (new repository)
-- **Ending commit:** `00443cb` (code, pushed and verified on origin/main) + the `docs: update development handoff` commit that follows it
+- **Ending commit:** `ae97e9c` (last code commit, verified on origin/main at handoff) + the `docs: session handoff` commit that follows it.
+  The first push of the session was `00443cb`.
 - **Work completed:**
   - Inspected the environment and installed GitHub CLI.
   - Logged gh in as sanokiyo1029-sys. Set the repo-local identity (Rohan, GitHub noreply) and a
@@ -43,3 +44,7 @@
     were regenerated.
   - Responsive e2e: 16 passed (8 routes × 375/768px, no overflow, no console errors).
 - **Remaining problems:** legacy screens not yet restyled (T-029); T-018, T-021, T-022 and T-023 are open.
+- **Handoff (owner typed HANDOFF NOW):**
+  - Re-ran everything: backend 81 passed, contract 9 passing, e2e 23 passed + 1 skipped, tsc/lint clean.
+  - Usage at handoff: 78% of the 5-hour window (read from the app's usage indicator).
+  - Local services left running on laptop A: Hardhat :8545, API :8000, Next dev :3000. They are not needed on laptop B.

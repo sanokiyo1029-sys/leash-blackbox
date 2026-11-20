@@ -1,6 +1,6 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-20, session S01 (laptop A)_
+_Last updated: 2026-11-20, end of session S01 (laptop A), HANDOFF_
 
 ## Project goal
 Tamper-evident, independently verifiable security evidence: canonical SHA-256 event hashing, hash
@@ -9,8 +9,8 @@ compromised host, an attack lab, and a standalone auditor verifier. Hackathon: T
 
 ## Git
 - Repo: private `sanokiyo1029-sys/leash-blackbox`, branch `main`
-- Latest verified code commit: `00443cb3e0465b6cbc9a1d55775bc624569d95e4` (pushed; origin/main matched local).
-  A `docs: update development handoff` commit follows it.
+- Latest verified code commit: `ae97e9ccb9a5fbe9fd248203a6f4f7fd8135f763` (all suites re-run at handoff; origin/main
+  matched local). The `docs: session handoff` commit that follows it only changes docs.
 - Commit identity (repo-local): `Rohan <277307707+sanokiyo1029-sys@users.noreply.github.com>`
 - Push auth: repo-local credential helper → `gh auth git-credential` (gh logged in as sanokiyo1029-sys)
 - Uncommitted / unpushed state: none at handoff time (verify with `git status`)
@@ -34,7 +34,8 @@ Responsive checks (T-030) are automated: no overflow and no console errors at 37
   transaction on Hardhat → receipt and event checked → verification (host vs vault vs chain).
 - Attack lab: cover_tracks, alter_evidence, fabricate_alibi, timestomp, truncate_tail, wipe_all, random_tamper.
 - Evidence export (vault/host, full/selective) and `verifier/leash_verify.py` (stdlib only, own Keccak).
-- `backend/.venv/Scripts/python -m pytest` → **81 passed** (latest run, includes the targeted erase/rewrite attack test).
+- `backend/.venv/Scripts/python -m pytest` → **81 passed** (re-run at handoff).
+- `cd blockchain; npx hardhat test` → **9 passing** (re-run at handoff); `npx tsc --noEmit` and `npm run lint` clean.
 - `backend/.venv/Scripts/python scripts/run_validation.py --trials 30` → 30 trials, 476 tampered
   records: recall 100%, precision 100%, 0 clean-run false alarms, independent CLI agreed 30/30
   (about 42 s; full tables in docs/validation/RESULTS.md).
@@ -71,7 +72,7 @@ Real log-file agent (T-022), start script (T-023), per-host credentials (T-021),
 - `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
 - `python verifier\leash_verify.py BUNDLE.json --rpc http://127.0.0.1:8545`
 - `cd frontend; npm install; npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`
-- `cd frontend; npm run test:e2e` → smoke **7 passed** + responsive **16 passed** (the screenshot spec is skipped unless CAPTURE=1) (starts its own Hardhat :8546, API :8011, Next :3011;
+- `cd frontend; npm run test:e2e` → **23 passed, 1 skipped** at handoff (7 smoke + 16 responsive; the screenshot spec is skipped unless CAPTURE=1) (starts its own Hardhat :8546, API :8011, Next :3011;
   uses the installed Microsoft Edge, or set `PW_CHANNEL=chromium` after `npx playwright install chromium`)
 
 ## Failing commands
