@@ -48,11 +48,13 @@ test.describe.serial("LEASH BLACKBOX core screens", () => {
   test("evidence explorer recovers a deleted record and proves it in the browser", async ({ page }) => {
     await page.goto("/evidence");
     await page.getByRole("button", { name: "DELETED", exact: true }).click();
+    await expect(page.locator("tbody tr").first()).toContainText("DELETED");
     const firstRow = page.locator("tbody tr").first();
     await expect(firstRow).toContainText("DELETED");
     await firstRow.click();
-    await expect(page.getByText(/erased from the host/)).toBeVisible();
-    await expect(page.getByText(/Recomputed in your browser .* hashes to the on-chain root/)).toBeVisible();
+    await expect(page.getByText(/Erased from the host/)).toBeVisible();
+    await page.getByRole("button", { name: "Verify against chain" }).click();
+    await expect(page.getByText("Anchored original proven against the on-chain root")).toBeVisible();
   });
 
   test("proof explorer: vault and contract values match", async ({ page }) => {

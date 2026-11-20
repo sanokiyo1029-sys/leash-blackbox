@@ -26,7 +26,9 @@ test.describe.serial("screenshots", () => {
     await page.getByRole("button", { name: "DELETED", exact: true }).click();
     await expect(page.locator("tbody tr").first()).toContainText("DELETED");
     await page.locator("tbody tr").first().click();
-    await expect(page.getByText(/Recomputed in your browser/)).toBeVisible();
+    await page.getByRole("button", { name: "Verify against chain" }).click();
+    await expect(page.getByText("Anchored original proven against the on-chain root")).toBeVisible();
+    await page.waitForTimeout(1200);
     await page.screenshot(shot("evidence"));
 
     await page.goto("/proofs");
