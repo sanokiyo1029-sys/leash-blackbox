@@ -211,3 +211,4 @@
   - the reduced-motion dip firing at the first and last frame;
   - the phone wide shot under the bar.
 - **Handoff at 90% of the 5-hour usage window.** T-040 is open.
+- **HANDOFF NOW** (owner): docs updated, frontend `tsc` and lint rerun clean; e2e not run (T-040). Pushed for the other laptop.

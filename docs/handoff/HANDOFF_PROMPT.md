@@ -1,9 +1,21 @@
 # Continuation guide (send this to whoever continues)
 
-**State at handoff (2026-11-20, end of S02):** `main` is clean and pushed. Every planned feature is done
-(T-001…T-032). Re-run on the final code: contract 9 passing, backend 90 passed, frontend lint/tsc/build clean,
-Playwright 23 passed + 1 skipped. Open work: T-033 rehearsal (owner), T-034 `start-all.sh` for macOS/Linux,
-optional T-018 public testnet. Details: `docs/handoff/CURRENT_STATE.md`.
+**State at handoff (2026-11-20, end of S04, laptop A):** `main` is clean and pushed at the commit after `14c5fdc`.
+- **New in S04:** the ScrollCraft story at `/story` (brief: `scrollcraft/builds/story/BRIEF.md`).
+- **Verified in S04 on the dev server (:3100):**
+  - frontend `tsc` and lint clean;
+  - ScrollCraft harness clean at desktop, 390×844 and reduced motion;
+  - roots match the backend's Python code;
+  - no overflow at 360–1280 px;
+  - keyboard OK.
+- **Backend, contract, verifier and agent are unchanged since S03**, when backend 90 passed and contract 9 passing
+  were last run.
+- **NOT yet run with S04's changes:** the Playwright e2e suite, and `/story` on the production build at :3000.
+- **Next task: T-040** (exact steps in NEXT_TASKS). Then T-033 (owner rehearsal), and optionally T-034 and T-018.
+
+To view the story on a fresh machine: `scripts\start-all.cmd` builds production, then open
+http://localhost:3000/story. Or run the dev server alongside it: `npm --prefix frontend run dev -- -p 3100`, then
+open http://localhost:3100/story; on that port the live-chain line says "offline" because of CORS (KI-024).
 
 ## 1. Fresh machine (once)
 Requirements: Git, Node.js 20+, Python 3.11+ (3.12 used on Windows), optionally GitHub CLI.
@@ -36,7 +48,7 @@ You are continuing LEASH BLACKBOX (repo: sanokiyo1029-sys/leash-blackbox, branch
 1. Run git status, git fetch origin, and confirm main is not behind/diverged; pull --ff-only if safe.
    Stop and report if there are uncommitted changes or divergence you did not make.
 2. Read AGENTS.md, docs/handoff/CURRENT_STATE.md, NEXT_TASKS.md, KNOWN_ISSUES.md, and
-   docs/design/REFERENCE_SPEC.md before touching the UI.
+   docs/design/REFERENCE_SPEC.md before touching the UI (for /story also scrollcraft/builds/story/BRIEF.md).
 3. Re-run the checks listed in CURRENT_STATE.md ("Working commands") to confirm the recorded test status.
 4. Continue from the highest-priority TODO task. Do not reimplement DONE features. Do not change the backend,
    contract or verification code unless a task needs it; never fake verification results in the UI.

@@ -3,6 +3,8 @@
 _Last updated: 2026-11-20, session S04 (laptop A), ScrollCraft story checkpoint (handoff at 90% usage)_
 
 ## S04 status (read first)
+- **HANDOFF NOW from laptop A at the end of S04.** The other laptop continues with T-040. Laptop A may still have
+  the demo stack (:8545/:8000/:3000) and the dev server (:3100) running locally; that does not affect git.
 - **New route `/story`**: a ScrollCraft scroll story with seven chapters in one continuous world. The visitor's
   scroll performs the cover-up (log lines are erased as you scroll), and the verdict brings them back.
   - Brief, feeling curve, structure and score: `scrollcraft/builds/story/BRIEF.md` (the owner's answers verbatim).
