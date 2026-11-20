@@ -60,7 +60,12 @@ const STEPS: Step[] = [
       if (r.anchor_error) throw new Error(r.anchor_error);
       ctx.anchored = r.batches.filter((b) => b.status === "anchored").map((b) => ({ id: b.batch_id, root: b.merkle_root }));
       const ev = await api<{ items: EventItem[] }>("/api/events?limit=1000&order=asc");
-      const sample = ev.items.filter((e) => e.record && (e.record.severity === "high" || e.record.severity === "critical")).slice(0, 4);
+      // One example per intrusion stage (only the intrusion is medium severity or above), in the order it happened.
+      const byType = new Map<string, EventItem>();
+      for (const e of ev.items) {
+        if (e.record && ["medium", "high", "critical"].includes(e.record.severity) && !byType.has(e.record.type)) byType.set(e.record.type, e);
+      }
+      const sample = [...byType.values()].slice(0, 4);
       const b = r.batches[0];
       return (
         <div className="space-y-3">

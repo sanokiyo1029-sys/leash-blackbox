@@ -187,7 +187,12 @@ function BrowserResult({ r }: { r: BrowserVerdict }) {
         <MetricCard label="Tampered" value={tampered} tone={tampered ? "bad" : undefined} />
         <MetricCard label="Missing (erased)" value={r.missing.length} tone={r.missing.length ? "bad" : undefined} />
         <MetricCard label="Uncommitted" value={r.uncommitted} tone={r.uncommitted ? "warn" : undefined} />
-        <MetricCard label="Chain heads ok" value={headsOk} tone={headsOk === r.chainHeadChecks.length ? "ok" : "bad"} hint={`of ${r.chainHeadChecks.length}`} />
+        <MetricCard
+          label="Chain heads ok"
+          value={headsOk}
+          tone={!r.chainHeadChecks.length ? undefined : headsOk === r.chainHeadChecks.length ? "ok" : "bad"}
+          hint={r.chainHeadChecks.length ? `of ${r.chainHeadChecks.length}` : "not checkable: a batch is incomplete"}
+        />
       </div>
       {(r.missing.length > 0 || r.events.some((e) => e.status !== "VERIFIED") || r.batches.some((b) => b.issues.length)) && (
         <ul className="max-h-60 space-y-1 overflow-auto rounded-xl border bg-card/40 p-3 font-hash text-xs scrollbar-thin">

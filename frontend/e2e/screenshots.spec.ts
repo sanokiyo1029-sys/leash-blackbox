@@ -14,6 +14,8 @@ test.describe.serial("screenshots", () => {
     await page.getByRole("button", { name: "Run the full story" }).click();
     await expect(page.getByText(/12 erased records recovered/)).toBeVisible({ timeout: 45_000 });
     await expect(page.getByText("Protected evidence", { exact: true })).toBeVisible({ timeout: 30_000 });
+    await page.evaluate(() => window.scrollTo(0, 0)); // the story auto-scrolls; a scrolled full-page shot misplaces the fixed shell
+    await page.waitForTimeout(800);
     await page.screenshot({ ...shot("demo"), fullPage: true });
 
     await page.goto("/");
@@ -33,12 +35,19 @@ test.describe.serial("screenshots", () => {
 
     await page.goto("/proofs");
     await expect(page.getByText(/status 1 · 1 log/)).toBeVisible();
+    await page.waitForTimeout(1500); // let the metric counters finish tweening, or the image shows mid-count numbers
     await page.screenshot(shot("proofs"));
 
     await page.goto("/auditor");
     await page.getByRole("button", { name: "Load host's current logs" }).click();
     await page.getByRole("button", { name: "Verify in my browser" }).click();
     await expect(page.getByText(/MISSING — committed in batch 0/).first()).toBeVisible();
+    // The result sits below the batch audit: bring it to the top, clear of the sticky header.
+    await page.getByText("TAMPERING DETECTED").evaluate((el) => {
+      el.scrollIntoView({ block: "start" });
+      window.scrollBy(0, -96);
+    });
+    await page.waitForTimeout(1500);
     await page.screenshot(shot("auditor"));
 
     await page.goto("/attack");
