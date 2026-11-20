@@ -22,4 +22,10 @@
   - Next.js 16 + Tailwind 4 + shadcn/ui (base-ui) + Recharts + Lucide web console with 7 screens.
   - In-browser verifier (`lib/verify.ts`).
   - tsc, lint and build pass; verified manually in a browser (results in CURRENT_STATE.md).
-- **Remaining problems:** no automated UI tests yet (T-016); validation results not yet committed (T-015).
+- **Validation (same session, later):**
+  - Added `scripts/run_validation.py`.
+  - The first run showed 1 "missed" record. Root cause: the lab's ground truth labelled "delete, then inject at
+    the same anchored seq" as an inject, while the verifier correctly reports MODIFIED. Fixed the labelling
+    and added a regression test (77 passed).
+  - Re-run: recall 100%, precision 100% over 30 trials.
+- **Remaining problems:** no automated UI tests yet (T-016).

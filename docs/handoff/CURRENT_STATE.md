@@ -18,7 +18,8 @@ compromised host, an attack lab, and a standalone auditor verifier. Hackathon: T
 ## Phase
 Phases 1–4 complete and tested. Phase 6 core (auditor CLI, export, negative tests) done.
 Phase 5 web console built and checked manually in a browser (no automated UI tests yet).
-**Next: T-016 Playwright smoke tests, then T-015 offline validation script + results, then T-017 presentation mode.**
+Validation experiments (T-015) done; results committed in `docs/validation/RESULTS.md`.
+**Next: T-016 Playwright smoke tests, then T-017 presentation mode.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -27,7 +28,10 @@ Phase 5 web console built and checked manually in a browser (no automated UI tes
   transaction on Hardhat → receipt and event checked → verification (host vs vault vs chain).
 - Attack lab: cover_tracks, alter_evidence, fabricate_alibi, timestomp, truncate_tail, wipe_all, random_tamper.
 - Evidence export (vault/host, full/selective) and `verifier/leash_verify.py` (stdlib only, own Keccak).
-- `backend/.venv/Scripts/python -m pytest` → **76 passed in 23.4 s**.
+- `backend/.venv/Scripts/python -m pytest` → **77 passed** (re-run after the ground-truth fix).
+- `backend/.venv/Scripts/python scripts/run_validation.py --trials 30` → 30 trials, 476 tampered
+  records: recall 100%, precision 100%, 0 clean-run false alarms, independent CLI agreed 30/30
+  (about 42 s; full tables in docs/validation/RESULTS.md).
 - Live smoke test (Hardhat node + uvicorn + CLI): 212 events anchored in 1 batch (162,994 gas),
   verify CLEAN in 69 ms; cover_tracks deleted 12 → 12/12 detected, 0 FP, 0 FN; vault bundle →
   VERIFIED (exit 0); host bundle → TAMPERING_DETECTED (exit 2).
@@ -51,8 +55,7 @@ Phase 5 web console built and checked manually in a browser (no automated UI tes
   flow was verified from bash.
 
 ## Pending
-Playwright smoke tests (T-016), offline validation script with committed results (T-015),
-presentation mode (T-017), optional public testnet anchoring (T-018).
+Playwright smoke tests (T-016), presentation mode (T-017), optional public testnet anchoring (T-018).
 
 ## Working commands (verified)
 - `cd blockchain; npm install; npx hardhat test`
@@ -82,4 +85,4 @@ None.
 
 ## Exact next task
 T-016: add Playwright smoke tests for Dashboard, Evidence, Proofs, Attack and Auditor against a running
-stack. Then T-015: `scripts/run_validation.py` writing results to `docs/validation/`.
+stack (Hardhat node + uvicorn + `npm run dev`).

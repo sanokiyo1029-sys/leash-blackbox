@@ -18,7 +18,7 @@ Statuses: TODO · IN_PROGRESS · BLOCKED · DONE
 | T-012 | Blockchain Proof Explorer (batches, tx hash, block, on-chain vs vault root) | P1 | T-009 | Uses `/api/batches/{id}` | DONE |
 | T-013 | Live Attack Simulation (run scenarios, verify, before/after) | P1 | T-009 | Uses `/api/attacks/*`, `/api/verify`, `/api/verify/score` | DONE |
 | T-014 | Independent Auditor Portal (upload bundle, verify, in-browser hashing) | P2 | T-008,T-009 | Upload → verdict. Stretch: browser-side SHA-256 + RPC with no backend | DONE |
-| T-015 | Validation dashboard + `scripts/run_validation.py` (N randomized trials, precision/recall, latency, gas). Dashboard page DONE; offline script + committed results in `docs/validation/` still TODO | P2 | T-007 | Results JSON + markdown in `docs/validation/`, numbers taken from real runs | IN_PROGRESS |
+| T-015 | Validation dashboard + `scripts/run_validation.py` (N randomized trials, precision/recall, latency, gas). Dashboard page and offline script DONE; results in `docs/validation/` | P2 | T-007 | Results JSON + markdown in `docs/validation/`, numbers taken from real runs | DONE |
 | T-016 | Playwright smoke tests for the 4 core screens | P2 | T-010..T-013 | `npx playwright test` passes | TODO |
 | T-017 | Architecture documentation page + presentation mode. Architecture page DONE; presentation mode TODO | P3 | T-010 | — | IN_PROGRESS |
 | T-018 | Optional: public testnet anchoring (Sepolia/L2) behind env flag | P3 | T-005 | Documented, never commits keys | TODO |
