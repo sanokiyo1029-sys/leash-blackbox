@@ -163,7 +163,10 @@ export default function AttackLab() {
 
   const hasData = (events.data?.items.length ?? 0) > 0;
   const attacked = touched.size > 0;
-  const step = !hasData ? 0 : !report && !attacked ? 1 : !attacked ? 2 : stale ? 3 : 4;
+  const detectedNow = !!report && !stale && report.verdict !== "CLEAN";
+  const step = !hasData ? 0 : detectedNow ? 4 : !report && !attacked ? 1 : !attacked ? 2 : stale ? 3 : 4;
+  const hostCount = (events.data?.items ?? []).filter((i) => i.host_record).length;
+  const vaultCount = (events.data?.items ?? []).filter((i) => i.record).length;
   const anchoredBatch = batches.data?.batches.find((b) => b.status === "anchored");
   const onchain = anchoredBatch ? chain[anchoredBatch.batch_id] : undefined;
   const batchReport = report?.batches.find((b) => b.batch_id === anchoredBatch?.batch_id);
@@ -271,7 +274,7 @@ export default function AttackLab() {
 
           <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_52px_minmax(0,1fr)]">
             {/* Panel headers */}
-            <HostHeader attacked={attacked} command={command} busy={!!action.busy && action.busy !== "verify"} />
+            <HostHeader attacked={attacked || detectedNow} command={command} busy={!!action.busy && action.busy !== "verify"} hostCount={hostCount} vaultCount={vaultCount} />
             <div className="hidden lg:block" />
             <ChainHeader
               batch={anchoredBatch}
@@ -371,9 +374,9 @@ function Stepper({ step }: { step: number }) {
   );
 }
 
-function HostHeader({ attacked, command, busy }: { attacked: boolean; command: string | null; busy: boolean }) {
+function HostHeader({ attacked, command, busy, hostCount, vaultCount }: { attacked: boolean; command: string | null; busy: boolean; hostCount: number; vaultCount: number }) {
   return (
-    <div className={cn("surface rounded-2xl p-4 transition-colors duration-500", attacked && "border-bad/35 bg-bad/[0.04]")}>
+    <div className={cn("surface flex flex-col rounded-2xl p-4 transition-colors duration-500", attacked && "border-bad/35 bg-bad/[0.04]")}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
           <div className={cn("grid size-8 place-items-center rounded-lg transition-colors", attacked ? "bg-bad/15 text-bad" : "bg-muted text-muted-foreground")}>
@@ -419,6 +422,14 @@ function HostHeader({ attacked, command, busy }: { attacked: boolean; command: s
           </motion.div>
         )}
       </AnimatePresence>
+      <div className="mt-auto grid grid-cols-2 gap-x-4 gap-y-1.5 pt-3 text-[11.5px]">
+        <span className="text-muted-foreground">Lines on host</span>
+        <span className={cn("text-right font-hash tabular", hostCount !== vaultCount && "text-bad")}>{hostCount}</span>
+        <span className="text-muted-foreground">Lines the collector received</span>
+        <span className="text-right font-hash tabular">{vaultCount}</span>
+        <span className="text-muted-foreground">Signing key on this host</span>
+        <span className="text-right text-ok">none</span>
+      </div>
     </div>
   );
 }

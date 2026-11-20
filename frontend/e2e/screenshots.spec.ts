@@ -40,8 +40,10 @@ test.describe.serial("screenshots", () => {
     await page.screenshot(shot("auditor"));
 
     await page.goto("/attack");
-    await page.getByRole("button", { name: "Verify now" }).click();
-    await expect(page.getByText("True positives")).toBeVisible();
+    await page.getByRole("button", { name: "Verify integrity" }).click();
+    await expect(page.getByText("Tampering detected — the server's logs no longer match the blockchain")).toBeVisible();
+    await page.waitForTimeout(1200);
     await page.screenshot(shot("attack"));
+    await page.screenshot({ ...shot("attack-full"), fullPage: true });
   });
 });

@@ -2,235 +2,355 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { Anchor, Loader2, Play, RotateCcw, ScanSearch, Siren } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { AnimatePresence, motion } from "motion/react";
+import { Anchor, Blocks, Database, Play, ScanSearch, Server, ShieldCheck, Swords } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ErrorNote, Hash, PageHeader, Stat, VerdictBanner } from "@/components/status";
+import { AlertBanner, EmptyState, HashChip, LiveDot, LoadingRows, MetricCard, PageTitle, Panel, Spinner } from "@/components/kit";
+import { StatusBadge } from "@/components/status";
 import { api, fmtTime, useAction, useApi } from "@/lib/api";
-import type { EventItem, Status, VerifyRun } from "@/lib/types";
+import { dur, ease } from "@/lib/motion";
+import type { Batch, EventItem, Status, VerificationReport, VerifyRun } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-const SEVERITIES = ["info", "low", "medium", "high", "critical"] as const;
-const SEV_COLOR: Record<string, string> = {
-  info: "var(--muted-foreground)",
-  low: "var(--info)",
-  medium: "var(--chart-5)",
-  high: "var(--warn)",
-  critical: "var(--bad)",
-};
 const tooltipStyle = {
-  contentStyle: { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 },
-  labelStyle: { color: "var(--foreground)" },
+  contentStyle: { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, fontSize: 12, boxShadow: "var(--shadow-pop)" },
+  labelStyle: { color: "var(--muted-foreground)" },
+  itemStyle: { color: "var(--foreground)" },
 };
+const pct = (n: number) => `${n.toFixed(1)}%`;
+const SEV_DOT: Record<string, string> = { critical: "bg-bad", high: "bg-warn", medium: "bg-violet", low: "bg-info", info: "bg-muted-foreground/60" };
 
 export default function Dashboard() {
   const status = useApi<Status>("/api/status", 4000);
-  const events = useApi<{ items: EventItem[] }>("/api/events?limit=1000&order=asc", 8000);
-  const runs = useApi<{ runs: VerifyRun[] }>("/api/verify/runs?limit=20", 8000);
+  const events = useApi<{ items: EventItem[] }>("/api/events?limit=1000&order=asc", 5000);
+  const batches = useApi<{ batches: Batch[] }>("/api/batches", 6000);
+  const runs = useApi<{ runs: VerifyRun[] }>("/api/verify/runs?limit=12", 6000);
+  const lastId = status.data?.last_verification?.run_id ?? null;
+  const lastReport = useApi<VerificationReport>(lastId ? `/api/verify/runs/${lastId}` : null);
   const action = useAction();
 
-  const refreshAll = () => Promise.all([status.reload(), events.reload(), runs.reload()]);
-  const doAction = async (label: string, fn: () => Promise<unknown>) => {
+  const run = async (label: string, fn: () => Promise<unknown>) => {
     await action.run(label, fn);
-    await refreshAll();
+    await Promise.all([status.reload(), events.reload(), batches.reload(), runs.reload()]);
   };
-
-  const bySource = useMemo(() => {
-    const rows: Record<string, Record<string, number>> = {};
-    for (const item of events.data?.items ?? []) {
-      const rec = item.record ?? item.host_record;
-      if (!rec) continue;
-      rows[rec.source] ??= Object.fromEntries(SEVERITIES.map((s) => [s, 0]));
-      rows[rec.source][rec.severity] += 1;
-    }
-    return Object.entries(rows).map(([source, counts]) => ({ source, ...counts }));
-  }, [events.data]);
 
   const s = status.data;
   const last = s?.last_verification;
-  const pie = last
+  const items = useMemo(() => events.data?.items ?? [], [events.data]);
+
+  const timeline = useMemo(
+    () =>
+      [...items]
+        .filter((i) => i.host_record ?? i.record)
+        .sort((a, b) => b.seq - a.seq)
+        .slice(0, 12),
+    [items],
+  );
+
+  const threat = useMemo(() => {
+    const buckets = new Map<string, { t: string; critical: number; elevated: number; routine: number }>();
+    for (const i of items) {
+      const r = i.record ?? i.host_record;
+      if (!r) continue;
+      const key = r.ts.slice(11, 16);
+      const b = buckets.get(key) ?? { t: key, critical: 0, elevated: 0, routine: 0 };
+      if (r.severity === "critical" || r.severity === "high") b.critical += 1;
+      else if (r.severity === "medium") b.elevated += 1;
+      else b.routine += 1;
+      buckets.set(key, b);
+    }
+    return [...buckets.values()].sort((a, b) => a.t.localeCompare(b.t));
+  }, [items]);
+
+  const integrity = last ? (last.summary.total_records ? (last.summary.intact / last.summary.total_records) * 100 : 100) : null;
+  const donut = last
     ? [
         { name: "Intact", value: last.summary.intact, color: "var(--ok)" },
         { name: "Modified", value: last.summary.modified, color: "var(--warn)" },
         { name: "Deleted", value: last.summary.deleted, color: "var(--bad)" },
-        { name: "Injected", value: last.summary.injected, color: "var(--chart-5)" },
+        { name: "Injected", value: last.summary.injected, color: "var(--violet)" },
       ].filter((d) => d.value > 0)
     : [];
-  const history = [...(runs.data?.runs ?? [])].reverse().map((r) => ({
-    run: `#${r.run_id}`,
-    intact: r.summary.intact,
-    tampered: r.summary.modified + r.summary.deleted + r.summary.injected,
-  }));
+  const recentTx = [...(batches.data?.batches ?? [])].reverse().slice(0, 6);
+  const findings = (lastReport.data?.findings ?? []).slice(0, 6);
+  const chainOk = !!s?.chain.connected && s.chain.contract_present !== false;
 
   return (
-    <div className="space-y-6">
-      <PageHeader
+    <div className="space-y-5">
+      <PageTitle
+        eyebrow="Security operations"
         title="Security Dashboard"
-        description="Live state of the monitored host, the protected evidence vault and the on-chain commitments. Every number here comes from the backend; nothing is simulated in the browser."
+        description="Live view of the monitored host, the protected evidence vault and the on-chain commitments. Every value is read from the backend or the chain."
         actions={
           <>
-            <Button variant="outline" onClick={() => doAction("reset", () => api("/api/demo/reset", { method: "POST" }))} disabled={!!action.busy}>
-              {action.busy === "reset" ? <Loader2 className="animate-spin" /> : <RotateCcw />} Reset demo
+            <Button variant="outline" onClick={() => run("traffic", () => api("/api/simulate/traffic", { method: "POST", json: { count: 60, include_intrusion: true } }))} disabled={!!action.busy}>
+              {action.busy === "traffic" ? <Spinner /> : <Play />} Stream traffic
             </Button>
-            <Button
-              variant="outline"
-              onClick={() =>
-                doAction("traffic", () => api("/api/simulate/traffic", { method: "POST", json: { count: 150, include_intrusion: true } }))
-              }
-              disabled={!!action.busy}
-            >
-              {action.busy === "traffic" ? <Loader2 className="animate-spin" /> : <Play />} Generate traffic + intrusion
+            <Button variant="outline" onClick={() => run("seal", () => api("/api/batches/seal", { method: "POST" }))} disabled={!!action.busy}>
+              {action.busy === "seal" ? <Spinner /> : <Anchor />} Anchor pending
             </Button>
-            <Button variant="outline" onClick={() => doAction("seal", () => api("/api/batches/seal", { method: "POST" }))} disabled={!!action.busy}>
-              {action.busy === "seal" ? <Loader2 className="animate-spin" /> : <Anchor />} Anchor pending
-            </Button>
-            <Button onClick={() => doAction("verify", () => api("/api/verify", { method: "POST" }))} disabled={!!action.busy}>
-              {action.busy === "verify" ? <Loader2 className="animate-spin" /> : <ScanSearch />} Verify now
+            <Button onClick={() => run("verify", () => api("/api/verify", { method: "POST" }))} disabled={!!action.busy}>
+              {action.busy === "verify" ? <Spinner /> : <ScanSearch />} Verify now
             </Button>
           </>
         }
       />
-      <ErrorNote error={action.error ?? status.error} />
 
-      <VerdictBanner
-        verdict={last?.verdict}
-        subtitle={
-          last ? (
-            <>
-              Run #{last.run_id} at {fmtTime(last.verified_at)} in {last.duration_ms} ms · {last.summary.intact} intact,{" "}
-              {last.summary.modified} modified, {last.summary.deleted} deleted, {last.summary.injected} injected
-              {last.summary.first_divergent_seq !== null && <> · first divergence at seq {last.summary.first_divergent_seq}</>}
-            </>
-          ) : undefined
-        }
-      />
+      <AnimatePresence mode="popLayout">
+        {(action.error || status.error) && (
+          <AlertBanner key="err" tone="danger" title={status.error ? "Backend unreachable" : "Action failed"} onDismiss={action.error ? () => action.setError(null) : undefined}>
+            {action.error ?? status.error}
+          </AlertBanner>
+        )}
+        {last ? (
+          <AlertBanner
+            key={`v-${last.run_id}`}
+            tone={last.verdict === "CLEAN" ? "success" : last.verdict === "TAMPERING_DETECTED" ? "danger" : "warn"}
+            title={
+              last.verdict === "CLEAN"
+                ? "CLEAN — host logs match the on-chain proof"
+                : last.verdict === "TAMPERING_DETECTED"
+                  ? "Tampering detected on web-prod-01"
+                  : "Inconclusive — chain unreachable"
+            }
+          >
+            Run #{last.run_id} · {fmtTime(last.verified_at)} · {last.duration_ms} ms · {last.summary.intact} intact, {last.summary.modified} modified,{" "}
+            {last.summary.deleted} deleted, {last.summary.injected} injected
+            {last.summary.first_divergent_seq !== null && ` · first divergence at seq ${last.summary.first_divergent_seq}`}
+          </AlertBanner>
+        ) : (
+          s && <AlertBanner key="none" tone="info" title="Not verified yet">Run a verification to attest the host&apos;s logs against the chain.</AlertBanner>
+        )}
+      </AnimatePresence>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Host log records" value={s?.counts.host_events ?? "—"} hint="what the (compromisable) host holds" />
-        <Stat label="Vault evidence" value={s?.counts.vault_events ?? "—"} hint="captured at ingest, append-only" />
-        <Stat
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <MetricCard label="Host log records" value={s?.counts.host_events} icon={Server} hint="what the compromisable host holds" />
+        <MetricCard label="Vault evidence" value={s?.counts.vault_events} icon={Database} hint="captured at ingest · append-only" />
+        <MetricCard
           label="Anchored on-chain"
-          value={s?.counts.anchored_events ?? "—"}
-          hint={`${s?.counts.anchored_batches ?? 0} batches · ${s?.chain.onchain_batch_count ?? "?"} on contract`}
-          accent="text-info"
+          value={s?.counts.anchored_events}
+          icon={Blocks}
+          tone="info"
+          hint={
+            <>
+              <span className="tabular">{s?.counts.anchored_batches ?? 0}</span> {s?.counts.anchored_batches === 1 ? "batch" : "batches"} · {s?.counts.unanchored_events ?? 0} pending
+            </>
+          }
         />
-        <Stat
-          label="Awaiting anchor"
-          value={s?.counts.unanchored_events ?? "—"}
-          hint="protected by vault only"
-          accent={s && s.counts.unanchored_events > 0 ? "text-warn" : undefined}
+        <MetricCard
+          label="Integrity"
+          value={integrity}
+          format={pct}
+          icon={ShieldCheck}
+          tone={integrity === null ? undefined : integrity === 100 ? "ok" : "bad"}
+          hint={last ? `last verified ${fmtTime(last.verified_at)}` : "awaiting first verification"}
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Telemetry by source and severity</CardTitle>
-            <CardDescription>From the evidence vault (original records), including any later deleted on the host.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-72">
-            {bySource.length === 0 ? (
-              <EmptyHint />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={bySource} margin={{ left: -16 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="source" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip {...tooltipStyle} cursor={{ fill: "var(--muted)", opacity: 0.4 }} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  {SEVERITIES.map((sev) => (
-                    <Bar key={sev} dataKey={sev} stackId="a" fill={SEV_COLOR[sev]} radius={sev === "critical" ? [4, 4, 0, 0] : 0} />
-                  ))}
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Last verification</CardTitle>
-            <CardDescription>Per-record outcome against vault + chain.</CardDescription>
-          </CardHeader>
-          <CardContent className="h-72">
-            {pie.length === 0 ? (
-              <EmptyHint text="Run a verification to see results." />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={pie} dataKey="value" nameKey="name" innerRadius="55%" outerRadius="80%" paddingAngle={2} stroke="none">
-                    {pie.map((d) => (
-                      <Cell key={d.name} fill={d.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip {...tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Verification history</CardTitle>
-            <CardDescription>Intact vs tampered records per verification run (stored in the vault).</CardDescription>
-          </CardHeader>
-          <CardContent className="h-56">
-            {history.length === 0 ? (
-              <EmptyHint text="No verification runs yet." />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={history} margin={{ left: -16 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="run" stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--muted-foreground)" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip {...tooltipStyle} cursor={{ fill: "var(--muted)", opacity: 0.4 }} />
-                  <Bar dataKey="intact" stackId="r" fill="var(--ok)" />
-                  <Bar dataKey="tampered" stackId="r" fill="var(--bad)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Anchor contract</CardTitle>
-            <CardDescription>Independent, append-only commitment registry.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <Row label="Chain ID">{s?.chain.chain_id ?? "—"}</Row>
-            <Row label="Latest block">{s?.chain.latest_block ?? "—"}</Row>
-            <Row label="Contract">
-              <Hash value={s?.deployment?.contract_address} n={6} />
-            </Row>
-            <Row label="Deploy tx">
-              <Hash value={s?.deployment?.tx_hash} n={6} />
-            </Row>
-            <Row label="RPC">{s?.chain.rpc_url ?? "—"}</Row>
-            <Link href="/attack" className="mt-2 flex items-center gap-2 rounded-lg border border-bad/30 bg-bad/10 px-3 py-2 text-bad hover:bg-bad/15">
-              <Siren className="size-4" /> Open the attack lab
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Panel
+          className="xl:col-span-2"
+          title={
+            <span className="flex items-center gap-2">
+              <LiveDot tone="info" /> Live event timeline
+            </span>
+          }
+          description="Newest first · polled every 5 s · original records from the vault"
+          actions={
+            <Link href="/evidence" className="text-xs text-primary hover:underline">
+              Open explorer →
             </Link>
-          </CardContent>
-        </Card>
+          }
+        >
+          {events.loading && !events.data ? (
+            <LoadingRows rows={6} />
+          ) : timeline.length === 0 ? (
+            <EmptyState title="No events yet" hint="Stream traffic or prepare the attack lab to generate telemetry." />
+          ) : (
+            <ul className="relative space-y-1.5">
+              <span className="absolute top-2 bottom-2 left-[7px] w-px bg-border" aria-hidden />
+              <AnimatePresence initial={false}>
+                {timeline.map((i) => {
+                  const r = (i.status === "DELETED" ? i.record : i.host_record ?? i.record)!;
+                  return (
+                    <motion.li
+                      key={i.seq}
+                      layout="position"
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: dur.base, ease: ease.out }}
+                      className="relative flex items-center gap-3 rounded-lg py-1 pr-2 pl-0 text-sm"
+                    >
+                      <span className={cn("relative z-10 size-[15px] shrink-0 rounded-full border-4 border-background", SEV_DOT[r.severity])} />
+                      <span className="w-16 shrink-0 font-hash text-[11px] text-muted-foreground">{r.ts.slice(11, 19)}</span>
+                      <span className="hidden w-20 shrink-0 truncate text-xs text-muted-foreground sm:block">{r.source}</span>
+                      <span className="min-w-0 flex-1 truncate">{r.msg}</span>
+                      <span className="font-hash text-[11px] text-muted-foreground">#{i.seq}</span>
+                    </motion.li>
+                  );
+                })}
+              </AnimatePresence>
+            </ul>
+          )}
+        </Panel>
+
+        <Panel
+          title="Blockchain"
+          description="Independent append-only commitment registry"
+          tone={s ? (chainOk ? "safe" : "danger") : undefined}
+          actions={
+            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px]", chainOk ? "border-ok/25 text-ok" : "border-bad/30 text-bad")}>
+              <LiveDot tone={chainOk ? "ok" : "bad"} pulse={chainOk} /> {chainOk ? "connected" : s ? "offline" : "…"}
+            </span>
+          }
+        >
+          <dl className="grid grid-cols-2 gap-y-2 text-sm">
+            <dt className="text-muted-foreground">Chain ID</dt>
+            <dd className="text-right font-hash">{s?.chain.chain_id ?? "—"}</dd>
+            <dt className="text-muted-foreground">Latest block</dt>
+            <dd className="text-right font-hash">{s?.chain.latest_block ?? "—"}</dd>
+            <dt className="text-muted-foreground">Batches on contract</dt>
+            <dd className="text-right font-hash">{s?.chain.onchain_batch_count ?? "—"}</dd>
+            <dt className="text-muted-foreground">Contract</dt>
+            <dd className="text-right">
+              <HashChip value={s?.deployment?.contract_address} n={5} />
+            </dd>
+          </dl>
+          <div className="mt-4 mb-2 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">Recent anchoring transactions</div>
+          {recentTx.length === 0 ? (
+            <div className="py-4 text-center text-xs text-muted-foreground">No batches anchored yet.</div>
+          ) : (
+            <ul className="space-y-1.5">
+              <AnimatePresence initial={false}>
+                {recentTx.map((b) => (
+                  <motion.li
+                    key={b.batch_id}
+                    layout="position"
+                    initial={{ opacity: 0, x: 8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center gap-2 rounded-lg border bg-card/40 px-2.5 py-1.5 text-xs"
+                  >
+                    <span className={cn("size-1.5 rounded-full", b.status === "anchored" ? "bg-ok" : "bg-warn")} />
+                    <span className="font-hash text-muted-foreground">#{b.batch_id}</span>
+                    <HashChip value={b.tx_hash} n={5} />
+                    <span className="ml-auto text-muted-foreground">
+                      <span className="tabular">{b.event_count}</span> ev · blk {b.block_number ?? "—"}
+                    </span>
+                  </motion.li>
+                ))}
+              </AnimatePresence>
+            </ul>
+          )}
+        </Panel>
       </div>
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Panel className="xl:col-span-2" title="Threat activity" description="Events per minute by severity (from the evidence vault)">
+          <div className="h-60">
+            {threat.length === 0 ? (
+              <EmptyState title="No telemetry" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={threat} margin={{ left: -18, right: 8, top: 6 }}>
+                  <defs>
+                    {[
+                      ["crit", "var(--bad)"],
+                      ["elev", "var(--violet)"],
+                      ["rout", "var(--info)"],
+                    ].map(([id, c]) => (
+                      <linearGradient key={id} id={id} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={c} stopOpacity={0.45} />
+                        <stop offset="100%" stopColor={c} stopOpacity={0.02} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis dataKey="t" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} minTickGap={24} />
+                  <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip {...tooltipStyle} cursor={{ stroke: "var(--border)" }} />
+                  <Area type="monotone" dataKey="routine" name="info / low" stackId="1" stroke="var(--info)" fill="url(#rout)" strokeWidth={1.5} />
+                  <Area type="monotone" dataKey="elevated" name="medium" stackId="1" stroke="var(--violet)" fill="url(#elev)" strokeWidth={1.5} />
+                  <Area type="monotone" dataKey="critical" name="high / critical" stackId="1" stroke="var(--bad)" fill="url(#crit)" strokeWidth={1.5} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </Panel>
+
+        <Panel title="Integrity verification" description={last ? `Run #${last.run_id} · ${runs.data?.runs.length ?? 0} recent runs` : "No runs yet"}>
+          <div className="relative h-40">
+            {donut.length === 0 ? (
+              <EmptyState title="Not verified" />
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={donut} dataKey="value" nameKey="name" innerRadius="68%" outerRadius="92%" paddingAngle={2} stroke="none" isAnimationActive>
+                      {donut.map((d) => (
+                        <Cell key={d.name} fill={d.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip {...tooltipStyle} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
+                  <div>
+                    <div className={cn("text-2xl font-semibold tabular", integrity === 100 ? "text-ok" : "text-bad")}>{integrity !== null ? pct(integrity) : "—"}</div>
+                    <div className="text-[11px] text-muted-foreground">intact</div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="mt-3 mb-2 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">Tampering alerts</div>
+          {lastReport.loading && lastId ? (
+            <LoadingRows rows={3} />
+          ) : findings.length === 0 ? (
+            <div className="rounded-lg border border-ok/20 bg-ok/[0.05] px-3 py-2 text-xs text-ok">{last ? "No tampering in the last verification." : "No verification yet."}</div>
+          ) : (
+            <ul className="space-y-1.5">
+              {findings.map((f, i) => (
+                <motion.li
+                  key={`${f.seq}-${f.status}`}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.04 }}
+                  className="flex items-center gap-2 text-xs"
+                >
+                  <StatusBadge status={f.status} />
+                  <span className="font-hash text-muted-foreground">#{f.seq}</span>
+                  <span className="truncate text-foreground/80">{(f.recovered_record ?? f.host_record)?.msg}</span>
+                </motion.li>
+              ))}
+              {(lastReport.data?.findings.length ?? 0) > findings.length && (
+                <li>
+                  <Link href="/attack" className="text-xs text-primary hover:underline">
+                    +{(lastReport.data?.findings.length ?? 0) - findings.length} more in the Attack Lab →
+                  </Link>
+                </li>
+              )}
+            </ul>
+          )}
+        </Panel>
+      </div>
+
+      <Link
+        href="/attack"
+        className="surface surface-hover group flex items-center justify-between gap-4 rounded-2xl border-bad/25 p-5"
+      >
+        <div className="flex items-center gap-3">
+          <div className="grid size-10 place-items-center rounded-xl bg-bad/15 text-bad">
+            <Swords className="size-5" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold">Run the live attack</div>
+            <div className="text-xs text-muted-foreground">Take root on web-prod-01, erase the trail, and watch the chain-backed verifier catch it.</div>
+          </div>
+        </div>
+        <span className="text-sm text-bad transition-transform duration-300 group-hover:translate-x-1">→</span>
+      </Link>
     </div>
   );
-}
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="truncate text-right">{children}</span>
-    </div>
-  );
-}
-
-function EmptyHint({ text = "No events yet — reset the demo and generate traffic." }: { text?: string }) {
-  return <div className="grid h-full place-items-center text-sm text-muted-foreground">{text}</div>;
 }
