@@ -32,8 +32,9 @@ dashboard, evidence verification panel and auditor batch audit.
 **S02:** the remaining screens (Proofs, Validation, Guided Demo, Architecture, auditor full-bundle section) are on the kit
 (T-029). The guided demo re-reads the anchored roots from the contract after the attack. One-command start (T-023) done.
 Real log-file agent (T-022) done: `agent/tail_agent.py ingest|check`; editing the forwarded file is detected by `check`.
+Per-host ingest credentials (T-021) done: `LEASH_HOST_TOKENS` (hashes only); a host token cannot submit another host's events.
 Responsive checks (T-030) are automated: no overflow and no console errors at 375/768px on every route.
-**Next: T-021 (per-host credentials). T-018 needs the owner's testnet key.**
+**Next: final polish and presentation prep. T-018 (public testnet) is optional and needs the owner's testnet key.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -70,7 +71,7 @@ Responsive checks (T-030) are automated: no overflow and no console errors at 37
   flow was verified from bash.
 
 ## Pending
-Per-host credentials (T-021), optional public testnet anchoring
+Optional public testnet anchoring
 (T-018, needs the owner's key).
 
 ## Working commands (verified)
@@ -79,7 +80,7 @@ Per-host credentials (T-021), optional public testnet anchoring
   Ctrl+C stops all three; `-Stop` cleans up after a closed window; `-Dev` skips the build; `-NoSeed` starts empty.
 - `cd blockchain; npm install; npx hardhat test`
 - `cd blockchain; npx hardhat node --hostname 127.0.0.1 --port 8545`
-- `cd backend; .venv\Scripts\python -m pytest` → **86 passed** (S02, incl. 5 file-agent tests; do not add `-q`, see KI-012)
+- `cd backend; .venv\Scripts\python -m pytest` → **90 passed** (S02, incl. file-agent and per-host token tests; do not add `-q`, see KI-012)
 - File agent (stack running): `python agent\tail_agent.py ingest data\demo-auth.log --seal`, then
   `python agent\tail_agent.py check data\demo-auth.log` → MATCHES (exit 0); after deleting/editing a line → TAMPERING_DETECTED (exit 2)
 - `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
@@ -109,9 +110,9 @@ variable for `lector-sys` (READ only) still overrides it, so push with `env -u G
 or clear `$env:GH_TOKEN` in that PowerShell window first.
 
 ## Exact next task
-T-021: per-host ingest credentials. A token per `host_id`, stored hashed in the vault, so a host can only ingest events
-whose `host` field is its own; keep `LEASH_INGEST_TOKEN` working as the single-token fallback; tests for wrong host /
-wrong token / right token; document configuration. Then final polish and presentation prep.
+Presentation readiness: rehearse `/demo` against `scripts\start-all.cmd` (about 90 s), regenerate the README
+screenshots with `CAPTURE=1 npx playwright test screenshots` if the restyled screens should appear there, and keep the
+final hours for submission. Optional: T-018 (public testnet; needs the owner's funded key in a local `.env`).
 Keep the e2e selectors working whenever the UI changes: "Run the full story", "Load protected vault evidence",
 "Verify in my browser", "status 1 · 1 log", "Protected evidence".
 

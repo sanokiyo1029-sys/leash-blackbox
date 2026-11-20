@@ -91,3 +91,14 @@
   - Live run against the started stack, agent on the system Python 3.14 (not the venv): 14 lines forwarded and anchored
     (1 unparsed), re-run forwarded 0, `check` MATCHES; after deleting one line and rewriting the attacker IP on another,
     `check` reported 1 ERASED (original text) and 1 ALTERED (was/now), exit 2; `ingest` then refused to resume, exit 2.
+- **T-021 (same session, later):**
+  - `Settings.host_tokens` + `LEASH_HOST_TOKENS` (`host=<sha256 hex>` pairs; a malformed entry fails startup and names
+    only the host, so a mistakenly pasted token is never echoed). Ingest hashes the presented token, compares it with
+    every entry, and refuses (403) a request containing any event for another host, storing nothing. The shared
+    `LEASH_INGEST_TOKEN` still works; with no tokens configured, demo-mode behaviour is unchanged.
+  - Agent: an anchoring failure after a successful forward is now reported as "forwarded, but anchoring failed" (it
+    previously looked as if nothing was sent).
+  - Tests: 4 new (own/foreign host, mixed batch stores nothing, rotation, shared fallback, env parsing, agent with host
+    token) → backend 90 passed.
+  - Live over HTTP with a freshly generated token (hash only in the environment): no token → 401; right token but a
+    line claiming another host → 403; own host → 14 forwarded and anchored; `check` → MATCHES 14/14.
