@@ -1,0 +1,238 @@
+"""Physically separate SQLite stores for each trust zone.
+
+host_logs.db  - the monitored host's local log store (attacker can modify it)
+evidence.db   - protected evidence vault, batches, deployments, reports
+lab.db        - attack-lab ground truth (scoring only; the verifier never reads it)
+"""
+
+from __future__ import annotations
+
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Iterator
+
+from sqlalchemy import Boolean, Integer, String, Text, create_engine, event, text
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
+
+from .config import Settings
+
+
+# --------------------------------------------------------------------------- host
+class HostBase(DeclarativeBase):
+    pass
+
+
+class HostEvent(HostBase):
+    """A log record as kept on the monitored host."""
+
+    __tablename__ = "host_events"
+
+    seq: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    event_id: Mapped[str] = mapped_column(String(64))
+    ts: Mapped[str] = mapped_column(String(40))
+    host: Mapped[str] = mapped_column(String(128))
+    source: Mapped[str] = mapped_column(String(64))
+    event_type: Mapped[str] = mapped_column(String(64))
+    severity: Mapped[str] = mapped_column(String(16))
+    actor: Mapped[str] = mapped_column(String(128))
+    message: Mapped[str] = mapped_column(Text)
+    attrs_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
+# -------------------------------------------------------------------------- vault
+class VaultBase(DeclarativeBase):
+    pass
+
+
+class VaultEvent(VaultBase):
+    """Canonical copy of every event, captured at ingest time. Append-only."""
+
+    __tablename__ = "vault_events"
+
+    seq: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    event_id: Mapped[str] = mapped_column(String(64), unique=True)
+    canonical_json: Mapped[str] = mapped_column(Text)
+    leaf_hash: Mapped[str] = mapped_column(String(64))
+    prev_chain_hash: Mapped[str] = mapped_column(String(64))
+    chain_hash: Mapped[str] = mapped_column(String(64))
+    ingested_at: Mapped[str] = mapped_column(String(40))
+    batch_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    leaf_index: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+
+class Batch(VaultBase):
+    __tablename__ = "batches"
+
+    batch_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
+    deployment_id: Mapped[int] = mapped_column(Integer)
+    first_seq: Mapped[int] = mapped_column(Integer)
+    last_seq: Mapped[int] = mapped_column(Integer)
+    event_count: Mapped[int] = mapped_column(Integer)
+    merkle_root: Mapped[str] = mapped_column(String(64))
+    prev_chain_head: Mapped[str] = mapped_column(String(64))
+    chain_head: Mapped[str] = mapped_column(String(64))
+    manifest_json: Mapped[str] = mapped_column(Text)
+    manifest_hash: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(16))  # pending | anchored | failed
+    sealed_at: Mapped[str] = mapped_column(String(40))
+    tx_hash: Mapped[str | None] = mapped_column(String(66), nullable=True)
+    block_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    block_timestamp: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    gas_used: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    anchored_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    anchor_latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class Deployment(VaultBase):
+    __tablename__ = "deployments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chain_id: Mapped[int] = mapped_column(Integer)
+    contract_address: Mapped[str] = mapped_column(String(42))
+    deployer: Mapped[str] = mapped_column(String(42))
+    tx_hash: Mapped[str] = mapped_column(String(66))
+    block_number: Mapped[int] = mapped_column(Integer)
+    deployed_at: Mapped[str] = mapped_column(String(40))
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class VerificationRun(VaultBase):
+    __tablename__ = "verification_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    verified_at: Mapped[str] = mapped_column(String(40))
+    duration_ms: Mapped[int] = mapped_column(Integer)
+    verdict: Mapped[str] = mapped_column(String(32))
+    summary_json: Mapped[str] = mapped_column(Text)
+    report_json: Mapped[str] = mapped_column(Text)
+
+
+# ---------------------------------------------------------------------------- lab
+class LabBase(DeclarativeBase):
+    pass
+
+
+class AttackAction(LabBase):
+    """Ground-truth record of what the simulated attacker did to the host store."""
+
+    __tablename__ = "attack_actions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    performed_at: Mapped[str] = mapped_column(String(40))
+    scenario: Mapped[str] = mapped_column(String(64))
+    action: Mapped[str] = mapped_column(String(16))  # modify | delete | inject
+    seq: Mapped[int] = mapped_column(Integer)
+    detail_json: Mapped[str] = mapped_column(Text, default="{}")
+
+
+# Append-only enforcement inside the vault database. The application never
+# issues UPDATE/DELETE on evidence, except assigning an event to a batch once.
+VAULT_TRIGGERS = [
+    """
+    CREATE TRIGGER IF NOT EXISTS vault_events_no_delete
+    BEFORE DELETE ON vault_events
+    BEGIN SELECT RAISE(ABORT, 'evidence vault is append-only'); END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS vault_events_no_rewrite
+    BEFORE UPDATE ON vault_events
+    WHEN NEW.seq IS NOT OLD.seq
+      OR NEW.event_id IS NOT OLD.event_id
+      OR NEW.canonical_json IS NOT OLD.canonical_json
+      OR NEW.leaf_hash IS NOT OLD.leaf_hash
+      OR NEW.prev_chain_hash IS NOT OLD.prev_chain_hash
+      OR NEW.chain_hash IS NOT OLD.chain_hash
+      OR NEW.ingested_at IS NOT OLD.ingested_at
+      OR (OLD.batch_id IS NOT NULL AND NEW.batch_id IS NOT OLD.batch_id)
+      OR (OLD.leaf_index IS NOT NULL AND NEW.leaf_index IS NOT OLD.leaf_index)
+    BEGIN SELECT RAISE(ABORT, 'evidence vault is append-only'); END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS batches_no_delete
+    BEFORE DELETE ON batches
+    BEGIN SELECT RAISE(ABORT, 'batch records are append-only'); END;
+    """,
+    """
+    CREATE TRIGGER IF NOT EXISTS batches_freeze_anchored
+    BEFORE UPDATE ON batches
+    WHEN OLD.status = 'anchored'
+    BEGIN SELECT RAISE(ABORT, 'anchored batches are immutable'); END;
+    """,
+]
+
+
+def _sqlite_engine(path: Path) -> Engine:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    engine = create_engine(
+        f"sqlite:///{path.as_posix()}",
+        connect_args={"check_same_thread": False, "timeout": 30},
+        future=True,
+    )
+
+    @event.listens_for(engine, "connect")
+    def _pragmas(dbapi_conn, _record):  # pragma: no cover - trivial
+        cur = dbapi_conn.cursor()
+        cur.execute("PRAGMA foreign_keys=ON")
+        cur.execute("PRAGMA synchronous=FULL")
+        cur.close()
+
+    return engine
+
+
+class Stores:
+    """Owns the three databases. Each trust zone gets its own engine and file."""
+
+    def __init__(self, settings: Settings):
+        self.settings = settings
+        self._open()
+
+    def _open(self) -> None:
+        s = self.settings
+        self.host_engine = _sqlite_engine(s.host_db_path)
+        self.vault_engine = _sqlite_engine(s.vault_db_path)
+        self.lab_engine = _sqlite_engine(s.lab_db_path)
+        HostBase.metadata.create_all(self.host_engine)
+        VaultBase.metadata.create_all(self.vault_engine)
+        LabBase.metadata.create_all(self.lab_engine)
+        with self.vault_engine.begin() as conn:
+            for ddl in VAULT_TRIGGERS:
+                conn.execute(text(ddl))
+        self._host = sessionmaker(self.host_engine, expire_on_commit=False)
+        self._vault = sessionmaker(self.vault_engine, expire_on_commit=False)
+        self._lab = sessionmaker(self.lab_engine, expire_on_commit=False)
+
+    def dispose(self) -> None:
+        for engine in (self.host_engine, self.vault_engine, self.lab_engine):
+            engine.dispose()
+
+    def wipe(self) -> None:
+        """Demo reset: delete every store file and recreate empty schemas.
+
+        This is an operator action on the whole lab, not something the
+        simulated attacker can do to the vault.
+        """
+        self.dispose()
+        s = self.settings
+        for path in (s.host_db_path, s.vault_db_path, s.lab_db_path):
+            for suffix in ("", "-wal", "-shm", "-journal"):
+                p = Path(str(path) + suffix)
+                if p.exists():
+                    p.unlink()
+        self._open()
+
+    @contextmanager
+    def host(self) -> Iterator[Session]:
+        with self._host() as session, session.begin():
+            yield session
+
+    @contextmanager
+    def vault(self) -> Iterator[Session]:
+        with self._vault() as session, session.begin():
+            yield session
+
+    @contextmanager
+    def lab(self) -> Iterator[Session]:
+        with self._lab() as session, session.begin():
+            yield session
