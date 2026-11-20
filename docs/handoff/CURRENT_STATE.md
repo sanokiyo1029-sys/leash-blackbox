@@ -110,9 +110,8 @@ variable for `lector-sys` (READ only) still overrides it, so push with `env -u G
 or clear `$env:GH_TOKEN` in that PowerShell window first.
 
 ## Exact next task
-Presentation readiness: rehearse `/demo` against `scripts\start-all.cmd` (about 90 s), regenerate the README
-screenshots with `CAPTURE=1 npx playwright test screenshots` if the restyled screens should appear there, and keep the
-final hours for submission. Optional: T-018 (public testnet; needs the owner's funded key in a local `.env`).
+Rehearse the pitch with the demo-day checklist at the end of `docs/PITCH.md` (screenshots and pitch are current as of
+S02). Keep the final hours for submission. Optional: T-018 (public testnet; needs the owner's funded key in a local `.env`).
 Keep the e2e selectors working whenever the UI changes: "Run the full story", "Load protected vault evidence",
 "Verify in my browser", "status 1 · 1 log", "Protected evidence".
 

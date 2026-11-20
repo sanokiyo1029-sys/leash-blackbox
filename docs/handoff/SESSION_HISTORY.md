@@ -102,3 +102,12 @@
     token) → backend 90 passed.
   - Live over HTTP with a freshly generated token (hash only in the environment): no token → 401; right token but a
     line claiming another host → 403; own host → 14 forwarded and anchored; `check` → MATCHES 14/14.
+- **Presentation prep (same session, later):**
+  - Screenshots regenerated (`CAPTURE=1 npx playwright test screenshots`). Fixed the capture script: waits for the
+    metric counters (the first proofs shot showed mid-tween numbers, 125 instead of 162), scrolls the auditor result
+    into view, and scrolls to top before the full-page demo shot (the story's auto-scroll had misplaced the shell).
+  - Auditor: "Chain heads ok 0 of 0" was green; it is now neutral with "not checkable: a batch is incomplete".
+  - Demo step 2 shows one event per intrusion stage instead of four similar failed-password lines.
+  - PITCH: test counts, next steps, two judge Q&A rows (real log files, per-host tokens), demo-day checklist.
+  - Checks: lint clean, tsc ok, e2e 23 passed + 1 skipped. `scripts\start-all.cmd` was run through cmd.exe
+    (default production build): ready, `/demo` 200, 132 events anchored; `start-all.cmd -Stop` stopped all three.
