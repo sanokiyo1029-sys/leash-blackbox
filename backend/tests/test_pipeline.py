@@ -128,6 +128,23 @@ def test_timestomp_truncate_and_wipe_detected(svc):
     assert report["summary"]["intact"] == 0
 
 
+def test_targeted_erase_and_rewrite_are_detected(svc):
+    records = _populate(svc, 40)
+    attacker = [r["seq"] for r in records if ATTACKER_IP in r["msg"]]
+    lab = _lab(svc)
+    assert lab.run("erase_record", seq=attacker[0])["seqs"] == [attacker[0]]
+    assert lab.run("rewrite_record", seq=attacker[1])["actions"] == {"modify": 1}
+    assert lab.run("rewrite_record", seq=1, message="nothing happened")["seqs"] == [1]
+    report = run_verification(svc)
+    found = {f["seq"]: f["status"] for f in report["findings"]}
+    assert found == {attacker[0]: "DELETED", attacker[1]: "MODIFIED", 1: "MODIFIED"}
+    rewritten = next(f for f in report["findings"] if f["seq"] == attacker[1])
+    assert ATTACKER_IP not in json.dumps(rewritten["host_record"])
+    assert ATTACKER_IP in json.dumps(rewritten["recovered_record"])
+    with pytest.raises(ValueError):
+        lab.run("erase_record", seq=attacker[0])  # already gone
+
+
 def test_replacing_a_deleted_committed_record_is_reported_as_modified(svc):
     """Delete the newest record, then fabricate a new one under the same anchored seq."""
     _populate(svc, 30, intrusion=False)

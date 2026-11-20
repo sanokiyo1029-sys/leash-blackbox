@@ -38,6 +38,12 @@ SCENARIOS: dict[str, str] = {
 }
 
 
+TARGETED: dict[str, str] = {
+    "erase_record": "Delete one chosen line from the host's log store.",
+    "rewrite_record": "Rewrite one chosen host log line (launder the attacker IP, downgrade severity, or set a message).",
+}
+
+
 class AttackLab:
     def __init__(self, host_session: SessionFactory, lab_session: SessionFactory):
         self._host = host_session
@@ -60,7 +66,8 @@ class AttackLab:
     # --------------------------------------------------------------- scenarios
     def run(self, scenario: str, **params: Any) -> dict[str, Any]:
         handler = getattr(self, f"_s_{scenario}", None)
-        if scenario not in SCENARIOS or handler is None:
+        description = SCENARIOS.get(scenario) or TARGETED.get(scenario)
+        if description is None or handler is None:
             raise ValueError(f"unknown scenario {scenario!r}")
         actions: list[tuple[str, int, dict[str, Any]]] = handler(**params)
         self._record(scenario, actions)
@@ -69,11 +76,44 @@ class AttackLab:
             tally[action] = tally.get(action, 0) + 1
         return {
             "scenario": scenario,
-            "description": SCENARIOS[scenario],
+            "description": description,
             "affected": len(actions),
             "actions": tally,
             "seqs": sorted({seq for _, seq, _ in actions}),
         }
+
+    def _s_erase_record(self, seq: int) -> list:
+        with self._host() as s:
+            row = s.get(HostEvent, int(seq))
+            if row is None:
+                raise ValueError(f"no host record with seq {seq}")
+            before = {"message": row.message}
+            s.delete(row)
+        return [("delete", int(seq), before)]
+
+    def _s_rewrite_record(self, seq: int, message: str | None = None) -> list:
+        with self._host() as s:
+            row = s.get(HostEvent, int(seq))
+            if row is None:
+                raise ValueError(f"no host record with seq {seq}")
+            before = {"message": row.message, "severity": row.severity, "actor": row.actor}
+            if message is not None:
+                if message == row.message:
+                    raise ValueError("new message is identical to the current one")
+                row.message = message[:4096]
+            elif ATTACKER_IP in (row.message + row.attrs_json + row.actor):
+                row.message = row.message.replace(ATTACKER_IP, "10.0.4.12")
+                row.attrs_json = row.attrs_json.replace(ATTACKER_IP, "10.0.4.12")
+                row.actor = row.actor.replace(ATTACKER_IP, "10.0.4.12")
+                row.severity = "info"
+            elif "Failed" in row.message:
+                row.message = row.message.replace("Failed", "Accepted")
+                row.severity = "info"
+            else:
+                row.message = row.message + " [routine]"
+                row.severity = "info"
+            after = {"message": row.message, "severity": row.severity, "actor": row.actor}
+        return [("modify", int(seq), {"before": before, "after": after})]
 
     def _s_cover_tracks(self) -> list:
         with self._host() as s:

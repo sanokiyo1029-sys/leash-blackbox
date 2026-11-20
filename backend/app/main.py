@@ -14,7 +14,7 @@ from sqlalchemy import select
 
 from . import __version__
 from .anchor import AnchorError
-from .attack import SCENARIOS, AttackLab
+from .attack import SCENARIOS, TARGETED, AttackLab
 from .config import REPO_ROOT, Settings, load_settings
 from .export import build_bundle
 from .generator import generate_traffic
@@ -202,7 +202,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # ---------------------------------------------------------------- attacks
     @app.get("/api/attacks/scenarios")
     def scenarios() -> dict[str, Any]:
-        return {"scenarios": [{"id": k, "description": v} for k, v in SCENARIOS.items()]}
+        return {"scenarios": [{"id": k, "description": v} for k, v in SCENARIOS.items()],
+                "targeted": [{"id": k, "description": v} for k, v in TARGETED.items()]}
 
     @app.post("/api/attacks/{scenario}")
     def attack(scenario: str, req: AttackRequest | None = None) -> dict[str, Any]:
