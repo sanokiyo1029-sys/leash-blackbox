@@ -83,14 +83,16 @@ it caught 476 of 476 tampered records, with no false alarms 📏.
 1. **Start:** run `scripts\start-all.cmd` and wait for `LEASH BLACKBOX is running` (about 1–2 min, because it builds
    the production web console). If it names a busy port, close that program; the script never kills it for you.
 2. **Screen:** open http://localhost:3000/demo full-screen and check that the header shows `Chain 31337 · block …`.
-3. **Warm-up:** press **Run the full story** once before the judges arrive (under 10 s). Scene 1 resets everything, so
+3. **Do not run the test suite while the demo stack is up.** It rebuilds the web console and blanks the running site;
+   if that happens, restart `scripts\start-all.cmd`.
+4. **Warm-up:** press **Run the full story** once before the judges arrive (under 10 s). Scene 1 resets everything, so
    you can rerun it any time; the S03 live check ran it twice back to back.
-4. **Live:** press **Next step** as you talk (script A). Scene 6 is the punchline.
-5. **Deeper questions:** Attack Lab → **Hold to verify** → pick a finding → **Inspect proof** → **Verify against
+5. **Live:** press **Next step** as you talk (script A). Scene 6 is the punchline.
+6. **Deeper questions:** Attack Lab → **Hold to verify** → pick a finding → **Inspect proof** → **Verify against
    chain**. Auditor → **Load host's current logs** → **Verify in my browser**.
-6. **If something breaks mid-demo:** press **Run the full story** (it redeploys the contract and replays everything).
+7. **If something breaks mid-demo:** press **Run the full story** (it redeploys the contract and replays everything).
    As a last resort, use the screenshots in `docs/img/rollout-v2/`.
-7. **Optional real-file moment:** use the README's "Forward a real log file" commands: ingest, check (MATCHES), edit a
+8. **Optional real-file moment:** use the README's "Forward a real log file" commands: ingest, check (MATCHES), edit a
    line, check (TAMPERING_DETECTED).
-8. **Stop:** press Ctrl+C in the start window, then answer **Y** to "Terminate batch job (Y/N)?". If the window was
+9. **Stop:** press Ctrl+C in the start window, then answer **Y** to "Terminate batch job (Y/N)?". If the window was
    closed instead, run `powershell -ExecutionPolicy Bypass -File scripts\start-all.ps1 -Stop`.
