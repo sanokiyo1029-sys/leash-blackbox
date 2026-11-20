@@ -393,6 +393,10 @@ function ActivityBand({ items, report, lastRun }: { items: EventItem[]; report: 
               })}
             </ul>
           )}
+          <p className="mt-4 text-[12px] leading-relaxed text-[var(--d-ink)]/60">
+            This check covers the host&apos;s log database. A real log file forwarded by the file agent is checked with{" "}
+            <code className="font-hash">python agent/tail_agent.py check &lt;file&gt;</code>.
+          </p>
           {lastRun && (report?.findings.length ?? 0) > findings.length && (
             <Link href="/attack" className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold underline-offset-2 hover:underline">
               {(report?.findings.length ?? 0) - findings.length} more in the attack lab <ArrowUpRight className="size-3.5" />

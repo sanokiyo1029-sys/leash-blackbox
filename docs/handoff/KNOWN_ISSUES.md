@@ -22,3 +22,4 @@
 | KI-018 | Design | Dashboard v2 exists only on branch `design/dashboard-v2` until the owner approves; `main` and the public repo still show the S02 dashboard. | Info | Resolved (approved and merged S03) |
 | KI-019 | Frontend | The Dashboard's integrity seal draws the first 1,000 records (the `/api/events` limit); counts and verdict come from the run summary, so they stay exact beyond that. | Low | Open |
 | KI-020 | Frontend | The shared header keeps the S02 tab style on every route (only its background/border is lighter on `/`), now v2 on every route (outlined active tag). The 1280 px tab wrap is fixed (nowrap + 10 px padding). | Low | Fixed |
+| KI-021 | Environment | Ctrl+C in the `start-all.cmd` window stops all three services; Windows then asks "Terminate batch job (Y/N)?". Answer Y. The ports are already free at that point (verified S03). | Info | Documented in PITCH checklist |

@@ -142,8 +142,11 @@ None in the code. For a new teammate: pushing needs a GitHub account with write 
 (`$env:GH_TOKEN=''` in PowerShell, `env -u GH_TOKEN` in bash) before pushing.
 
 ## Exact next task
-**S03:** the design is approved and rolled out. Next: T-037 (pitch rewrite per the S03 brief) and T-038 (live
-judge-demo check with `scripts\start-all.cmd`, including reset/replay and stop/restart). Then T-033 (owner rehearsal).
+**S03:** the design is approved and rolled out.
+- T-037 (pitch) is done: `docs/PITCH.md` has the 90-second script, the 3-minute walkthrough, the judge Q&A and the
+  updated checklist.
+- T-038 (live judge demo via `scripts\start-all.cmd`) is verified end to end, including reset/replay and stop/restart.
+- **Next: T-033, the owner's spoken rehearsal.** After that the optional items: T-034 (`start-all.sh`) and T-018 (testnet).
 
 S02 notes (still valid):
 1. Run the product once: `scripts\start-all.cmd`, open http://localhost:3000/demo, press **Run the full story**.

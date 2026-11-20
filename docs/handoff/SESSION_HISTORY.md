@@ -169,3 +169,19 @@
   - Fixed Attack Lab horizontal overflow at 375/390 px (grid column templates)
   - Tests: Playwright 23 passed + 1 skipped; lint and `tsc` clean. 16 route captures (8 routes × 1440/390): no
     overflow, no console errors, no failed requests.
+- **T-038 live judge-demo check (S03, production build via `scripts\start-all.cmd`):**
+  - **Steps 1–3:** ready; 132 events anchored in batch #0; baseline CLEAN; receipt status 0x1; on-chain root read by
+    `eth_call` equals the vault root.
+  - **Steps 4–5:** "Erase my trail" removed 13 host lines. That is 12 intrusion lines plus 1 attacker line from the
+    file-agent test, so the script's hard-coded 12 was wrong for this run. The verifier reported exactly 13 deleted.
+  - **Step 6:** an erased record was recovered from the vault with an 8-step proof; the CLI on the vault bundle
+    exited 0.
+  - **Step 7:** host bundle: the CLI exited 2 and listed 13 missing; the browser verifier also listed 13 missing.
+  - **Step 8:** the guided demo ran twice back to back (VERIFIED both times).
+  - **Step 9:** Ctrl+C stopped all three services and freed the ports; a restart came back healthy.
+  - **KI-014 confirmed:** `tail_agent.py check` passed before the file edit (exit 0) and caught it afterwards
+    (exit 2), while `/api/verify` stayed CLEAN. The Dashboard now says which check covers what.
+- **T-037:** `docs/PITCH.md` rewritten: 90-second script with cues, 3-minute walkthrough, judge Q&A including the
+  Indian context (CERT-In 2022 directions), all claims tied to demo actions or local-EVM measurements.
+- **Final tests:** Playwright 23 passed + 1 skipped; `tsc` and lint clean; backend unchanged since the S03 baseline
+  (90 passed).

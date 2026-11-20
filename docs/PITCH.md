@@ -1,81 +1,96 @@
-# LEASH BLACKBOX — 3-minute pitch & demo script
+# LEASH BLACKBOX — pitch and demo script
 
 > **The attacker can erase the logs. They cannot erase the proof.**
 
-Run the stack with `scripts\start-all.cmd` (or Hardhat node → API → `npm run dev` by hand), open **Live Demo** (`/demo`),
-press **Next step** while talking.
-Every number on screen is produced live; the figures below come from `docs/validation/RESULTS.md`.
+The Big Hack 2.0 · Track 02, Cybersecurity and Blockchain · Problem B3, Logs the Attacker Can't Erase
 
-## 0:00 – 0:25 · The problem (Impact)
-- When an attacker gets root, the first thing they do is delete or rewrite the logs (MITRE ATT&CK T1070).
-- Incident responders, insurers and regulators then have to trust logs the attacker controlled.
-- Local log signing does not help: the signing key sits on the compromised machine.
+**Sources and evidence.** Every number below comes either from a live demo action (marked ▶) or from
+[`validation/RESULTS.md`](validation/RESULTS.md) (marked 📏). All 📏 figures were measured on a **local Hardhat EVM**
+(chain id 31337, automine). On a public chain, add block time and confirmation depth; gas cost depends on that
+chain's fees.
 
-## 0:25 – 1:00 · How it works (Innovation, Technical depth) — steps 1–3
-- Each event is canonicalized and hashed (`SHA256(0x00 ‖ record)`), then linked into a hash chain.
-- An independent collector forwards events immediately to an append-only evidence vault.
-- Batches are rolled into Merkle trees. The root, the chain head and a manifest hash are anchored by the
-  **LeashAnchor** contract.
-  - The contract has no update or delete path and enforces contiguous sequence numbers on-chain.
-  - The signing key never touches the host.
-- *On screen:* the contract is deployed, events are anchored with a real transaction hash and gas, and the
-  baseline verification is **CLEAN**.
+---
 
-## 1:00 – 1:45 · The attack (Presentation) — steps 4–6
-- "We are root now." `sed -i '/203.0.113.45/d'` erases the whole kill chain, then fake admin logins are added.
-- *On screen:* re-verification reports **TAMPERING DETECTED**.
-  - All 12 erased records are recovered from the vault and proven against the anchored Merkle root.
-  - The 3 fabricated records are exposed.
-  - The batch roots are re-read from the contract and still equal the roots anchored before the attack
-    ("On-chain commitment unchanged").
-  - The evidence explorer shows field-level diffs and the Merkle inclusion proof for any record.
+## A. The 90-second pitch (non-technical judges)
+Screen: `http://localhost:3000/demo`, full screen, after one warm-up run. Press **Next step** on each cue.
 
-## 1:45 – 2:20 · Don't trust us: independent audit (Innovation, Evidence) — step 7
-- The auditor's browser recomputes every hash with WebCrypto and reads the contract directly over JSON-RPC.
-  Our backend is not involved.
-- *On screen:* the server's logs come back **TAMPERING DETECTED** (12 missing, 3 uncommitted), while the
-  protected evidence is **VERIFIED**.
-- There are three independent implementations of the hashing spec (backend, stdlib-only CLI, browser), and
-  they agree.
-- Selective disclosure: share only the records that matter, each with its own inclusion proof.
+| Time | Say | Do / show |
+|---|---|---|
+| 0:00–0:12 | "When attackers break into a server, the first thing they do is delete the logs that show what they did. Afterwards, everyone has to trust evidence the attacker controlled." | Title screen |
+| 0:12–0:30 | "LEASH copies every security event off the server the moment it happens. It seals a fingerprint of those events on a blockchain that the attacker can't reach and nobody can edit." | ▶ Scene 1 (fresh server, contract deployed), then scene 2 (events collected and anchored; the real transaction hash shows) |
+| 0:30–0:40 | "First we check the server against that seal: everything matches." | ▶ Scene 3, CLEAN |
+| 0:40–0:58 | "Now I'm the attacker with full control. I delete every line that mentions me and add some fake 'normal' logins. Looking at the server alone, nothing happened." | ▶ Scenes 4–5 (12 lines erased, 3 fabricated) |
+| 0:58–1:15 | "We check again. LEASH reports exactly which lines were erased, recovers the originals, and flags the fakes. The seal on the blockchain never changed." | ▶ Scene 6: TAMPERING DETECTED, 12 erased recovered, 3 fabricated |
+| 1:15–1:30 | "And you don't have to trust us. Any auditor can recheck it in their own browser against the blockchain." | ▶ Scene 7: the server's logs come back TAMPERING DETECTED and the protected evidence VERIFIED |
 
-## 2:20 – 2:50 · Evidence (Evidence)
-- 30 randomized tampering trials, 476 tampered records: **100% recall and 100% precision**, and 0 false alarms
-  on clean runs. The independent CLI agreed in **30/30** trials.
-- Every attack scenario (cover tracks, alter, fabricate, timestomp, truncate, wipe) is detected exactly.
-- On-chain cost is about 148.5k gas per batch, whatever its size, which is about **145 gas per event** at
-  1,024 events per batch. Full verification of 5,000 events takes about 0.8 s.
-- 90 backend tests (pipeline, verifier, file agent, per-host auth), 9 contract tests and 23 Playwright end-to-end
-  tests (including phone and tablet layouts), all reproducible from the repo.
+**Close:** "Attackers can still erase the logs. They can't erase the proof." If time allows: in 30 randomized tests
+it caught 476 of 476 tampered records, with no false alarms 📏.
 
-## 2:50 – 3:00 · Honest limits and next steps
-- Events forged at the source after compromise, or suppressed before forwarding, are out of scope. Anchoring
-  narrows the window; it cannot close it.
-- Already beyond the simulation: a file agent forwards a real syslog/auth.log, and per-host tokens stop one host from
-  writing under another host's name.
-- Next: public L2 anchoring, mTLS and rate limits on ingest, and SIEM connectors.
+## B. Three-minute technical walkthrough
+1. **Threat model (0:00–0:25).**
+   - The attacker has root on the monitored host and can edit, delete, insert or retime any local log line.
+   - Outside their reach: the collector and evidence vault, the anchoring key, and the chain.
+   - ▶ The Attack Lab's left column *is* that host log store; every toolkit action is a real write to it.
+2. **Evidence lifecycle (0:25–0:50).**
+   - The host agent forwards each event at ingest. The collector assigns a sequence number and canonicalizes the
+     record (sorted-key JSON, strings and integers only).
+   - Leaf = `SHA-256(0x00 ‖ record)`. Hash chain: `chain = SHA-256(0x02 ‖ prev ‖ leaf)`.
+   - ▶ Dashboard "Evidence lifecycle" band: host / vault / chain counts side by side.
+3. **Merkle batching and anchoring (0:50–1:20).**
+   - Events are batched into a Merkle tree (node = `SHA-256(0x01 ‖ L ‖ R)`). The anchor service calls
+     `LeashAnchor.anchorBatch(root, chainHead, manifestHash, firstSeq, lastSeq, count)`.
+   - The contract has no update or delete function and rejects gaps or overlaps in sequence numbers.
+   - ▶ Proof Explorer: vault values vs values read directly from the contract, with the receipt status and its log.
+   - 📏 About 148.5k gas per batch whatever its size, which is about 145 gas per event at 1,024 events per batch.
+4. **Protected storage (1:20–1:35).**
+   - The vault is append-only (database triggers block UPDATE and DELETE), so an erased host line can be recovered.
+   - The chain makes even the vault accountable: rewriting host and vault together is still caught, as a vault/chain
+     mismatch (tested).
+5. **Independent verification (1:35–2:15).**
+   - The verifier recomputes leaves from what the host still holds and compares them with the vault and the on-chain
+     roots. Every record comes out intact, altered (with a field diff), erased (original recovered and proven) or
+     fabricated.
+   - ▶ Attack Lab: hold to verify; each finding → **Inspect proof** opens the record, its leaf, the Merkle path and
+     the on-chain root, and "Verify against chain" recomputes it in the browser.
+   - Three independent implementations agree: the backend (Python), the stdlib-only auditor CLI, and the browser
+     (WebCrypto).
+6. **Measured results (2:15–2:40).**
+   - 📏 30 randomized trials, 476 tampered records: 100% recall, 100% precision, 0 false alarms on clean runs;
+     the CLI agreed in 30 of 30.
+   - 📏 Verifying 5,000 events takes about 0.8 s. Every named scenario (cover tracks, alter, fabricate, timestomp,
+     truncate, wipe) was detected exactly.
+   - These numbers test implementation correctness. Detection is a deterministic hash comparison, not a statistical
+     model.
+7. **Limitations (2:40–3:00).** See the last Q&A rows: forging at the source, the pre-anchor window, everything on
+   one machine in the prototype, and local-chain figures.
 
-## Likely judge questions
-| Question | Answer |
+## C. Judge Q&A
+| Question | Answer (and where to show it) |
 |---|---|
-| Why a blockchain and not a database? | Whoever runs the vault could rewrite it together with the host. An independent append-only chain lets a third party verify without trusting anyone. We test the "host + vault rewritten" case: it is caught as VAULT_MISMATCH. |
-| Is the blockchain real? | Yes. These are real EVM transactions with receipts and `BatchAnchored` events on a local Hardhat chain. Only the network is local; the contract is deployable to any EVM chain. |
-| What if the chain is down? | Events stay in the vault and are labelled "vault only", and verification says INCONCLUSIVE, never CLEAN. Batches retry later without gaps (tested). |
-| Privacy? | Only 32-byte hashes go on-chain. Bundles can disclose selected records with inclusion proofs. |
-| Cost? | One transaction per batch: about 145 gas per event at 1,024 events per batch. |
-| Does it work on real log files? | Yes. `agent/tail_agent.py` forwards an auth.log/syslog or JSON-lines file without duplicates. `check` proves the stored evidence on-chain, then lists every erased, altered or injected line of the file. |
-| Can a compromised host write logs for another host? | Not with per-host tokens (`LEASH_HOST_TOKENS`, stored as hashes): a token can only submit its own host's events. A compromised host can still lie about itself from then on; that is the "garbage in" limit above. |
+| **Why a blockchain? Isn't a database enough?** | Whoever runs the database can rewrite it along with the host. An independently held, append-only chain fixes each batch's root at a known block, so a third party can verify without trusting us or the server owner. ▶ Proof Explorer shows the contract value; the test where host and vault are rewritten together reports a vault/chain mismatch. |
+| **Why not just hash the logs locally?** | Hashes stored on the compromised host can be recomputed by the attacker after editing. Signing locally fails too, because the key is on the host. The commitment has to leave the host and land somewhere the attacker can't rewrite. |
+| **What can a host compromise still affect?** | Events forged at the source after the compromise, and events suppressed before they are forwarded. Everything already forwarded and anchored is out of reach. ▶ Attack Lab: the attacker can rewrite the host column but not the commitment. |
+| **What if the evidence itself is lost or erased?** | Erased host lines are recovered from the vault and proven against the anchored root (▶ "erased, original recovered"). If the vault were lost, the chain still proves *that* the host's data changed (the root can't be rebuilt), but not the original content, so the vault needs normal backups. |
+| **What do you assume about the chain?** | That it is append-only and independently operated (a public L1/L2 or a consortium chain), and that auditors use an RPC endpoint and contract address they trust. The prototype uses a local Hardhat chain (📏 figures are local). Public testnet anchoring is optional work (T-018). |
+| **The pre-anchor window?** | Events in the vault but not yet anchored are protected only by vault separation. The UI labels them "vault only / not verified yet". Batching more often shrinks the window; each batch costs one transaction (about 148.5k gas 📏). |
+| **Chain or API outages?** | Verification reports INCONCLUSIVE, never CLEAN, when the chain can't be reached. Unanchored batches retry later without gaps, because the contract enforces sequence continuity (tested). |
+| **How independent is the auditor?** | The auditor CLI is one stdlib-only Python file with its own Keccak-256. The browser check uses WebCrypto and direct JSON-RPC. Neither trusts our backend. ▶ Auditor page: "Verify in my browser" vs the reference CLI (they agreed on the same missing records in the live check). |
+| **Which check covers what? (KI-014)** | The Dashboard and Attack Lab verify the **host's log database** that the lab simulates. For a **real log file** forwarded by `agent/tail_agent.py`, run `python agent/tail_agent.py check <file>`. Editing that file after forwarding is caught by `check` (exit 2), not by the Dashboard (verified live on 2026-11-20). |
+| **Why does this matter for Indian organisations?** | CERT-In's April 2022 directions require service providers and organisations to keep ICT system logs for 180 days, within India, and to report incidents within 6 hours. Logs that can be tampered with undermine both. LEASH helps show that the logs handed to investigators are the logs that were written. It supports these obligations; it is not a compliance certification. |
+| **Cost and privacy?** | Only 32-byte digests go on-chain, never log content. An auditor can be given a selective bundle with inclusion proofs for just the relevant records. |
 
 ## Demo-day checklist
-1. **Start:** run `scripts\start-all.cmd` and wait for `LEASH BLACKBOX is running`. If it names a busy port, close
-   that program; the script never kills it for you.
+1. **Start:** run `scripts\start-all.cmd` and wait for `LEASH BLACKBOX is running` (about 1–2 min, because it builds
+   the production web console). If it names a busy port, close that program; the script never kills it for you.
 2. **Screen:** open http://localhost:3000/demo full-screen and check that the header shows `Chain 31337 · block …`.
-3. **Warm-up:** press **Run the full story** once before the judges arrive. It finishes in under 10 s; 7.9 s was
-   measured in the e2e run. Step 1 resets everything, so you can rerun it at any time.
-4. **Live:** press **Next step** as you talk. Step 6 is the punchline: TAMPERING DETECTED, the 12 erased lines
-   recovered, and "On-chain commitment unchanged".
-5. **If something breaks mid-demo:** press **Run the full story**. It redeploys the contract and replays all seven
-   steps. As a last resort, use the screenshots in `docs/img/`.
-6. **Optional terminal moment (real file):** run the four commands in the README's "Forward a real log file"
-   section: ingest, check (MATCHES), edit a line, check (TAMPERING_DETECTED).
-7. **Stop:** press Ctrl+C in the start window, or run `scripts\start-all.cmd -Stop` if the window was closed.
+3. **Warm-up:** press **Run the full story** once before the judges arrive (under 10 s). Scene 1 resets everything, so
+   you can rerun it any time; the S03 live check ran it twice back to back.
+4. **Live:** press **Next step** as you talk (script A). Scene 6 is the punchline.
+5. **Deeper questions:** Attack Lab → **Hold to verify** → pick a finding → **Inspect proof** → **Verify against
+   chain**. Auditor → **Load host's current logs** → **Verify in my browser**.
+6. **If something breaks mid-demo:** press **Run the full story** (it redeploys the contract and replays everything).
+   As a last resort, use the screenshots in `docs/img/rollout-v2/`.
+7. **Optional real-file moment:** use the README's "Forward a real log file" commands: ingest, check (MATCHES), edit a
+   line, check (TAMPERING_DETECTED).
+8. **Stop:** press Ctrl+C in the start window, then answer **Y** to "Terminate batch job (Y/N)?". If the window was
+   closed instead, run `powershell -ExecutionPolicy Bypass -File scripts\start-all.ps1 -Stop`.
