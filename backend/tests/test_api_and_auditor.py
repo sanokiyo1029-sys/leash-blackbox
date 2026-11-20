@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -97,6 +98,59 @@ def test_ingest_refused_without_token_outside_demo_mode(settings):
         r = c.post("/api/events/ingest", json=INGEST_BODY)
         assert r.status_code == 403 and "LEASH_INGEST_TOKEN" in r.json()["detail"]
     app.state.svc.stores.dispose()
+
+
+def _sha(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def _for_hosts(*hosts):
+    return {"events": [{**INGEST_BODY["events"][0], "host": h} for h in hosts]}
+
+
+def _bearer(token):
+    return {"Authorization": f"Bearer {token}"}
+
+
+def test_host_tokens_only_ingest_for_their_own_host(settings):
+    from dataclasses import replace
+
+    tokens = (("h1", _sha("tok-h1-old")), ("h1", _sha("tok-h1-new")), ("h2", _sha("tok-h2")))
+    app = create_app(replace(settings, host_tokens=tokens))
+    with TestClient(app) as c:
+        assert c.post("/api/events/ingest", json=_for_hosts("h1")).status_code == 401
+        assert c.post("/api/events/ingest", json=_for_hosts("h1"), headers=_bearer("guess")).status_code == 401
+        for token in ("tok-h1-old", "tok-h1-new"):  # both entries are valid during a rotation
+            assert c.post("/api/events/ingest", json=_for_hosts("h1"), headers=_bearer(token)).status_code == 200
+
+        before = c.get("/api/status").json()["counts"]["vault_events"]
+        r = c.post("/api/events/ingest", json=_for_hosts("h1", "h2"), headers=_bearer("tok-h1-new"))
+        assert r.status_code == 403 and "h2" in r.json()["detail"]
+        assert c.get("/api/status").json()["counts"]["vault_events"] == before  # refused as a whole, nothing stored
+
+        assert c.post("/api/events/ingest", json=_for_hosts("h2"), headers=_bearer("tok-h2")).status_code == 200
+        assert c.post("/api/events/ingest", json=_for_hosts("h2"), headers=_bearer("tok-h1-new")).status_code == 403
+    app.state.svc.stores.dispose()
+
+
+def test_shared_token_keeps_working_next_to_host_tokens(settings):
+    from dataclasses import replace
+
+    app = create_app(replace(settings, ingest_token="shared-token", host_tokens=(("h1", _sha("tok-h1")),)))
+    with TestClient(app) as c:
+        assert c.post("/api/events/ingest", json=_for_hosts("h2"), headers=_bearer("shared-token")).status_code == 200
+        assert c.post("/api/events/ingest", json=_for_hosts("h2"), headers=_bearer("tok-h1")).status_code == 403
+    app.state.svc.stores.dispose()
+
+
+def test_host_tokens_from_env_and_malformed_entries_fail_closed(monkeypatch):
+    from app.config import load_settings, parse_host_tokens
+
+    monkeypatch.setenv("LEASH_HOST_TOKENS", f"web-01={_sha('a').upper()}; db-01={_sha('b')}")
+    assert load_settings().host_tokens == (("web-01", _sha("a")), ("db-01", _sha("b")))
+    with pytest.raises(ValueError) as err:
+        parse_host_tokens("web-01=my-plaintext-token")  # a token pasted instead of its hash
+    assert "web-01" in str(err.value) and "my-plaintext-token" not in str(err.value)
 
 
 def test_unknown_attack_scenario_is_rejected(client):

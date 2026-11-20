@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import sys
 
 import pytest
@@ -93,6 +94,20 @@ def test_rejected_token_is_reported_and_nothing_is_marked_sent(tmp_path, rpc_url
             tail_agent.ingest_once(log, state, make_http(c, "wrong-token"), "h1")
         assert not state.exists()
         assert tail_agent.ingest_once(log, state, make_http(c, "right-token"), "h1")["forwarded"] == len(SAMPLE_LINES)
+    app.state.svc.stores.dispose()
+
+
+def test_host_token_forwards_only_its_own_hosts_lines(tmp_path, rpc_url, log):
+    token = "tok-web-prod-01"
+    settings = Settings(data_dir=tmp_path / "ht", rpc_url=rpc_url, receipt_timeout_s=30,
+                        host_tokens=(("web-prod-01", hashlib.sha256(token.encode()).hexdigest()),))
+    app = create_app(settings)
+    state = log.with_name("state.json")
+    with TestClient(app) as c:
+        with pytest.raises(tail_agent.AgentError, match="403"):  # the unparsed line would claim host "laptop-b"
+            tail_agent.ingest_once(log, state, make_http(c, token), "laptop-b")
+        assert not state.exists()
+        assert tail_agent.ingest_once(log, state, make_http(c, token), "web-prod-01")["forwarded"] == len(SAMPLE_LINES)
     app.state.svc.stores.dispose()
 
 

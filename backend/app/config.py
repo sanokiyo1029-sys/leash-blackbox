@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -27,6 +28,9 @@ class Settings:
     # Shared bearer token host agents must present to /api/events/ingest. When unset,
     # ingest is open in demo mode and refused otherwise.
     ingest_token: str | None = None
+    # Per-host credentials: (host, SHA-256 hex of that host's token). A host token may only submit events whose
+    # "host" is that host. Only hashes are configured; list a host twice to rotate its token.
+    host_tokens: tuple[tuple[str, str], ...] = ()
 
     @property
     def host_db_path(self) -> Path:
@@ -44,6 +48,19 @@ class Settings:
         return self.data_dir / "lab" / "lab.db"
 
 
+def parse_host_tokens(spec: str) -> tuple[tuple[str, str], ...]:
+    """Parse 'web-01=<sha256 hex>,db-01=<sha256 hex>'. A malformed entry fails startup instead of being ignored."""
+    pairs = []
+    for entry in filter(None, (e.strip() for e in spec.replace(";", ",").split(","))):
+        host, _, digest = entry.partition("=")
+        digest = digest.strip().lower()
+        if not host.strip() or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            # Name only the host: a token pasted here by mistake must not end up in a log.
+            raise ValueError(f"LEASH_HOST_TOKENS entry for {host.strip()!r} must be host=<SHA-256 hex of the token>")
+        pairs.append((host.strip(), digest))
+    return tuple(pairs)
+
+
 def load_settings() -> Settings:
     env = os.environ
     kwargs: dict = {}
@@ -59,6 +76,8 @@ def load_settings() -> Settings:
         kwargs["max_batch_size"] = int(env["LEASH_MAX_BATCH_SIZE"])
     if env.get("LEASH_INGEST_TOKEN"):
         kwargs["ingest_token"] = env["LEASH_INGEST_TOKEN"]
+    if env.get("LEASH_HOST_TOKENS"):
+        kwargs["host_tokens"] = parse_host_tokens(env["LEASH_HOST_TOKENS"])
     if env.get("LEASH_DEMO_MODE"):
         kwargs["demo_mode"] = env["LEASH_DEMO_MODE"].strip().lower() not in ("0", "false", "no", "off")
     if env.get("LEASH_CORS_ORIGINS"):

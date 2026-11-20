@@ -192,7 +192,10 @@ def ingest_once(log: Path, state_path: Path, http: Http, default_host: str, seal
         state = {"offset": end, "line": n, "prefix_sha256": hashlib.sha256(data[:end]).hexdigest()}
         save_state(state_path, state)
     if seal and summary["forwarded"]:
-        summary["anchored_batches"] = len(http("POST", "/api/batches/seal")["anchored"])
+        try:
+            summary["anchored_batches"] = len(http("POST", "/api/batches/seal")["anchored"])
+        except AgentError as e:  # the events are already in the vault; say so instead of looking like nothing was sent
+            summary["anchor_error"] = str(e)
     return summary
 
 
@@ -245,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
     pi = sub.add_parser("ingest", help="forward new lines of a log file")
     pi.add_argument("file", type=Path)
     pi.add_argument("--state", type=Path, help="offset file (default: <file>.leash-state.json)")
-    pi.add_argument("--token", default=os.environ.get("LEASH_INGEST_TOKEN"), help="bearer token (env LEASH_INGEST_TOKEN)")
+    pi.add_argument("--token", default=os.environ.get("LEASH_INGEST_TOKEN"), help="shared token or this host's own token (env LEASH_INGEST_TOKEN)")
     pi.add_argument("--host", default=socket.gethostname(), help="host name for lines that carry none")
     pi.add_argument("--seal", action="store_true", help="anchor forwarded events on-chain right away")
     pi.add_argument("--follow", action="store_true", help="keep polling the file")
@@ -286,6 +289,10 @@ def main(argv: list[str] | None = None) -> int:
                       f"{len(s['rejected'])} rejected, {s['anchored_batches']} batch(es) anchored")
                 for msg in s["rejected"]:
                     print(f"  rejected {msg}", file=sys.stderr)
+            if s.get("anchor_error"):
+                print(f"error: forwarded, but anchoring failed: {s['anchor_error']}", file=sys.stderr)
+                if not args.follow:
+                    return 1
         except PrefixChanged as e:
             print(f"refusing to continue: {e}. Run `check` to see what changed; use a new --state file after a real rotation.",
                   file=sys.stderr)

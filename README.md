@@ -166,7 +166,13 @@ python agent/tail_agent.py check data/demo-auth.log             # TAMPERING_DETE
 - **Independent check:** `check` first proves the vault evidence against the chain with `verifier/leash_verify.py`.
   It then compares the file line by line and reports `ERASED` (with the original text), `ALTERED`, `INJECTED`, and
   trailing lines that are not committed yet.
-- **Token:** set `LEASH_INGEST_TOKEN` when the API requires one.
+- **Token:** set `LEASH_INGEST_TOKEN` to the shared token or to this host's own token. With a host token, pass
+  `--host <that host>` so lines without a host header are attributed to it.
+
+**Per-host credentials (API side).** Set `LEASH_HOST_TOKENS=web-prod-01=<sha256 of its token>,db-01=<…>`. Only the
+hashes are configured. A host token may submit events only for its own host: any other `host` in the request gets a
+403, and nothing in that request is stored. Listing a host twice lets you rotate its token. `.env.example` has a
+one-line generator. The shared `LEASH_INGEST_TOKEN` keeps working; leave it unset to force per-host tokens.
 
 ## Test results
 
@@ -175,7 +181,7 @@ All of these were measured on a real local EVM node:
 | Suite | Command | Result |
 |---|---|---|
 | Contract | `cd blockchain && npx hardhat test` | 9 passing |
-| Backend + verifier + file agent | `cd backend && .venv/Scripts/python -m pytest` | 86 passed |
+| Backend + verifier + file agent | `cd backend && .venv/Scripts/python -m pytest` | 90 passed |
 | Web end-to-end (screens, attack flow, mobile/tablet overflow, console errors) | `cd frontend && npm run test:e2e` | 23 passed |
 | Validation experiments | `backend/.venv/Scripts/python scripts/run_validation.py --trials 30` | see below |
 
@@ -200,8 +206,9 @@ statistical accuracy claim.
 - **Single machine:** the prototype runs every zone on one machine, with separate stores and a local Hardhat
   chain. Production would put them on separate infrastructure and anchor to a public or consortium chain.
   Public testnet anchoring is not implemented yet.
-- **Ingest authentication:** host ingest uses one shared bearer token (`LEASH_INGEST_TOKEN`), not per-host
-  credentials.
+- **Ingest authentication:** per-host tokens (`LEASH_HOST_TOKENS`) bind a token to one host name. They do not stop a
+  compromised host from sending false events about itself, and there is no rate limiting or mTLS. Without them,
+  the single shared `LEASH_INGEST_TOKEN` lets any holder submit events under any host name.
 - **Local chain state:** the Hardhat node keeps its state in memory. Restarting it requires a lab reset.
 - **File agent:**
   - Edits to a forwarded file are found by `tail_agent.py check`, not by the dashboard's `/api/verify`, which checks

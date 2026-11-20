@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import hmac
 import json
 import sys
@@ -113,12 +114,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # -------------------------------------------------------------- ingestion
     @app.post("/api/events/ingest")
     def ingest(req: IngestRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
-        if settings.ingest_token:
+        if settings.ingest_token or settings.host_tokens:
             presented = (authorization or "").removeprefix("Bearer ").strip()
-            if not hmac.compare_digest(presented.encode(), settings.ingest_token.encode()):
+            # Tokens are long random strings, so plain SHA-256 is enough; every entry is compared (no early exit).
+            digest = hashlib.sha256(presented.encode()).hexdigest()
+            hosts = {h for h, d in settings.host_tokens if hmac.compare_digest(digest, d)} if presented else set()
+            if hosts:
+                foreign = sorted({e.host for e in req.events} - hosts)
+                if foreign:
+                    raise HTTPException(403, f"this host token may only submit events for {sorted(hosts)}, not {foreign}")
+            elif not (settings.ingest_token and hmac.compare_digest(presented.encode(), settings.ingest_token.encode())):
                 raise HTTPException(401, "invalid or missing ingest token", headers={"WWW-Authenticate": "Bearer"})
         elif not settings.demo_mode:
-            raise HTTPException(403, "ingest disabled: set LEASH_INGEST_TOKEN")
+            raise HTTPException(403, "ingest disabled: set LEASH_INGEST_TOKEN or LEASH_HOST_TOKENS")
         records = svc.emit_from_host(req.events)
         return {"ingested": len(records), "first_seq": records[0]["seq"], "last_seq": records[-1]["seq"]}
 
