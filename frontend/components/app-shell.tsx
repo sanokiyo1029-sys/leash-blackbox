@@ -69,7 +69,7 @@ function TopNav() {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "label-caps relative flex items-center gap-1.5 px-3 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              "label-caps relative flex items-center gap-1.5 px-2.5 whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
               active ? "text-primary-foreground" : "text-ink/70 hover:text-ink",
             )}
           >
@@ -170,10 +170,12 @@ function CursorDot() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  // Dashboard v2 (S03, pending approval) uses full-bleed scenes and slimmer chrome; other routes are unchanged.
+  const scene = usePathname() === "/";
   return (
     <MotionConfig reducedMotion="user" transition={{ duration: dur.base, ease: ease.out }}>
       <div className="app-backdrop flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 border-b-2 border-ink bg-paper">
+        <header className={cn("sticky top-0 z-30", scene ? "border-b border-ink/15 bg-white" : "border-b-2 border-ink bg-paper")}>
           <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center gap-3 px-4 sm:px-6 lg:px-8">
             <button className="-ml-1 p-1.5 text-ink hover:bg-ink/[0.06] xl:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
               <Menu className="size-5" />
@@ -214,16 +216,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           )}
         </AnimatePresence>
 
-        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+        <main className={cn("flex-1", scene ? "w-full" : "mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8")}>{children}</main>
 
-        <footer className="border-t-2 border-ink bg-ink text-paper">
+        {!scene && <footer className="border-t-2 border-ink bg-ink text-paper">
           <div className="mx-auto flex w-full max-w-[1400px] flex-wrap items-center justify-between gap-3 px-4 py-5 sm:px-6 lg:px-8">
             <p className="font-display text-lg font-black uppercase sm:text-xl">
               The attacker can erase the logs. <span className="text-primary">They cannot erase the proof.</span>
             </p>
             <p className="text-[10px] font-semibold tracking-[0.18em] text-paper/60 uppercase">The Big Hack 2.0 · Cybersecurity &amp; Blockchain · B3</p>
           </div>
-        </footer>
+        </footer>}
         <CursorDot />
       </div>
     </MotionConfig>

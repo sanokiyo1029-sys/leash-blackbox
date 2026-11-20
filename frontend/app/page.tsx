@@ -1,356 +1,471 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { AnimatePresence, motion } from "motion/react";
-import { Anchor, Blocks, Database, Play, ScanSearch, Server, ShieldCheck, Swords } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { Button } from "@/components/ui/button";
-import { AlertBanner, EmptyState, HashChip, LiveDot, LoadingRows, MetricCard, PageTitle, Panel, Spinner } from "@/components/kit";
-import { StatusBadge } from "@/components/status";
+import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
+import { ArrowRight, ArrowUpRight, RefreshCw } from "lucide-react";
+import { HoldButton } from "@/components/dashboard/hold-button";
+import { IntegritySeal, TICK_META, type SealRecord, type TickStatus } from "@/components/dashboard/integrity-seal";
+import { AnimatedNumber, HashChip } from "@/components/kit";
 import { api, fmtTime, useAction, useApi } from "@/lib/api";
 import { dur, ease } from "@/lib/motion";
-import type { Batch, EventItem, Status, VerificationReport, VerifyRun } from "@/lib/types";
+import type { Batch, EventItem, Status, VerificationReport } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const tooltipStyle = {
-  contentStyle: { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 10, fontSize: 12, boxShadow: "var(--shadow-pop)" },
-  labelStyle: { color: "var(--muted-foreground)" },
-  itemStyle: { color: "var(--foreground)" },
+type View = "loading" | "error" | "empty" | "unverified" | "clean" | "tampered" | "inconclusive";
+
+const VERDICT_COPY: Record<View, { word: string; line: string }> = {
+  loading: { word: "…", line: "Connecting to the evidence pipeline and the chain." },
+  error: { word: "Offline", line: "The backend is not answering, so nothing can be verified right now." },
+  empty: { word: "No evidence", line: "No security events have been collected yet." },
+  unverified: { word: "Not verified", line: "Evidence is collected and anchored, but nobody has checked the host against it yet." },
+  clean: { word: "Clean", line: "Host logs match the on-chain proof." },
+  tampered: { word: "Tampered", line: "The host's logs no longer match what was committed on-chain." },
+  inconclusive: { word: "Inconclusive", line: "The chain could not be reached, so the host was not attested." },
 };
-const pct = (n: number) => `${n.toFixed(1)}%`;
-const SEV_DOT: Record<string, string> = { critical: "bg-bad", high: "bg-warn", medium: "bg-violet", low: "bg-info", info: "bg-muted-foreground/60" };
 
 export default function Dashboard() {
   const status = useApi<Status>("/api/status", 4000);
   const events = useApi<{ items: EventItem[] }>("/api/events?limit=1000&order=asc", 5000);
   const batches = useApi<{ batches: Batch[] }>("/api/batches", 6000);
-  const runs = useApi<{ runs: VerifyRun[] }>("/api/verify/runs?limit=12", 6000);
   const lastId = status.data?.last_verification?.run_id ?? null;
-  const lastReport = useApi<VerificationReport>(lastId ? `/api/verify/runs/${lastId}` : null);
+  const report = useApi<VerificationReport>(lastId ? `/api/verify/runs/${lastId}` : null);
   const action = useAction();
-
-  const run = async (label: string, fn: () => Promise<unknown>) => {
-    await action.run(label, fn);
-    await Promise.all([status.reload(), events.reload(), batches.reload(), runs.reload()]);
-  };
+  const reduce = useReducedMotion();
+  const [op, setOp] = useState<{ kind: "verify" | "traffic" | "seal"; runId?: number; note: string } | null>(null);
+  const [bloom, setBloom] = useState(0);
 
   const s = status.data;
-  const last = s?.last_verification;
+  const last = s?.last_verification ?? null;
   const items = useMemo(() => events.data?.items ?? [], [events.data]);
 
-  const timeline = useMemo(
-    () =>
-      [...items]
-        .filter((i) => i.host_record ?? i.record)
-        .sort((a, b) => b.seq - a.seq)
-        .slice(0, 12),
-    [items],
-  );
+  const view: View = !s ? (status.error ? "error" : "loading") : s.counts.vault_events + s.counts.host_events === 0 ? "empty" : !last ? "unverified" : last.verdict === "CLEAN" ? "clean" : last.verdict === "TAMPERING_DETECTED" ? "tampered" : "inconclusive";
 
-  const threat = useMemo(() => {
-    const buckets = new Map<string, { t: string; critical: number; elevated: number; routine: number }>();
-    for (const i of items) {
-      const r = i.record ?? i.host_record;
-      if (!r) continue;
-      const key = r.ts.slice(11, 16);
-      const b = buckets.get(key) ?? { t: key, critical: 0, elevated: 0, routine: 0 };
-      if (r.severity === "critical" || r.severity === "high") b.critical += 1;
-      else if (r.severity === "medium") b.elevated += 1;
-      else b.routine += 1;
-      buckets.set(key, b);
-    }
-    return [...buckets.values()].sort((a, b) => a.t.localeCompare(b.t));
-  }, [items]);
+  // Only trust the report of the run the status names (a stale report must never colour the seal).
+  const rep = report.data && last && report.data.run_id === last.run_id ? report.data : null;
+  const sum = last?.summary ?? null;
 
-  const integrity = last ? (last.summary.total_records ? (last.summary.intact / last.summary.total_records) * 100 : 100) : null;
-  const donut = last
-    ? [
-        { name: "Intact", value: last.summary.intact, color: "var(--ok)" },
-        { name: "Modified", value: last.summary.modified, color: "var(--warn)" },
-        { name: "Deleted", value: last.summary.deleted, color: "var(--bad)" },
-        { name: "Injected", value: last.summary.injected, color: "var(--violet)" },
-      ].filter((d) => d.value > 0)
-    : [];
-  const recentTx = [...(batches.data?.batches ?? [])].reverse().slice(0, 6);
-  const findings = (lastReport.data?.findings ?? []).slice(0, 6);
-  const chainOk = !!s?.chain.connected && s.chain.contract_present !== false;
+  // Ticks: status only from that run; anything that arrived later is "not verified yet".
+  const { records, newSince } = useMemo(() => {
+    const findings = new Map((rep?.findings ?? []).map((f) => [f.seq, f.status as TickStatus]));
+    const coveredVault = sum ? sum.intact + sum.modified + sum.deleted : 0;
+    const out: SealRecord[] = items.map((i) => {
+      const rec = i.status === "DELETED" ? i.record : (i.host_record ?? i.record);
+      let st: TickStatus = "UNVERIFIED";
+      if (rep) st = findings.get(i.seq) ?? (i.record && i.seq <= coveredVault ? "INTACT" : "UNVERIFIED");
+      return { seq: i.seq, status: st, msg: rec?.msg, source: rec?.source };
+    });
+    return { records: out, newSince: sum ? items.filter((i) => i.record && i.seq > coveredVault).length : 0 };
+  }, [items, rep, sum]);
+  // Counts come from the run summary, so the numbers always match the verdict that produced them.
+  const counts: Record<TickStatus, number> = sum
+    ? { INTACT: sum.intact, MODIFIED: sum.modified, DELETED: sum.deleted, INJECTED: sum.injected, UNVERIFIED: newSince }
+    : { INTACT: 0, MODIFIED: 0, DELETED: 0, INJECTED: 0, UNVERIFIED: records.length };
+
+  const reloadAll = () => Promise.all([status.reload(), events.reload(), batches.reload()]);
+
+  const verify = async () => {
+    const before = last?.verdict ?? null;
+    const r = await action.run("verify", () => api<VerificationReport>("/api/verify", { method: "POST" }));
+    if (!r) return;
+    await reloadAll();
+    setOp({ kind: "verify", runId: r.run_id, note: `Run #${r.run_id} finished in ${r.duration_ms} ms · chain attestation ${r.chain_attestation.replace("_", " ")}` });
+    if (r.verdict === "TAMPERING_DETECTED" && before !== "TAMPERING_DETECTED" && !reduce) setBloom((b) => b + 1);
+  };
+  const stream = async () => {
+    const r = await action.run("traffic", () =>
+      api<{ ingested: number; batches: Batch[]; anchor_error: string | null }>("/api/simulate/traffic", { method: "POST", json: { count: 60, include_intrusion: false } }),
+    );
+    if (!r) return;
+    await reloadAll();
+    setOp({ kind: "traffic", note: r.anchor_error ? `Collected ${r.ingested} events · anchoring failed: ${r.anchor_error}` : `Collected ${r.ingested} events · ${r.batches.length} batch anchored · not verified yet` });
+  };
+
+  const red = view === "tampered";
+  const amber = view === "inconclusive";
+  const ink = view === "error";
+  const copy = VERDICT_COPY[view];
+  const diverging = counts.MODIFIED + counts.DELETED + counts.INJECTED;
+  const opFresh = op?.kind === "verify" && op.runId === last?.run_id;
 
   return (
-    <div className="space-y-5">
-      <PageTitle
-        eyebrow="Security operations"
-        title="Security Dashboard"
-        description="Live view of the monitored host, the protected evidence vault and the on-chain commitments. Every value is read from the backend or the chain."
-        actions={
-          <>
-            <Button variant="outline" onClick={() => run("traffic", () => api("/api/simulate/traffic", { method: "POST", json: { count: 60, include_intrusion: true } }))} disabled={!!action.busy}>
-              {action.busy === "traffic" ? <Spinner /> : <Play />} Stream traffic
-            </Button>
-            <Button variant="outline" onClick={() => run("seal", () => api("/api/batches/seal", { method: "POST" }))} disabled={!!action.busy}>
-              {action.busy === "seal" ? <Spinner /> : <Anchor />} Anchor pending
-            </Button>
-            <Button onClick={() => run("verify", () => api("/api/verify", { method: "POST" }))} disabled={!!action.busy}>
-              {action.busy === "verify" ? <Spinner /> : <ScanSearch />} Verify now
-            </Button>
-          </>
-        }
-      />
-
-      <AnimatePresence mode="popLayout">
-        {(action.error || status.error) && (
-          <AlertBanner key="err" tone="danger" title={status.error ? "Backend unreachable" : "Action failed"} onDismiss={action.error ? () => action.setError(null) : undefined}>
-            {action.error ?? status.error}
-          </AlertBanner>
+    <div className="dash">
+      {/* ---------------------------------------------------------------- verdict scene */}
+      <section
+        aria-labelledby="verdict"
+        className={cn(
+          "relative isolate overflow-hidden transition-colors duration-500",
+          red ? "on-red bg-[var(--d-red)] text-white" : amber ? "bg-[var(--d-amber-field)]" : ink ? "on-red bg-[var(--d-ink)] text-white" : "grain bg-[var(--d-field)]",
         )}
-        {last ? (
-          <AlertBanner
-            key={`v-${last.run_id}`}
-            tone={last.verdict === "CLEAN" ? "success" : last.verdict === "TAMPERING_DETECTED" ? "danger" : "warn"}
-            title={
-              last.verdict === "CLEAN"
-                ? "CLEAN — host logs match the on-chain proof"
-                : last.verdict === "TAMPERING_DETECTED"
-                  ? "Tampering detected on web-prod-01"
-                  : "Inconclusive — chain unreachable"
-            }
-          >
-            Run #{last.run_id} · {fmtTime(last.verified_at)} · {last.duration_ms} ms · {last.summary.intact} intact, {last.summary.modified} modified,{" "}
-            {last.summary.deleted} deleted, {last.summary.injected} injected
-            {last.summary.first_divergent_seq !== null && ` · first divergence at seq ${last.summary.first_divergent_seq}`}
-          </AlertBanner>
-        ) : (
-          s && <AlertBanner key="none" tone="info" title="Not verified yet">Run a verification to attest the host&apos;s logs against the chain.</AlertBanner>
-        )}
-      </AnimatePresence>
+      >
+        <AnimatePresence>
+          {bloom > 0 && (
+            <motion.div
+              key={bloom}
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-10 bg-[var(--d-red)]"
+              initial={{ clipPath: "circle(0% at 72% 50%)" }}
+              animate={{ clipPath: "circle(150% at 72% 50%)" }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7, ease: ease.out }}
+              onAnimationComplete={() => setBloom(0)}
+            />
+          )}
+        </AnimatePresence>
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <MetricCard label="Host log records" value={s?.counts.host_events} icon={Server} hint="what the compromisable host holds" />
-        <MetricCard label="Vault evidence" value={s?.counts.vault_events} icon={Database} hint="captured at ingest · append-only" />
-        <MetricCard
-          label="Anchored on-chain"
-          value={s?.counts.anchored_events}
-          icon={Blocks}
-          tone="info"
-          hint={
-            <>
-              <span className="tabular">{s?.counts.anchored_batches ?? 0}</span> {s?.counts.anchored_batches === 1 ? "batch" : "batches"} · {s?.counts.unanchored_events ?? 0} pending
-            </>
-          }
-        />
-        <MetricCard
-          label="Integrity"
-          value={integrity}
-          format={pct}
-          icon={ShieldCheck}
-          tone={integrity === null ? undefined : integrity === 100 ? "ok" : "bad"}
-          hint={last ? `last verified ${fmtTime(last.verified_at)}` : "awaiting first verification"}
-        />
+        <div className="mx-auto grid w-full max-w-[1320px] items-center gap-8 px-[clamp(20px,4vw,56px)] pt-8 pb-14 lg:min-h-[calc(100svh-56px-64px)] lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-12 lg:py-10">
+          <div className="min-w-0">
+            <div className="label opacity-80">Security dashboard · web-prod-01</div>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.h1
+                key={copy.word}
+                id="verdict"
+                initial={{ y: "0.35em", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "-0.25em", opacity: 0 }}
+                transition={{ duration: dur.base, ease: ease.out }}
+                className="mt-3 font-display text-[clamp(44px,8vw,96px)] leading-[0.92] font-black tracking-[-0.02em] uppercase"
+              >
+                {copy.word}
+              </motion.h1>
+            </AnimatePresence>
+            <p className={cn("mt-4 max-w-[34ch] text-[clamp(16px,1.6vw,20px)] leading-snug", red || ink ? "text-white/90" : "text-[var(--d-ink)]/80")}>{copy.line}</p>
+
+            {/* Caption card: the facts behind the verdict, tied to the run that produced it */}
+            <div className={cn("caption mt-6 max-w-md px-4 py-3 text-[13px] text-[var(--d-ink)]")} aria-live="polite">
+              {last ? (
+                <>
+                  <div className="label flex flex-wrap items-center gap-x-2 !text-[10.5px]">
+                    <span>Run #{last.run_id}</span>
+                    <span aria-hidden>·</span>
+                    <span>{fmtTime(last.verified_at)}</span>
+                    <span aria-hidden>·</span>
+                    <span>{last.duration_ms} ms</span>
+                    {opFresh && <span className="rounded-[2px] bg-[var(--d-ink)] px-1.5 text-white">from this dashboard</span>}
+                  </div>
+                  <div className="mt-1.5 leading-relaxed">
+                    {last.summary.first_divergent_seq !== null ? (
+                      <>
+                        {diverging} record{diverging === 1 ? "" : "s"} diverge · first at seq <span className="font-hash">{last.summary.first_divergent_seq}</span>.{" "}
+                        <Link href="/evidence" className="underline underline-offset-2">See the evidence</Link>
+                      </>
+                    ) : (
+                      <>All committed records were recomputed and matched the anchored Merkle roots.</>
+                    )}
+                    {newSince > 0 && <> {newSince} newer record{newSince === 1 ? " is" : "s are"} not verified yet.</>}
+                  </div>
+                </>
+              ) : view === "error" ? (
+                <div className="flex items-center justify-between gap-3">
+                  <span>{status.error}</span>
+                  <button className="btn-caption" onClick={() => status.reload()}>
+                    <RefreshCw className="size-3.5" /> Retry
+                  </button>
+                </div>
+              ) : view === "empty" ? (
+                <div>Stream some traffic to collect, hash and anchor events.</div>
+              ) : view === "loading" ? (
+                <div className="opacity-70">Reading status…</div>
+              ) : (
+                <div>{s?.counts.anchored_events ?? 0} records anchored. Hold to verify the host against them.</div>
+              )}
+              {op && op.kind !== "verify" && <div className="mt-2 border-t border-[var(--d-ink)]/15 pt-2 text-[12px]">{op.note}</div>}
+              {op?.kind === "verify" && opFresh && <div className="mt-2 border-t border-[var(--d-ink)]/15 pt-2 text-[12px]">{op.note}</div>}
+              {action.error && <div className="mt-2 border-t border-[var(--d-red)]/30 pt-2 text-[12px] text-[var(--d-red)]">Action failed: {action.error}</div>}
+            </div>
+
+            {/* Actions */}
+            <div className="mt-6 flex flex-wrap items-center gap-4">
+              <HoldButton label="verify" tone={red || ink ? "white" : "ink"} busy={action.busy === "verify"} disabled={!s || view === "empty" || !!action.busy} onComplete={verify} />
+              <div className="flex flex-col gap-2">
+                <button className="btn-caption solid" onClick={verify} disabled={!s || view === "empty" || !!action.busy}>
+                  Verify now
+                </button>
+                <button className="btn-caption" onClick={stream} disabled={!s || !!action.busy}>
+                  {action.busy === "traffic" ? "Streaming…" : "Stream traffic"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* The seal */}
+          <div className="min-w-0">
+            <IntegritySeal
+              records={records}
+              loading={view === "loading" || (events.loading && !events.data)}
+              tone={red ? "red" : view === "clean" ? "ink" : "muted"}
+              centerTop={view === "tampered" ? <AnimatedNumber value={diverging} /> : view === "clean" ? <AnimatedNumber value={counts.INTACT} /> : <AnimatedNumber value={records.length} />}
+              centerBottom={view === "tampered" ? "records diverge" : view === "clean" ? `intact · of ${records.length}` : view === "empty" ? "records" : "records · unchecked"}
+            />
+            <ul className={cn("mt-4 grid grid-cols-2 gap-x-6 gap-y-1.5 text-[13px] sm:grid-cols-3", red || ink ? "text-white" : "")} aria-label="Legend">
+              {(["INTACT", "MODIFIED", "DELETED", "INJECTED", "UNVERIFIED"] as TickStatus[])
+                .filter((k) => k === "INTACT" || counts[k] > 0 || (k !== "UNVERIFIED" && !!last))
+                .map((k) => (
+                  <li key={k} className="tabular flex items-center gap-2" title={TICK_META[k].legend}>
+                    <LegendMark status={k} onRed={red || ink} />
+                    {`${counts[k]} ${TICK_META[k].label}`}
+                  </li>
+                ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Peek of the next scene */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-3 bg-[var(--d-ink)]" aria-hidden />
+      </section>
+
+      <LifecycleBand s={s} />
+      <ActivityBand items={items} report={rep} lastRun={last?.run_id ?? null} />
+      <LedgerBand batches={batches.data?.batches ?? []} s={s} />
+
+      <RevealBand className="bg-[var(--d-red)] text-white on-red">
+        <div className="mx-auto flex w-full max-w-[1320px] flex-wrap items-end justify-between gap-6 px-[clamp(20px,4vw,56px)] py-14">
+          <div>
+            <div className="label opacity-85">Next</div>
+            <div className="mt-2 font-display text-[clamp(32px,4.5vw,56px)] leading-none font-black uppercase">Now break it.</div>
+            <p className="mt-3 max-w-[48ch] text-white/90">Take root on web-prod-01, erase the trail, then verify. The chain-backed record shows exactly what changed.</p>
+          </div>
+          <Link href="/attack" className="btn-caption !min-h-12 !px-5 !text-[13px]">
+            Open the attack lab <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      </RevealBand>
+    </div>
+  );
+}
+
+function LegendMark({ status, onRed }: { status: TickStatus; onRed: boolean }) {
+  const color = TICK_META[status].color;
+  return (
+    <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden className="shrink-0">
+      <rect x="0" y="0" width="18" height="14" rx="2" fill={onRed ? "#fff" : "transparent"} />
+      {status === "DELETED" ? (
+        <line x1="9" y1="2" x2="9" y2="12" stroke={color} strokeWidth="2.4" strokeDasharray="3 2" />
+      ) : status === "INJECTED" ? (
+        <line x1="9" y1="5" x2="9" y2="12" stroke={color} strokeWidth="3" strokeLinecap="round" />
+      ) : (
+        <>
+          <line x1="9" y1="2" x2="9" y2="12" stroke={color} strokeWidth="3" strokeLinecap="round" />
+          {status === "MODIFIED" && <circle cx="14" cy="10" r="2" fill={color} stroke="#111" strokeWidth=".6" />}
+        </>
+      )}
+    </svg>
+  );
+}
+
+/** A full-width band that uncovers bottom→top the first time it scrolls into view (reference: scene wipe-up).
+ *  The clip lives in CSS (.reveal), so server and client render the same markup and reduced motion skips it. */
+function RevealBand({ children, className, ariaLabel }: { children: React.ReactNode; className?: string; ariaLabel?: string }) {
+  const ref = useRef<HTMLElement>(null);
+  const inView = useInView(ref, { once: true, margin: "0px 0px -15% 0px" });
+  return (
+    <section ref={ref} aria-label={ariaLabel} className={cn("reveal relative", inView && "in", className)}>
+      {children}
+    </section>
+  );
+}
+
+function LifecycleBand({ s }: { s: Status | undefined | null }) {
+  const host = s?.counts.host_events ?? null;
+  const vault = s?.counts.vault_events ?? null;
+  const anchored = s?.counts.anchored_events ?? null;
+  const gap = host !== null && vault !== null ? host - vault : 0;
+  const stations = [
+    {
+      k: "Host log store",
+      sub: "what the server says happened",
+      v: host,
+      note: gap === 0 ? "untrusted by design" : gap < 0 ? `${-gap} fewer lines than the vault received` : `${gap} more lines than the vault received`,
+      bad: gap !== 0,
+    },
+    { k: "Evidence vault", sub: "copied off the host at ingest", v: vault, note: "append-only · outside the host", bad: false },
+    {
+      k: "Blockchain",
+      sub: "Merkle roots anchored on-chain",
+      v: anchored,
+      note: s ? `${s.counts.anchored_batches} batch${s.counts.anchored_batches === 1 ? "" : "es"} · ${s.counts.unanchored_events} pending · block ${s.chain.latest_block ?? "—"}` : "—",
+      bad: false,
+    },
+  ];
+  return (
+    <RevealBand className="bg-[var(--d-ink)] text-white on-red" ariaLabel="Evidence lifecycle">
+      <div className="mx-auto w-full max-w-[1320px] px-[clamp(20px,4vw,56px)] py-12 lg:py-16">
+        <div className="label opacity-70">Evidence lifecycle</div>
+        <h2 className="mt-2 font-display text-[clamp(28px,3.4vw,40px)] leading-none font-black uppercase">Three copies, one truth</h2>
+        <ol className="mt-8 grid gap-4 md:grid-cols-3 md:gap-0">
+          {stations.map((st, i) => (
+            <li key={st.k} className="relative md:pr-10">
+              {i < 2 && (
+                <span className="absolute top-[22px] right-3 left-[46%] hidden h-px bg-white/30 md:block" aria-hidden>
+                  <ArrowRight className="absolute -top-[7px] -right-1 size-3.5 text-white/60" />
+                </span>
+              )}
+              <div className="label !text-[10.5px] opacity-70">
+                {String(i + 1).padStart(2, "0")} · {st.k}
+              </div>
+              <div className={cn("mt-1 font-display text-[clamp(40px,5vw,64px)] leading-none font-black tabular", st.bad && "text-[#ff6b6b]")}>
+                <AnimatedNumber value={st.v} />
+              </div>
+              <div className="mt-2 text-sm text-white/80">{st.sub}</div>
+              <div className={cn("mt-1 text-[12px]", st.bad ? "text-[#ff8a8a]" : "text-white/55")}>{st.note}</div>
+            </li>
+          ))}
+        </ol>
       </div>
+    </RevealBand>
+  );
+}
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <Panel
-          className="xl:col-span-2"
-          title={
-            <span className="flex items-center gap-2">
-              <LiveDot tone="info" /> Live event timeline
-            </span>
-          }
-          description="Newest first · polled every 5 s · original records from the vault"
-          actions={
-            <Link href="/evidence" className="text-xs text-primary hover:underline">
-              Open explorer →
-            </Link>
-          }
-        >
-          {events.loading && !events.data ? (
-            <LoadingRows rows={6} />
-          ) : timeline.length === 0 ? (
-            <EmptyState title="No events yet" hint="Stream traffic or prepare the attack lab to generate telemetry." />
+function ActivityBand({ items, report, lastRun }: { items: EventItem[]; report: VerificationReport | null; lastRun: number | null }) {
+  const latest = useMemo(() => [...items].sort((a, b) => b.seq - a.seq).slice(0, 8), [items]);
+  const findings = (report?.findings ?? []).slice(0, 6);
+  return (
+    <RevealBand className="bg-white" ariaLabel="Live activity">
+      <div className="mx-auto grid w-full max-w-[1320px] gap-10 px-[clamp(20px,4vw,56px)] py-12 lg:grid-cols-2 lg:py-16">
+        <div className="min-w-0">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="label">Live events</h2>
+            <span className="text-[12px] text-[var(--d-ink)]/55">newest first · times in UTC · every 5 s</span>
+          </div>
+          {latest.length === 0 ? (
+            <p className="mt-4 text-sm text-[var(--d-ink)]/60">No events yet.</p>
           ) : (
-            <ul className="relative space-y-1.5">
-              <span className="absolute top-2 bottom-2 left-[7px] w-px bg-border" aria-hidden />
+            <ul className="mt-3 divide-y divide-[var(--d-ink)]/10 border-y border-[var(--d-ink)]/10">
               <AnimatePresence initial={false}>
-                {timeline.map((i) => {
-                  const r = (i.status === "DELETED" ? i.record : i.host_record ?? i.record)!;
+                {latest.map((i) => {
+                  const r = (i.status === "DELETED" ? i.record : (i.host_record ?? i.record))!;
                   return (
                     <motion.li
                       key={i.seq}
                       layout="position"
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
                       transition={{ duration: dur.base, ease: ease.out }}
-                      className="relative flex items-center gap-3 rounded-lg py-1 pr-2 pl-0 text-sm"
+                      className="grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-3 py-2 text-[13px]"
                     >
-                      <span className={cn("relative z-10 size-[15px] shrink-0 rounded-full border-4 border-background", SEV_DOT[r.severity])} />
-                      <span className="w-16 shrink-0 font-hash text-[11px] text-muted-foreground">{r.ts.slice(11, 19)}</span>
-                      <span className="hidden w-20 shrink-0 truncate text-xs text-muted-foreground sm:block">{r.source}</span>
-                      <span className="min-w-0 flex-1 truncate">{r.msg}</span>
-                      <span className="font-hash text-[11px] text-muted-foreground">#{i.seq}</span>
+                      <span className="font-hash text-[11.5px] text-[var(--d-ink)]/55">{r.ts.slice(11, 19)}</span>
+                      <span className="min-w-0 truncate">
+                        <span className="mr-2 text-[11px] font-semibold tracking-[0.1em] text-[var(--d-ink)]/55 uppercase">{r.source}</span>
+                        {r.msg}
+                      </span>
+                      <span className="font-hash text-[11px] text-[var(--d-ink)]/45">#{i.seq}</span>
                     </motion.li>
                   );
                 })}
               </AnimatePresence>
             </ul>
           )}
-        </Panel>
-
-        <Panel
-          title="Blockchain"
-          description="Independent append-only commitment registry"
-          tone={s ? (chainOk ? "safe" : "danger") : undefined}
-          actions={
-            <span className={cn("inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px]", chainOk ? "border-ok/25 text-ok" : "border-bad/30 text-bad")}>
-              <LiveDot tone={chainOk ? "ok" : "bad"} pulse={chainOk} /> {chainOk ? "connected" : s ? "offline" : "…"}
-            </span>
-          }
-        >
-          <dl className="grid grid-cols-2 gap-y-2 text-sm">
-            <dt className="text-muted-foreground">Chain ID</dt>
-            <dd className="text-right font-hash">{s?.chain.chain_id ?? "—"}</dd>
-            <dt className="text-muted-foreground">Latest block</dt>
-            <dd className="text-right font-hash">{s?.chain.latest_block ?? "—"}</dd>
-            <dt className="text-muted-foreground">Batches on contract</dt>
-            <dd className="text-right font-hash">{s?.chain.onchain_batch_count ?? "—"}</dd>
-            <dt className="text-muted-foreground">Contract</dt>
-            <dd className="text-right">
-              <HashChip value={s?.deployment?.contract_address} n={5} />
-            </dd>
-          </dl>
-          <div className="mt-4 mb-2 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">Recent anchoring transactions</div>
-          {recentTx.length === 0 ? (
-            <div className="py-4 text-center text-xs text-muted-foreground">No batches anchored yet.</div>
-          ) : (
-            <ul className="space-y-1.5">
-              <AnimatePresence initial={false}>
-                {recentTx.map((b) => (
-                  <motion.li
-                    key={b.batch_id}
-                    layout="position"
-                    initial={{ opacity: 0, x: 8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-2 rounded-lg border bg-card/40 px-2.5 py-1.5 text-xs"
-                  >
-                    <span className={cn("size-1.5 rounded-full", b.status === "anchored" ? "bg-ok" : "bg-warn")} />
-                    <span className="font-hash text-muted-foreground">#{b.batch_id}</span>
-                    <HashChip value={b.tx_hash} n={5} />
-                    <span className="ml-auto text-muted-foreground">
-                      <span className="tabular">{b.event_count}</span> ev · blk {b.block_number ?? "—"}
-                    </span>
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-            </ul>
-          )}
-        </Panel>
-      </div>
-
-      <div className="grid gap-4 xl:grid-cols-3">
-        <Panel className="xl:col-span-2" title="Threat activity" description="Events per minute by severity (from the evidence vault)">
-          <div className="h-60">
-            {threat.length === 0 ? (
-              <EmptyState title="No telemetry" />
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={threat} margin={{ left: -18, right: 8, top: 6 }}>
-                  <defs>
-                    {[
-                      ["crit", "var(--bad)"],
-                      ["elev", "var(--violet)"],
-                      ["rout", "var(--info)"],
-                    ].map(([id, c]) => (
-                      // Ink hatching instead of gradients (print look, docs/design/REFERENCE_SPEC.md)
-                      <pattern key={id} id={id} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                        <rect width="6" height="6" fill={c} fillOpacity={0.1} />
-                        <line x1="0" y1="0" x2="0" y2="6" stroke={c} strokeWidth={1.6} strokeOpacity={0.6} />
-                      </pattern>
-                    ))}
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="t" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} minTickGap={24} />
-                  <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip {...tooltipStyle} cursor={{ stroke: "var(--border)" }} />
-                  <Area type="monotone" dataKey="routine" name="info / low" stackId="1" stroke="var(--info)" fill="url(#rout)" strokeWidth={1.5} />
-                  <Area type="monotone" dataKey="elevated" name="medium" stackId="1" stroke="var(--violet)" fill="url(#elev)" strokeWidth={1.5} />
-                  <Area type="monotone" dataKey="critical" name="high / critical" stackId="1" stroke="var(--bad)" fill="url(#crit)" strokeWidth={1.5} />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
-          </div>
-        </Panel>
-
-        <Panel title="Integrity verification" description={last ? `Run #${last.run_id} · ${runs.data?.runs.length ?? 0} recent runs` : "No runs yet"}>
-          <div className="relative h-40">
-            {donut.length === 0 ? (
-              <EmptyState title="Not verified" />
-            ) : (
-              <>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={donut} dataKey="value" nameKey="name" innerRadius="68%" outerRadius="92%" paddingAngle={2} stroke="none" isAnimationActive>
-                      {donut.map((d) => (
-                        <Cell key={d.name} fill={d.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip {...tooltipStyle} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="pointer-events-none absolute inset-0 grid place-items-center text-center">
-                  <div>
-                    <div className={cn("font-display text-xl font-black tabular", integrity === 100 ? "text-ok" : "text-bad")}>{integrity !== null ? pct(integrity) : "—"}</div>
-                    <div className="text-[11px] text-muted-foreground">intact</div>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-          <div className="mt-3 mb-2 text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">Tampering alerts</div>
-          {lastReport.loading && lastId ? (
-            <LoadingRows rows={3} />
-          ) : findings.length === 0 ? (
-            <div className="rounded-lg border border-ok/20 bg-ok/[0.05] px-3 py-2 text-xs text-ok">{last ? "No tampering in the last verification." : "No verification yet."}</div>
-          ) : (
-            <ul className="space-y-1.5">
-              {findings.map((f, i) => (
-                <motion.li
-                  key={`${f.seq}-${f.status}`}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.04 }}
-                  className="flex items-center gap-2 text-xs"
-                >
-                  <StatusBadge status={f.status} />
-                  <span className="font-hash text-muted-foreground">#{f.seq}</span>
-                  <span className="truncate text-foreground/80">{(f.recovered_record ?? f.host_record)?.msg}</span>
-                </motion.li>
-              ))}
-              {(lastReport.data?.findings.length ?? 0) > findings.length && (
-                <li>
-                  <Link href="/attack" className="text-xs text-primary hover:underline">
-                    +{(lastReport.data?.findings.length ?? 0) - findings.length} more in the Attack Lab →
-                  </Link>
-                </li>
-              )}
-            </ul>
-          )}
-        </Panel>
-      </div>
-
-      <Link
-        href="/attack"
-        className="group relative flex items-center justify-between gap-4 overflow-hidden rounded-sm border-2 border-ink bg-primary p-6 text-primary-foreground transition-[transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_0_var(--ink)] sm:p-8"
-      >
-        <div aria-hidden className="ink-grain absolute inset-0 opacity-50" />
-        <div className="relative min-w-0">
-          <div className="label-caps mb-2 inline-block border-2 border-ink bg-card px-2 py-0.5 text-ink">Attack lab · live</div>
-          <div className="font-display text-[clamp(1.6rem,4vw,2.6rem)] leading-none font-black uppercase">Run the live attack</div>
-          <div className="mt-2 text-sm text-primary-foreground/90">Take root on web-prod-01, erase the trail, and watch the chain-backed verifier catch it.</div>
+          <Link href="/evidence" className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold underline-offset-2 hover:underline">
+            Every record, hash and proof <ArrowUpRight className="size-3.5" />
+          </Link>
         </div>
-        <span className="relative grid size-14 shrink-0 place-items-center rounded-full border-2 border-ink bg-card text-ink transition-transform duration-300 group-hover:translate-x-1">
-          <Swords className="size-6" />
-        </span>
-      </Link>
-    </div>
+
+        <div className="min-w-0">
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className="label">What the last verification found</h2>
+            {lastRun && <span className="text-[12px] text-[var(--d-ink)]/55">run #{lastRun}</span>}
+          </div>
+          {!lastRun ? (
+            <p className="mt-4 text-sm text-[var(--d-ink)]/60">Not verified yet. Hold to verify above.</p>
+          ) : findings.length === 0 ? (
+            <p className="mt-4 flex items-center gap-2 text-sm">
+              <LegendMark status="INTACT" onRed={false} /> Nothing diverged: every committed record matched the chain.
+            </p>
+          ) : (
+            <ul className="mt-3 divide-y divide-[var(--d-ink)]/10 border-y border-[var(--d-ink)]/10">
+              {findings.map((f, i) => {
+                const st = f.status as TickStatus;
+                return (
+                  <motion.li
+                    key={`${f.seq}-${f.status}`}
+                    initial={{ opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: dur.base, ease: ease.out, delay: i * 0.04 }}
+                    className="grid grid-cols-[18px_96px_minmax(0,1fr)] items-center gap-3 py-2 text-[13px]"
+                  >
+                    <LegendMark status={st} onRed={false} />
+                    <span className="label !text-[10.5px]">
+                      {TICK_META[st].label} <span className="font-hash !tracking-normal">#{f.seq}</span>
+                    </span>
+                    <span className="min-w-0 truncate">{(f.recovered_record ?? f.host_record)?.msg}</span>
+                  </motion.li>
+                );
+              })}
+            </ul>
+          )}
+          {lastRun && (report?.findings.length ?? 0) > findings.length && (
+            <Link href="/attack" className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold underline-offset-2 hover:underline">
+              {(report?.findings.length ?? 0) - findings.length} more in the attack lab <ArrowUpRight className="size-3.5" />
+            </Link>
+          )}
+        </div>
+      </div>
+    </RevealBand>
+  );
+}
+
+function LedgerBand({ batches, s }: { batches: Batch[]; s: Status | undefined | null }) {
+  const recent = [...batches].reverse().slice(0, 5);
+  return (
+    <RevealBand className="grain bg-[var(--d-field)]" ariaLabel="On-chain ledger">
+      <div className="mx-auto w-full max-w-[1320px] px-[clamp(20px,4vw,56px)] py-12 lg:py-16">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="label opacity-70">On-chain ledger</div>
+            <h2 className="mt-2 font-display text-[clamp(28px,3.4vw,40px)] leading-none font-black uppercase">Commitments</h2>
+          </div>
+          <div className="caption flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 text-[12px]">
+            <span>
+              Chain <span className="font-hash">{s?.chain.chain_id ?? "—"}</span>
+            </span>
+            <span>
+              Contract <HashChip value={s?.deployment?.contract_address} n={5} />
+            </span>
+            <span>
+              Batches on contract <span className="font-hash">{s?.chain.onchain_batch_count ?? "—"}</span>
+            </span>
+          </div>
+        </div>
+        {recent.length === 0 ? (
+          <p className="mt-6 text-sm text-[var(--d-ink)]/60">No batches anchored yet.</p>
+        ) : (
+          <div className="mt-6 overflow-x-auto scrollbar-thin">
+            <table className="w-full min-w-[560px] border-collapse text-left text-[13px]">
+              <thead>
+                <tr className="label !text-[10.5px] text-[var(--d-ink)]/60">
+                  <th className="py-2 pr-4 font-semibold">Batch</th>
+                  <th className="py-2 pr-4 font-semibold">Records</th>
+                  <th className="py-2 pr-4 font-semibold">Merkle root</th>
+                  <th className="py-2 pr-4 font-semibold">Transaction</th>
+                  <th className="py-2 pr-4 font-semibold">Block</th>
+                  <th className="py-2 font-semibold">Gas</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((b) => (
+                  <tr key={b.batch_id} className="border-t border-[var(--d-ink)]/12">
+                    <td className="py-2.5 pr-4 font-hash">#{b.batch_id}</td>
+                    <td className="py-2.5 pr-4">
+                      <span className="font-hash">{b.first_seq}–{b.last_seq}</span> <span className="text-[var(--d-ink)]/55">({b.event_count})</span>
+                    </td>
+                    <td className="py-2.5 pr-4">
+                      <HashChip value={b.merkle_root} n={6} />
+                    </td>
+                    <td className="py-2.5 pr-4">
+                      <HashChip value={b.tx_hash} n={6} />
+                    </td>
+                    <td className="py-2.5 pr-4 font-hash">{b.block_number ?? "—"}</td>
+                    <td className="py-2.5 font-hash">{b.gas_used?.toLocaleString() ?? "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <Link href="/proofs" className="mt-4 inline-flex items-center gap-1 text-[13px] font-semibold underline-offset-2 hover:underline">
+          Inspect receipts and proofs <ArrowUpRight className="size-3.5" />
+        </Link>
+      </div>
+    </RevealBand>
   );
 }

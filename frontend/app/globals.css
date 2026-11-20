@@ -197,3 +197,111 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Dashboard v2 (docs/design/REFERENCE_SPEC.md, S03). Scoped to .dash so other
+   routes keep their presentation until the direction is approved.
+   --------------------------------------------------------------------------- */
+.dash {
+  --d-field: #fbfaf7;
+  --d-plate: #ffffff;
+  --d-ink: #111111;
+  --d-red: #d81e1e;
+  --d-ok: #1f9d55;
+  --d-warn: #e8a400;
+  --d-info: #2f6fde;
+  --d-amber-field: #f4c542;
+  --dur-quick: 0.18s;
+  --dur-base: 0.28s;
+  --dur-scene: 0.6s;
+  --dur-hold: 0.7s;
+  --ease-out-d: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-io-d: cubic-bezier(0.65, 0, 0.35, 1);
+  color: var(--d-ink);
+  /* Unrevealed bands show ink, so the peek below the verdict scene always reads as the next scene */
+  background: var(--d-ink);
+}
+.dash .grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='120'%3E%3Cg fill='none' stroke='%23111' stroke-linecap='round' opacity='.07'%3E%3Cpath stroke-width='1.2' d='M0 8C70 3 140 14 210 8S320 3 360 8'/%3E%3Cpath stroke-width='1.8' d='M0 31C80 37 150 25 230 32S330 27 360 31'/%3E%3Cpath stroke-width='.9' d='M0 55C60 49 130 61 200 55S310 47 360 55'/%3E%3Cpath stroke-width='1.5' d='M0 79C90 86 160 72 240 80S330 75 360 79'/%3E%3Cpath stroke-width='1' d='M0 103C70 97 140 109 210 103S320 96 360 103'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 360px 120px;
+}
+.dash .label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.dash .caption {
+  background: var(--d-plate);
+  border: 1px solid var(--d-ink);
+  border-radius: 2px;
+}
+.dash .btn-caption {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0 0.85rem;
+  background: var(--d-plate);
+  border: 1px solid var(--d-ink);
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--d-ink);
+  transition: transform var(--dur-quick) var(--ease-out-d), box-shadow var(--dur-quick) var(--ease-out-d), background-color var(--dur-quick);
+}
+.dash .btn-caption:hover:not(:disabled) {
+  box-shadow: 3px 3px 0 0 var(--d-ink);
+  transform: translate(-1px, -1px);
+}
+.dash .btn-caption:active:not(:disabled) {
+  box-shadow: none;
+  transform: translate(1px, 1px);
+}
+.dash .btn-caption:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.dash .btn-caption.solid {
+  background: var(--d-ink);
+  color: var(--d-plate);
+}
+.dash :focus-visible {
+  outline: 2px solid var(--d-ink);
+  outline-offset: 2px;
+}
+.dash .on-red :focus-visible {
+  outline-color: #fff;
+}
+.dash .seal-tick {
+  transition: stroke var(--dur-base) var(--ease-out-d), fill var(--dur-base) var(--ease-out-d), opacity var(--dur-base);
+  animation: seal-tick-in 0.35s var(--ease-out-d) both;
+}
+@keyframes seal-tick-in {
+  from {
+    opacity: 0;
+  }
+}
+.dash .hold-ring {
+  transition: stroke-dashoffset 0.2s var(--ease-out-d);
+}
+.dash .hold-ring.holding {
+  transition: stroke-dashoffset var(--dur-hold) linear;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .dash .reveal {
+    clip-path: inset(100% 0 0 0);
+    transition: clip-path var(--dur-scene) var(--ease-out-d);
+  }
+  .dash .reveal.in {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash .seal-tick {
+    transition-delay: 0s !important;
+    animation: none !important;
+  }
+}

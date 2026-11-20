@@ -17,7 +17,8 @@ test.describe.serial("LEASH BLACKBOX core screens", () => {
     await page.goto("/");
     await expect(page.getByText(/Chain 31337 · block \d+/).first()).toBeVisible();
     await page.getByRole("button", { name: "Verify now" }).click();
-    await expect(page.getByText("CLEAN — host logs match the on-chain proof")).toBeVisible();
+    await expect(page.locator("#verdict")).toHaveText(/clean/i);
+    await expect(page.getByText("Host logs match the on-chain proof.")).toBeVisible();
     await expect(page.getByText(`${ingested} intact`)).toBeVisible();
   });
 
