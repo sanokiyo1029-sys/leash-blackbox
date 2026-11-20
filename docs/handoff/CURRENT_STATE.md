@@ -9,8 +9,8 @@ compromised host, an attack lab, and a standalone auditor verifier. Hackathon: T
 
 ## Git
 - Repo: private `sanokiyo1029-sys/leash-blackbox`, branch `main`
-- Latest verified commit: see the most recent `docs: update development handoff` commit in `git log`.
-  The commit before it holds all code verified below.
+- Latest verified code commit: `00443cb3e0465b6cbc9a1d55775bc624569d95e4` (pushed; origin/main matched local).
+  A `docs: update development handoff` commit follows it.
 - Commit identity (repo-local): `Rohan <277307707+sanokiyo1029-sys@users.noreply.github.com>`
 - Push auth: repo-local credential helper → `gh auth git-credential` (gh logged in as sanokiyo1029-sys)
 - Uncommitted / unpushed state: none at handoff time (verify with `git status`)

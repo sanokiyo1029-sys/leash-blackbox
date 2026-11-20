@@ -2,11 +2,11 @@
 
 ## S01 — 2026-11-20 — laptop A
 - **Starting commit:** none (new repository)
-- **Ending commit:** see the `docs: update development handoff` commit that closes S01 in `git log`
+- **Ending commit:** `00443cb` (code, pushed and verified on origin/main) + the `docs: update development handoff` commit that follows it
 - **Work completed:**
   - Inspected the environment and installed GitHub CLI.
   - Logged gh in as sanokiyo1029-sys. Set the repo-local identity (Rohan, GitHub noreply) and a
-    credential helper. Turned off AI attribution in Claude Code user settings. Added a guard hook.
+    credential helper. Turned off assistant attribution in the coding tool's user settings. Added a guard hook.
   - Hardhat project and the `LeashAnchor` contract with tests; ABI export.
   - Backend phases 1–4: three stores, collector/host agent, Merkle sealing, web3 anchoring,
     verification engine, attack lab, evidence export, FastAPI.
