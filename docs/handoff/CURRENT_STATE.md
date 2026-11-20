@@ -31,8 +31,9 @@ Hardening T-020 done (lab gating + ingest token).
 dashboard, evidence verification panel and auditor batch audit.
 **S02:** the remaining screens (Proofs, Validation, Guided Demo, Architecture, auditor full-bundle section) are on the kit
 (T-029). The guided demo re-reads the anchored roots from the contract after the attack. One-command start (T-023) done.
+Real log-file agent (T-022) done: `agent/tail_agent.py ingest|check`; editing the forwarded file is detected by `check`.
 Responsive checks (T-030) are automated: no overflow and no console errors at 375/768px on every route.
-**Next: T-022 (log-file agent), then T-021. T-018 needs the owner's testnet key.**
+**Next: T-021 (per-host credentials). T-018 needs the owner's testnet key.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -69,7 +70,7 @@ Responsive checks (T-030) are automated: no overflow and no console errors at 37
   flow was verified from bash.
 
 ## Pending
-Real log-file agent (T-022), per-host credentials (T-021), optional public testnet anchoring
+Per-host credentials (T-021), optional public testnet anchoring
 (T-018, needs the owner's key).
 
 ## Working commands (verified)
@@ -78,7 +79,9 @@ Real log-file agent (T-022), per-host credentials (T-021), optional public testn
   Ctrl+C stops all three; `-Stop` cleans up after a closed window; `-Dev` skips the build; `-NoSeed` starts empty.
 - `cd blockchain; npm install; npx hardhat test`
 - `cd blockchain; npx hardhat node --hostname 127.0.0.1 --port 8545`
-- `cd backend; .venv\Scripts\python -m pytest` → **81 passed** (S02; do not add `-q`, see KI-012)
+- `cd backend; .venv\Scripts\python -m pytest` → **86 passed** (S02, incl. 5 file-agent tests; do not add `-q`, see KI-012)
+- File agent (stack running): `python agent\tail_agent.py ingest data\demo-auth.log --seal`, then
+  `python agent\tail_agent.py check data\demo-auth.log` → MATCHES (exit 0); after deleting/editing a line → TAMPERING_DETECTED (exit 2)
 - `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
 - `python verifier\leash_verify.py BUNDLE.json --rpc http://127.0.0.1:8545`
 - `cd frontend; npm install; npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`
@@ -101,13 +104,14 @@ pytest starts its own node on a free port.
 None confirmed. See KNOWN_ISSUES.md for limitations.
 
 ## Current blocker
-Pushing from laptop B needs a GitHub login with write access (`rohanshahare` after accepting the invitation, or the
-owner). A `GH_TOKEN` environment variable overrides `gh auth login`, so it has to be unset in that shell first.
+None. Laptop B: `gh` is logged in as `rohanshahare` (keyring, push access confirmed). A machine-level `GH_TOKEN`
+variable for `lector-sys` (READ only) still overrides it, so push with `env -u GH_TOKEN git push origin main` (bash)
+or clear `$env:GH_TOKEN` in that PowerShell window first.
 
 ## Exact next task
-T-022: `agent/tail_agent.py` that tails a syslog/auth.log-style file and forwards new lines to `/api/events/ingest`
-(bearer token from `LEASH_INGEST_TOKEN`), remembers its file offset so nothing is ingested twice, skips and reports
-malformed lines, keeps file order, with pytest coverage. Acceptance: editing the tailed file after ingest is detected by verify.
+T-021: per-host ingest credentials. A token per `host_id`, stored hashed in the vault, so a host can only ingest events
+whose `host` field is its own; keep `LEASH_INGEST_TOKEN` working as the single-token fallback; tests for wrong host /
+wrong token / right token; document configuration. Then final polish and presentation prep.
 Keep the e2e selectors working whenever the UI changes: "Run the full story", "Load protected vault evidence",
 "Verify in my browser", "status 1 · 1 log", "Protected evidence".
 

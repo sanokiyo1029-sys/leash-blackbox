@@ -79,3 +79,15 @@
   - Manual browser check against the started stack: Proof Explorer, full demo story (step 6 "On-chain commitment
     unchanged", 1/1 roots), auditor host bundle at 375px (TAMPERING DETECTED, 12 MISSING rows, no horizontal overflow).
 - **Not done:** `.sh` start script (only Windows was required); T-022, T-021, T-018.
+- **Push:** owner logged gh in as `rohanshahare` (device flow); pushed `0b311df..54fa106`, remote head verified.
+- **T-022 (same session, later):**
+  - `agent/tail_agent.py` (stdlib only): `ingest` forwards complete new lines in file order. Its state keeps the byte
+    offset plus a SHA-256 of the forwarded prefix, so re-runs never resend and a rewritten prefix is refused (exit 2).
+    It reads RFC 3164 / ISO syslog with sshd/sudo/pam rules and JSON lines; unknown lines are committed as `unparsed`;
+    lines over 4096 chars are reported, not sent. `--seal` anchors right away, `--follow` polls.
+  - `check` proves the vault export with `leash_verify` (refuses unproven evidence), then diffs the file and reports
+    ERASED / ALTERED / INJECTED / NOT_COMMITTED.
+  - Tests: `backend/tests/test_tail_agent.py` → 5 passed; full backend suite → 86 passed.
+  - Live run against the started stack, agent on the system Python 3.14 (not the venv): 14 lines forwarded and anchored
+    (1 unparsed), re-run forwarded 0, `check` MATCHES; after deleting one line and rewriting the attacker IP on another,
+    `check` reported 1 ERASED (original text) and 1 ALTERED (was/now), exit 2; `ingest` then refused to resume, exit 2.
