@@ -41,5 +41,5 @@
     the evidence verification panel and the auditor batch audit. Added Motion (`motion` npm).
   - Tests: backend 81 passed; e2e 7 smoke passed (the Attack Lab test also asserts 0 console errors); screenshots
     were regenerated.
-- **Remaining problems:** legacy screens not yet restyled (T-029); mobile pass across all routes (T-030); T-018,
-  T-021, T-022 and T-023 are open.
+  - Responsive e2e: 16 passed (8 routes × 375/768px, no overflow, no console errors).
+- **Remaining problems:** legacy screens not yet restyled (T-029); T-018, T-021, T-022 and T-023 are open.

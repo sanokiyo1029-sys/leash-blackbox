@@ -23,9 +23,9 @@ Validation experiments (T-015) done; results committed in `docs/validation/RESUL
 Pitch script (`docs/PITCH.md`) and real screenshots (`docs/img/`) done (T-019).
 Hardening T-020 done (lab gating + ingest token).
 **Premium UI transformation (T-024..T-028) done:** design system, Attack Lab split-screen centerpiece,
-dashboard, evidence verification panel and auditor batch audit. Legacy screens are still to be restyled (T-029),
-and the mobile pass on every route is still to do (T-030).
-**Next: T-029 restyle legacy screens with the kit, T-030 mobile pass; then T-022/T-023/T-021. T-018 needs the owner's testnet key.**
+dashboard, evidence verification panel and auditor batch audit. Legacy screens are still to be restyled (T-029).
+Responsive checks (T-030) are automated: no overflow and no console errors at 375/768px on every route.
+**Next: T-029 restyle legacy screens with the kit; then T-022/T-023/T-021. T-018 needs the owner's testnet key.**
 
 ## Completed and verified (2026-11-20)
 - `LeashAnchor.sol`: append-only batches, on-chain sequence continuity, anchorer allowlist.
@@ -71,7 +71,7 @@ Real log-file agent (T-022), start script (T-023), per-host credentials (T-021),
 - `cd backend; .venv\Scripts\python -m uvicorn app.main:create_app --factory --port 8000`
 - `python verifier\leash_verify.py BUNDLE.json --rpc http://127.0.0.1:8545`
 - `cd frontend; npm install; npm run dev` (http://localhost:3000), `npm run build`, `npm run lint`
-- `cd frontend; npm run test:e2e` → **8 passed** (7 smoke + 1 screenshot spec skipped unless CAPTURE=1) (starts its own Hardhat :8546, API :8011, Next :3011;
+- `cd frontend; npm run test:e2e` → smoke **7 passed** + responsive **16 passed** (the screenshot spec is skipped unless CAPTURE=1) (starts its own Hardhat :8546, API :8011, Next :3011;
   uses the installed Microsoft Edge, or set `PW_CHANNEL=chromium` after `npx playwright install chromium`)
 
 ## Failing commands
