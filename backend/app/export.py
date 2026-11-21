@@ -18,7 +18,8 @@ from sqlalchemy import select
 from .merkle import merkle_proof
 from .records import record_from_host, utc_now_iso
 from .service import HASH_SPEC, LeashService
-from .storage import Batch, HostEvent, VaultEvent
+from .storage import Batch, HostEvent, VaultEvent, WitnessObservation, WitnessRegistration
+from .witness import POLICY as WITNESS_POLICY, WITNESS_ROLES
 
 BUNDLE_FORMAT = "leash-blackbox-evidence/v1"
 
@@ -83,6 +84,19 @@ def build_bundle(svc: LeashService, source: str = "vault", seqs: list[int] | Non
             if seq not in anchored_seqs and (wanted is None or seq in wanted):
                 extras.append({"seq": seq, "record": record})
 
+    # The 2-of-3 rule needs every host login, so only a full bundle carries the witnesses (also keeps selective
+    # disclosure small). Observations are the exact signed bytes, in store order, as the backend evaluates them.
+    witness = None
+    if wanted is None:
+        with svc.stores.vault() as s:
+            registry = [{"witness_id": r.witness_id, "role": r.role}
+                        for r in s.scalars(select(WitnessRegistration).order_by(WitnessRegistration.witness_id))
+                        if r.role in WITNESS_ROLES]
+        with svc.stores.witness() as s:
+            observations = [{"witness_id": r.witness_id, "claim_json": r.claim_json, "signature": r.signature}
+                            for r in s.scalars(select(WitnessObservation).order_by(WitnessObservation.id))]
+        witness = {"policy": WITNESS_POLICY, "registry": registry, "observations": observations}
+
     return {
         "format": BUNDLE_FORMAT,
         "exported_at": utc_now_iso(),
@@ -93,6 +107,7 @@ def build_bundle(svc: LeashService, source: str = "vault", seqs: list[int] | Non
         "batches": batches_out,
         "events": events_out,
         "unanchored_records": extras,
+        "witness": witness,
         "notes": {
             "unanchored_in_vault": unanchored,
             "verification": "Claims in this file are untrusted. Verify with verifier/leash_verify.py against an "

@@ -157,7 +157,7 @@ export default function AuditorPortal() {
         <Panel
           title={`Reference verifier (leash_verify.py) — ${cliResult.verdict}`}
           description="The same stdlib-only verifier an auditor runs offline, executed on the server against its configured RPC endpoint."
-          tone={cliResult.verdict === "TAMPERING_DETECTED" ? "danger" : "safe"}
+          tone={cliResult.verdict.startsWith("VERIFIED") ? "safe" : ["TAMPERING_DETECTED", "OBSERVED_OMISSION"].includes(cliResult.verdict) ? "danger" : "neutral"}
         >
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             {(["events_checked", "verified", "tampered", "missing", "uncommitted"] as const).map((k) => (

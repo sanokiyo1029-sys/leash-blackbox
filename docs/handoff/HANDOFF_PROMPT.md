@@ -1,7 +1,8 @@
 # Continuation guide (send this to whoever continues)
 
 **State at handoff (2026-11-21, S10, laptop B):** `main` has the data-hall homepage tour (S08/S09) and the second
-witness with 2-of-3 corroboration (T-044, S10).
+witness with 2-of-3 corroboration (T-044, S10). Branch `backend/witness-audit` (T-046, the auditor CLI checks the
+witnesses offline) is pushed and waits for the owner's merge decision.
 - Get it: `git fetch origin`, then `git switch main` and `git pull --ff-only`.
 - Read `docs/handoff/CURRENT_STATE.md` → "S08 status".
 - **Next:** T-046 (auditor CLI checks witness signatures and the 2-of-3 rule offline), the owner's real-phone walk

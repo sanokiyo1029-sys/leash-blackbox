@@ -207,8 +207,10 @@ def check_file(log: Path, http: Http, rpc_url: str, contract: str | None = None)
 
     bundle = http("GET", "/api/export?source=vault")
     proof = leash_verify.verify(bundle, rpc_url, contract)
-    result: dict[str, Any] = {"reference": proof["verdict"], "committed": 0, "lines": 0, "findings": []}
-    if proof["verdict"] != "VERIFIED":
+    # The file check needs the records proven on-chain; the witnesses' omission rule is a separate question.
+    reference = proof.get("records_verdict", proof["verdict"])
+    result: dict[str, Any] = {"reference": reference, "committed": 0, "lines": 0, "findings": []}
+    if reference != "VERIFIED":
         result["verdict"] = "REFERENCE_NOT_PROVEN"
         result["errors"] = proof.get("errors", [])
         return result

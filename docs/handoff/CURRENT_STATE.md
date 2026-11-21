@@ -1,8 +1,33 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, session S10 (laptop B); `main` taken back from laptop A_
+_Last updated: 2026-11-21, session S10 (laptop B); T-046 on branch `backend/witness-audit`_
 
-## S10 status (laptop B, took `main` back from laptop A), read first
+## S10 branch `backend/witness-audit` (laptop B, T-046, NOT merged into `main`), read first
+- Started from `main` at `25467c6` (laptop A's T-055). Owner: "continue with the backend on your branch".
+- **T-046: the standalone auditor CLI checks the witnesses offline** (`verifier/leash_verify.py`, still stdlib-only and
+  sharing no code with the backend):
+  - secp256k1 public-key recovery for EIP-191 personal_sign (`recover_signer`), on the Keccak-256 it already had;
+    tested against eth_account (incl. non-ASCII text) and against malformed signatures (r = 0, s ≥ n, bad v, length).
+  - The 2-of-3 rule re-implemented (`check_witnesses`, policy `ssh-session-corroboration` v2 only; other versions are
+    "not evaluated"): signature + registered role per observation, one vote per role per session, matching against
+    host logins **this verifier proved on-chain itself**.
+  - It never accuses the host on incomplete evidence: unless the bundle is full, every record verifies and no vault
+    record is still unanchored, a session with no proven host login is `unresolved`, not an omission.
+  - Witness identities can be pinned out of band (`--witness gateway=0x... --witness identity=0x...`), like
+    `--contract`; without pins the registry is taken from the bundle with a warning. A test shows why: a swapped
+    registry plus two self-signed fake observations fools an unpinned run, a pinned run rejects them.
+  - New CLI verdicts: `OBSERVED_OMISSION`, `CONFLICTING_ATTESTATIONS`, `INCONCLUSIVE` (rejected observations or
+    unresolved sessions); exit code 2 for all of them. `records_verdict` keeps the records-only result, which the
+    tail agent's `check` now reads (a witnessed omission doesn't make proven records unproven).
+- **Bundle:** full exports (`/api/export`) carry `witness` = policy, registry (witness roles only) and every signed
+  observation as stored; selective bundles (one record, `/api/events/{seq}`) carry none.
+- Auditor page: the CLI panel is green only for VERIFIED*, red for tampering or an omission, neutral otherwise.
+- **Checks (branch, final code):** backend pytest **116 passed** (6 new in `tests/test_auditor_witness.py`, incl. CLI
+  and backend agreeing on the same bundle for an omission, a conflict and a forgery), frontend tsc + eslint clean,
+  Playwright **29 passed, 1 skipped**. Stdlib recovery costs ~20 ms per signature (KI-039).
+- **Next:** the owner decides whether to merge `backend/witness-audit` into `main`.
+
+## S10 status (laptop B, took `main` back from laptop A)
 - Pulled `b0ab9d2` (S09) fast-forward, clean. **T-044 done: a second witness and 2-of-3 corroboration.**
   - `backend/app/witness.py`: `GatewayWitness` (network path, claim kind `ssh_session`) and the new
     `IdentityWitness` (identity/auth control plane, kind `ssh_auth`), each with its own key

@@ -294,3 +294,7 @@
   `CONFLICTING_ATTESTATIONS` when only one witness attests; one vote per role per session; registered role must
   match the claim; host-agent keys no longer vote. Dispute packages carry the corroborating observation.
 - Checks: backend 110 passed, tsc + lint clean, Playwright 29 passed, 1 skipped. The demo stack was stopped for e2e and restarted.
+- S10 continued on branch `backend/witness-audit` (owner: "continue with the backend on your branch"): T-046, the
+  stdlib auditor CLI recovers secp256k1 signatures and applies the 2-of-3 rule offline, never accusing the host on
+  incomplete evidence; witness identities pinnable with `--witness`; full bundles carry the signed observations.
+  Backend 116 passed, tsc + lint clean, Playwright 29 passed, 1 skipped. Not merged into `main`.
