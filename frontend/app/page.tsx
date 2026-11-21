@@ -73,23 +73,8 @@ export default function Home() {
   return (
     <>
       <section id="top" data-room="gate" aria-labelledby="hero-title" className="hero-obsidian relative isolate min-h-[calc(100svh-56px)] overflow-hidden">
-        {mode !== "none" && (
-          // Phones: the rack gets its own zone between the headline and the copy; desktop: it fills the hero.
-          <div className="absolute inset-x-0 top-[205px] h-[40svh] lg:inset-0 lg:h-auto">
-            <MonolithScene
-              active={active}
-              reduce={mode === "still"}
-              begun={begun}
-              onSlot={(hover, click) => {
-                setHoverSlot(hover);
-                if (click) open();
-              }}
-            />
-          </div>
-        )}
-
-        <div className="pointer-events-none relative z-10 mx-auto flex min-h-[calc(100svh-56px)] w-full max-w-[1400px] flex-col px-[clamp(20px,4vw,56px)] pt-8 pb-24 lg:pt-14 lg:pb-10">
-          <div className="pointer-events-auto max-w-[660px]">
+        <div className="pointer-events-none mx-auto flex min-h-[calc(100svh-56px)] w-full max-w-[1400px] flex-col px-[clamp(20px,4vw,56px)] pt-8 pb-24 lg:pt-14 lg:pb-10">
+          <div className="pointer-events-auto relative z-10 max-w-[660px]">
             <p className="text-[11px] font-medium tracking-[0.28em] text-muted-foreground uppercase">Leash Blackbox · evidence infrastructure</p>
             <h1 id="hero-title" className="font-instrument mt-4 text-[clamp(46px,7.2vw,116px)] leading-[0.9] uppercase">
               Prove what happened
@@ -97,7 +82,22 @@ export default function Home() {
             </h1>
           </div>
 
-          <div className="mt-auto flex flex-wrap items-end justify-between gap-6 pt-[42svh] lg:pt-10">
+          {mode !== "none" && (
+            // Phones and tablets: the rack sits in the flow between the headline and the copy; desktop: it fills the hero.
+            <div className="pointer-events-auto relative -mx-[clamp(20px,4vw,56px)] my-2 h-[40svh] lg:absolute lg:inset-0 lg:m-0 lg:h-auto">
+              <MonolithScene
+                active={active}
+                reduce={mode === "still"}
+                begun={begun}
+                onSlot={(hover, click) => {
+                  setHoverSlot(hover);
+                  if (click) open();
+                }}
+              />
+            </div>
+          )}
+
+          <div className="relative z-10 mt-auto flex flex-wrap items-end justify-between gap-6 lg:pt-10">
             <div className="pointer-events-auto max-w-[400px]">
               <p className="text-[15px] leading-relaxed text-muted-foreground">
                 LEASH BLACKBOX keeps an independent, tamper-evident copy of a server&apos;s logs. One blade in this rack is dark: a session the
