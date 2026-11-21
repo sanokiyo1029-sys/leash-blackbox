@@ -36,8 +36,23 @@ Never force-push. Keep the e2e selectors in AGENTS.md working. Never fake verifi
 ```
 
 ## Laptop A progress (frontend/obsidian)
-- Started from `main` at `25467c6` (homepage rack hero + T-044 already merged).
-- In progress: carrying the homepage's Obsidian look across every route through the shared components.
+- Started from `main` at `25467c6` (homepage rack hero + T-044).
+- **Done:** the homepage's Obsidian look carried across every route through shared pieces only (no per-page redesigns;
+  evidence screens stay precise):
+  - palette: dark is neutral obsidian (`--paper #0b0c0f`, `--card #17191e`), light is pale marble; corners rounder
+    (`--radius 0.75rem`);
+  - display font: Instrument Serif, uppercase, weight 400 for every `font-display` heading (`app/globals.css`);
+  - header: pill navigation with a sliding active pill; chain status and the theme control as pills
+    (`components/app-shell.tsx`, `components/theme-control.tsx`); buttons are pills (`components/ui/button.tsx`);
+  - fix: the hero rack now renders under reduced motion (it draws on demand; `components/monolith-scene.tsx`).
+- **Checks on the branch's final code:** tsc + eslint clean; Playwright **29 passed, 1 skipped**; production build via
+  `start-all.cmd`; every route captured at 1440 and 375 in both themes: no horizontal overflow, no page errors.
 
 ## When laptop A stopped
-_(filled in at the end)_
+- Branch **`frontend/obsidian`** is pushed; its last commit is the one that added this section.
+- `git merge-tree` preview against `main` at `acad9ab` (laptop B's T-046): **merges cleanly, no conflicts.**
+  The only frontend file laptop B changed since `25467c6` is `frontend/app/auditor/page.tsx` (one line).
+- Nothing on laptop A is uncommitted. Laptop A's demo stack may still be running at :3000; it does not affect git.
+- Not done on laptop A: a real-phone check of the rack hero, frame rate of the rack on a weak GPU.
+- **Laptop B: follow the prompt above** (backend first, then `git merge --no-ff origin/frontend/obsidian`, rerun every
+  check with the stack stopped, push `main`, verify `git ls-remote origin main` = HEAD).
