@@ -9,8 +9,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-plex-mono);
-  --font-heading: var(--font-cormorant);
-  --font-display: var(--font-cormorant);
+  --font-heading: var(--font-instrument);
+  --font-display: var(--font-instrument);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -66,15 +66,15 @@
 /* Archive at Dawn (light) */
 :root {
   color-scheme: light;
-  --paper: #f5f1e8;
+  --paper: #f3efe8;
   --ink: #20262b;
   --spot-yellow: #b07a1e;
 
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: #e8e2d6;
+  --card: #e9e4da;
   --card-foreground: var(--ink);
-  --popover: #ece7dc;
+  --popover: #eee9e0;
   --popover-foreground: var(--ink);
   --primary: #725124;
   --primary-foreground: #f5f1e8;
@@ -100,7 +100,7 @@
   --chart-4: #a2332a;
   --chart-5: #5d47a0;
 
-  --radius: 0.25rem;
+  --radius: 0.75rem;
   --sidebar: var(--paper);
   --sidebar-foreground: var(--ink);
   --sidebar-primary: var(--primary);
@@ -118,18 +118,18 @@
 /* The Midnight Archive (dark) */
 .dark {
   color-scheme: dark;
-  --paper: #111820;
+  --paper: #0b0c0f;
   --ink: #e9e2d3;
   --spot-yellow: #e0b45c;
 
-  --card: #202c36;
-  --popover: #24313c;
+  --card: #17191e;
+  --popover: #1c1f25;
   --primary: #cead70;
   --primary-foreground: #111820;
-  --secondary: #19232c;
-  --muted: #19232c;
+  --secondary: #121419;
+  --muted: #121419;
   --muted-foreground: #acb7bc;
-  --accent: #19232c;
+  --accent: #121419;
   --destructive: #f08a7b;
   --border: rgb(233 226 211 / 14%);
   --input: rgb(233 226 211 / 35%);
@@ -333,6 +333,12 @@
   background: color-mix(in oklab, var(--card) 50%, transparent);
   border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
   backdrop-filter: blur(18px) saturate(1.15);
+}
+/* Display headings site-wide: the hero's condensed serif, uppercase, at its one weight (beats font-semibold). */
+.font-display {
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
 }
 .font-instrument {
   font-family: var(--font-instrument), "Times New Roman", serif;

@@ -93,6 +93,9 @@ function Rack({ reduce, begun, onSlot }: { reduce: boolean; begun: boolean; onSl
     };
   }, [gl, invalidate]);
 
+  // Reduced motion renders on demand only: draw after mounting and whenever the layout or the case changes.
+  useEffect(() => invalidate(), [invalidate, begun, size.width, size.height]);
+
   const p = useMemo(() => ({ a: new THREE.Vector3(), b: new THREE.Vector3(), t: new THREE.Vector3(), r: new THREE.Vector3(), w: new THREE.Vector3(), n: new THREE.Vector3() }), []);
   useFrame((state, dt) => {
     const time = reduce ? 1.2 : state.clock.elapsedTime;

@@ -14,14 +14,14 @@ const OPTIONS: { value: ThemeChoice; label: string; Icon: typeof Sun }[] = [
 export function ThemeControl({ name, labels = false }: { name: string; labels?: boolean }) {
   const choice = useThemeChoice();
   return (
-    <fieldset className="flex shrink-0 items-center gap-0.5 rounded-md border border-border bg-card p-0.5">
+    <fieldset className="flex shrink-0 items-center gap-0.5 rounded-full border border-border bg-card p-0.5">
       <legend className="sr-only">Appearance</legend>
       {OPTIONS.map(({ value, label, Icon }) => (
         <label
           key={value}
           title={label}
           className={cn(
-            "flex h-7 cursor-pointer items-center gap-1.5 rounded-[3px] px-1.5 text-muted-foreground transition-colors hover:text-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
+            "flex h-7 cursor-pointer items-center gap-1.5 rounded-full px-1.5 text-muted-foreground transition-colors hover:text-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring",
             labels && "px-2.5 text-xs font-medium",
             choice === value && "bg-background text-foreground shadow-[inset_0_0_0_1px_var(--border)]",
           )}
