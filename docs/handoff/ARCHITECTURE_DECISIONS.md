@@ -89,6 +89,8 @@ and anchored batch rows are frozen.
 - *Host-side signing keys:* the attacker owns the host, so any key there is theirs.
 
 ## ADR-008 Homepage 3D tour (S08)
+> **Superseded in S09** by the interactive rack hero (`frontend/components/monolith-scene.tsx`, see CURRENT_STATE "S09"): the owner rejected the scroll tour as slide-like. The live verification it introduced is kept.
+
 
 - **What:** `/` walks a judge through one case in a data hall (`components/datacenter-scene.tsx`): entrance, host
   rack `web-prod-01`, the network tap as the independent witness, the evidence vault, the verification wall.

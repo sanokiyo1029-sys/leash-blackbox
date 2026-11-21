@@ -283,6 +283,11 @@
   bloom threshold made per theme to stop the light-theme washout. A static shadow map was tried, measured no gain,
   reverted. Final code: tsc + lint clean, Playwright 29 passed + 1 skipped.
 
+- **Owner: "interactive design, not ppt".** Replaced the station tour with an original Obsidian-style hero (3D obsidian rack,
+  chrome ribbon, drag, empty slot → demo case) plus the live verification. MotionSites' Obsidian is a paid prompt, so it was
+  used as a visual reference only. Hit KI-039 (stale CSS from the Turbopack cache). Final: tsc + lint clean, Playwright
+  29 passed + 1 skipped, production build, browser checks at 375 and 1440 in both themes.
+
 ### S10 (laptop B, 2026-11-21): T-044 second witness + 2-of-3
 - Pulled `b0ab9d2` (S09) fast-forward. Owner: "continue with the backend and push".
 - T-044: identity/auth control-plane witness with its own key; policy v2 (2 of 3: host, gateway, identity);

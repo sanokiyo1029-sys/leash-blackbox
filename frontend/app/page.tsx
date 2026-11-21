@@ -2,38 +2,30 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
-import Image from "next/image";
 import Link from "next/link";
-import { AlertTriangle, ArrowDown, ArrowRight, Check, ChevronDown, Eye, FileSearch, LayoutDashboard, RotateCcw, Stamp, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowRight, Check, ChevronDown, LayoutDashboard, RotateCcw, Stamp, X } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { api, short, useApi } from "@/lib/api";
-import { CASE_RESULT, ROOMS, resetCase, setCase, useCase, type Room } from "@/lib/case-state";
+import { CASE_RESULT, resetCase, setCase, useCase, type Room } from "@/lib/case-state";
 import type { Batch, EventItem, EventRecord, Status } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { leafHash, readBatch, rootFromProof, type ProofStep } from "@/lib/verify";
 
-// The data hall loads only here, after the page: operational routes never pay for three.js or its textures.
-const DataCenterScene = dynamic(() => import("@/components/datacenter-scene"), { ssr: false });
+const MonolithScene = dynamic(() => import("@/components/monolith-scene"), { ssr: false });
 
-// Demo case (fixture, labelled on screen): one host, one witness, one event ID, consistent times throughout.
-const EVENT_ID = "obs-7c41e2a9";
+// Demo case (labelled on screen as sample data), in the vocabulary of the real lab.
 const ROWS = [
-  { t: "02:03:11", user: "alice", ip: "10.0.4.12", port: 51734 },
-  { t: "02:09:47", user: "bob", ip: "10.0.4.27", port: 40211 },
-  { t: "02:14:06", user: "deploy", ip: "203.0.113.45", port: 51022, missing: true },
-  { t: "02:22:05", user: "carol", ip: "10.0.7.3", port: 45580 },
-  { t: "02:28:52", user: "svc-backup", ip: "10.0.9.41", port: 60117 },
+  { t: "02:03:11", user: "alice", ip: "10.0.4.12" },
+  { t: "02:09:47", user: "bob", ip: "10.0.4.27" },
+  { t: "02:14:06", user: "deploy", ip: "203.0.113.45", missing: true },
+  { t: "02:22:05", user: "carol", ip: "10.0.7.3" },
+  { t: "02:28:52", user: "svc-backup", ip: "10.0.9.41" },
 ];
-const MISSING = ROWS.find((r) => r.missing)!;
-const hostLine = (r: (typeof ROWS)[number]) => `sshd: Accepted publickey for ${r.user} from ${r.ip} port ${r.port} ssh2`;
-const witnessLine = (r: (typeof ROWS)[number]) => `SSH session · ${r.user} from ${r.ip} → web-prod-01`;
-const LABEL: Record<Room, string> = { gate: "Entrance", case: "Host rack", maze: "Network", undercroft: "Evidence vault", seal: "Verify" };
 
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" });
-const roomId = (r: Room) => (r === "gate" ? "top" : r);
 
-// 3D only with WebGL and motion allowed; everything else gets the light version (same rooms, same evidence).
+// The 3D rack needs WebGL2; reduced motion gets it still (no flow or sway, rendered on demand).
 let webgl: boolean | undefined;
 const motionQuery = () => matchMedia("(prefers-reduced-motion: reduce)");
 const subscribeMode = (f: () => void) => {
@@ -43,325 +35,186 @@ const subscribeMode = (f: () => void) => {
 };
 const getMode = () => {
   webgl ??= !!document.createElement("canvas").getContext("webgl2");
-  return webgl && !motionQuery().matches ? "3d" : "lite";
+  return !webgl ? "none" : motionQuery().matches ? "still" : "live";
 };
 
+const pill = "inline-flex h-11 items-center gap-2 rounded-full px-5 text-[14px] font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring";
+const pillSolid = `${pill} bg-foreground text-background hover:bg-foreground/85`;
+const pillGhost = `${pill} border border-foreground/25 hover:border-foreground/60`;
+
 export default function Home() {
-  const mode = useSyncExternalStore(subscribeMode, getMode, () => "lite" as const);
-  const tall = mode === "3d";
-  const { room } = useCase();
+  const mode = useSyncExternalStore(subscribeMode, getMode, () => "none" as const);
+  const { begun } = useCase();
+  const [active, setActive] = useState(true);
+  const [hoverSlot, setHoverSlot] = useState(false);
 
   useEffect(() => {
-    // The room whose section crosses the middle of the screen is the current one (Wick and the nav follow it).
+    // The section crossing the middle of the screen is the current one (Wick follows it); the rack sleeps off screen.
     const io = new IntersectionObserver(
       (entries) => entries.forEach((e) => e.isIntersecting && setCase({ room: (e.target as HTMLElement).dataset.room as Room })),
       { rootMargin: "-45% 0px -45% 0px" },
     );
     document.querySelectorAll("[data-room]").forEach((s) => io.observe(s));
-    return () => io.disconnect();
+    const vis = new IntersectionObserver(([e]) => setActive(e.isIntersecting));
+    const hero = document.getElementById("top");
+    if (hero) vis.observe(hero);
+    return () => {
+      io.disconnect();
+      vis.disconnect();
+    };
   }, []);
 
-  const begin = (e?: React.MouseEvent) => {
+  const open = (e?: React.MouseEvent) => {
     e?.preventDefault();
-    setCase({ begun: true, pulseAt: performance.now() }); // Wick lifts his lantern
-    setTimeout(() => {
-      go("case");
-      document.getElementById("case-title")?.focus({ preventScroll: true });
-    }, reduced() ? 0 : 650);
+    setCase({ begun: true });
+    setTimeout(() => document.getElementById("case")?.focus({ preventScroll: true }), 0);
   };
 
   return (
-    <div className="relative">
-      {/* The opening shot as a still: the light version's backdrop, and what shows while the 3D hall loads */}
-      <div className="tour-sky fixed inset-x-0 top-14 bottom-0 z-0" aria-hidden>
-        <Image src="/tour/poster-dark.jpg" alt="" fill sizes="100vw" priority className="hidden object-cover dark:block" />
-        <Image src="/tour/poster-light.jpg" alt="" fill sizes="100vw" priority className="block object-cover dark:hidden" />
-        {tall && <DataCenterScene />}
-      </div>
-      <RoomNav room={room} />
-      <Opening tall={tall} onBegin={begin} />
-      <Chapter id="case" room="case" tall={tall} title="The server's own log">
-        <Courtyard />
-      </Chapter>
-      <Chapter id="maze" room="maze" tall={tall} title="Where the session crossed" extra right>
-        <Maze lite={!tall} />
-      </Chapter>
-      <Chapter id="undercroft" room="undercroft" tall={tall} title="The log and the witness copy">
-        <Undercroft />
-      </Chapter>
-      <Chapter id="seal" room="seal" tall={tall} title="Verify against the chain" last>
-        <SealPress />
-      </Chapter>
+    <>
+      <section id="top" data-room="gate" aria-labelledby="hero-title" className="hero-obsidian relative isolate min-h-[calc(100svh-56px)] overflow-hidden">
+        {mode !== "none" && (
+          // Phones: the rack gets its own zone between the headline and the copy; desktop: it fills the hero.
+          <div className="absolute inset-x-0 top-[205px] h-[40svh] lg:inset-0 lg:h-auto">
+            <MonolithScene
+              active={active}
+              reduce={mode === "still"}
+              begun={begun}
+              onSlot={(hover, click) => {
+                setHoverSlot(hover);
+                if (click) open();
+              }}
+            />
+          </div>
+        )}
+
+        <div className="pointer-events-none relative z-10 mx-auto flex min-h-[calc(100svh-56px)] w-full max-w-[1400px] flex-col px-[clamp(20px,4vw,56px)] pt-8 pb-24 lg:pt-14 lg:pb-10">
+          <div className="pointer-events-auto max-w-[660px]">
+            <p className="text-[11px] font-medium tracking-[0.28em] text-muted-foreground uppercase">Leash Blackbox · evidence infrastructure</p>
+            <h1 id="hero-title" className="font-instrument mt-4 text-[clamp(46px,7.2vw,116px)] leading-[0.9] uppercase">
+              Prove what happened
+              <span className="mt-2 block text-[0.56em] leading-[1] text-foreground/75">— sealed, witnessed, anchored.</span>
+            </h1>
+          </div>
+
+          <div className="mt-auto flex flex-wrap items-end justify-between gap-6 pt-[42svh] lg:pt-10">
+            <div className="pointer-events-auto max-w-[400px]">
+              <p className="text-[15px] leading-relaxed text-muted-foreground">
+                LEASH BLACKBOX keeps an independent, tamper-evident copy of a server&apos;s logs. One blade in this rack is dark: a session the
+                server never logged.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <a href="#case" onClick={open} className={pillSolid}>
+                  Investigate the missing session <ArrowRight className="size-4" />
+                </a>
+                <Link href="/dashboard" className={pillGhost}>
+                  <LayoutDashboard className="size-4" /> Open dashboard
+                </Link>
+              </div>
+            </div>
+            <ChainCard />
+          </div>
+        </div>
+
+        <p aria-live="polite" className="pointer-events-none absolute inset-x-0 bottom-2.5 z-10 px-4 text-center text-xs text-muted-foreground">
+          {hoverSlot ? "02:14:06 · the witness saw this session, the host never logged it · click to open the case" : mode !== "none" ? "Drag to turn the rack" : ""}
+        </p>
+        {begun && <CaseCard onClose={() => setCase({ begun: false })} />}
+      </section>
+
+      <section id="seal" data-room="seal" aria-labelledby="seal-title" className="scroll-mt-14 border-t border-border">
+        <div className="mx-auto grid w-full max-w-[1400px] gap-10 px-[clamp(20px,4vw,56px)] py-16 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:py-24">
+          <div>
+            <p className="text-[11px] font-medium tracking-[0.28em] text-muted-foreground uppercase">Live, not a mock-up</p>
+            <h2 id="seal-title" className="font-instrument mt-4 text-[clamp(40px,5vw,76px)] leading-[0.92] uppercase">
+              Verify a real record
+            </h2>
+            <p className="mt-5 max-w-[46ch] text-[15px] leading-relaxed text-muted-foreground">
+              Your browser hashes a record from this stack, climbs its Merkle proof and compares the root with the commitment on-chain. Then it
+              does the same for a copy with one detail changed.
+            </p>
+          </div>
+          <div className="glass rounded-2xl p-5 sm:p-6">
+            <SealPress />
+          </div>
+        </div>
+      </section>
+    </>
+  );
+}
+
+/** Lower-right glass card: the live chain this page is talking to. */
+function ChainCard() {
+  const { data, error } = useApi<Status>("/api/status", 8000);
+  return (
+    <div className="glass pointer-events-auto w-full rounded-2xl p-4 sm:w-[300px]">
+      <p className="font-instrument text-[24px] leading-[1.02] uppercase">
+        The log can lie —<br />
+        the chain remembers.
+      </p>
+      <p className="mt-3 font-hash text-[11px] text-muted-foreground">
+        {error ? "Evidence service offline" : data ? `Chain ${data.chain.chain_id ?? "?"} · block ${data.chain.latest_block ?? "?"} · ${data.counts.anchored_events} events anchored` : "Connecting to the chain…"}
+      </p>
+      <a
+        href="#seal"
+        onClick={(e) => {
+          e.preventDefault();
+          go("seal");
+        }}
+        className="mt-3 inline-flex items-center gap-1 text-sm font-semibold underline-offset-4 hover:underline"
+      >
+        Verify a real record <ArrowDown className="size-3.5" />
+      </a>
     </div>
   );
 }
 
-/** Jump to any room (desktop rail) or tap to the next one (phones). */
-function RoomNav({ room }: { room: Room }) {
-  const i = ROOMS.indexOf(room);
-  const next = ROOMS[i + 1];
+/** The demo case, opened from the button or the rack's dark slot. */
+function CaseCard({ onClose }: { onClose: () => void }) {
   return (
-    <>
-      <nav aria-label="Rooms" className="fixed top-1/2 left-4 z-20 hidden -translate-y-1/2 xl:block">
-        <ol className="space-y-1">
-          {ROOMS.map((r) => (
-            <li key={r}>
-              <button
-                type="button"
-                onClick={() => go(roomId(r))}
-                aria-current={r === room ? "step" : undefined}
-                className={cn(
-                  "flex items-center gap-2 rounded-[3px] px-2 py-1.5 text-xs font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  r === room ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <span className={cn("size-1.5 rounded-full", r === room ? "bg-primary" : "bg-muted-foreground/50")} aria-hidden />
-                {LABEL[r]}
-              </button>
-            </li>
-          ))}
-        </ol>
-      </nav>
-      {next && (
-        <button
-          type="button"
-          onClick={() => go(roomId(next))}
-          className={cn(buttonVariants({ variant: "outline" }), "fixed bottom-[max(16px,env(safe-area-inset-bottom))] left-4 z-20 h-11 gap-1.5 bg-background/90 backdrop-blur-sm xl:hidden")}
-        >
-          Next: {LABEL[next]} <ArrowDown className="size-4" />
-        </button>
-      )}
-    </>
-  );
-}
-
-function Opening({ tall, onBegin }: { tall: boolean; onBegin: (e?: React.MouseEvent) => void }) {
-  return (
-    <section id="top" data-room="gate" aria-labelledby="hero-title" className={cn("pointer-events-none relative", tall ? "h-[210svh]" : "")}>
-      <div className={cn("relative h-[calc(100svh-56px)] overflow-hidden", tall && "sticky top-14")}>
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,var(--hero-scrim)_0%,var(--hero-scrim)_26%,transparent_50%)] lg:bg-[linear-gradient(90deg,var(--hero-scrim)_0%,var(--hero-scrim)_24%,transparent_52%)]" />
-        <div className="relative mx-auto flex h-full w-full max-w-[1320px] px-[clamp(20px,4vw,56px)] pt-8 lg:items-center lg:pt-0 xl:pl-36">
-          <div className="pointer-events-auto max-w-[540px]">
-            <p className="label-caps text-muted-foreground">Leash Blackbox</p>
-            <h1 id="hero-title" className="mt-3 font-display text-[clamp(38px,5.4vw,76px)] leading-[1.02] font-semibold text-balance">
-              Know what happened. Even when your server lies.
-            </h1>
-            <p className="mt-4 max-w-[46ch] text-[16px] leading-relaxed text-foreground/85 sm:text-[17px]">
-              LEASH BLACKBOX helps your security team compare a server&apos;s logs with independently preserved evidence.
-            </p>
-            <div className="mt-6 flex flex-wrap items-center gap-3 lg:mt-8">
-              <a href="#case" onClick={onBegin} className={cn(buttonVariants({ size: "lg" }), "h-12 gap-2 px-5 text-[15px]")}>
-                Investigate the missing session. <ArrowDown className="size-4" />
-              </a>
-              <Link href="/dashboard" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-12 gap-2 bg-background/70 px-5 text-[15px]")}>
-                <LayoutDashboard className="size-4" /> Open dashboard
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/** One room: a tall stretch of scroll for the camera, with its panel held in view (top on desktop, bottom on phones). */
-function Chapter({ id, room, tall, title, extra, last, right, children }: { id: string; room: Room; tall: boolean; title: string; extra?: boolean; last?: boolean; right?: boolean; children: React.ReactNode }) {
-  return (
-    <section
-      id={id}
-      data-room={room}
-      aria-labelledby={`${id}-title`}
-      className={cn(
-        "pointer-events-none relative z-10 scroll-mt-14",
-        tall ? cn("flex flex-col justify-end lg:justify-start", last ? "min-h-[150svh]" : extra ? "min-h-[300svh]" : "min-h-[220svh]") : "border-t border-border",
-      )}
+    <div
+      id="case"
+      tabIndex={-1}
+      role="region"
+      aria-labelledby="case-title"
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
+      className="glass absolute inset-x-3 bottom-3 z-20 max-h-[72%] overflow-y-auto rounded-2xl p-4 outline-none sm:p-5 lg:inset-x-auto lg:bottom-10 lg:left-[clamp(20px,4vw,56px)] lg:w-[560px]"
     >
-      <div className={cn("mx-auto w-full max-w-[1320px] px-[clamp(12px,4vw,56px)] xl:pl-36", tall ? "sticky bottom-3 py-3 lg:top-[72px] lg:bottom-auto lg:py-0" : "py-12")}>
-        <div className={cn("pointer-events-auto w-full rounded-md border border-border bg-card/92 p-4 shadow-[var(--shadow-pop)] backdrop-blur-sm sm:p-5", tall ? "max-h-[64svh] overflow-y-auto lg:max-h-[calc(100svh-96px)] lg:max-w-[480px]" : "max-w-[760px]", tall && right && "lg:ml-auto")}>
-          <h2 id={`${id}-title`} tabIndex={-1} className="font-display text-[clamp(26px,3vw,34px)] leading-tight font-semibold outline-none">
-            {title}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-medium tracking-[0.2em] text-muted-foreground uppercase">Demo case · sample data, not a live verification</p>
+          <h2 id="case-title" className="font-instrument mt-1 text-[34px] leading-none uppercase">
+            The missing session
           </h2>
-          {children}
         </div>
+        <button type="button" onClick={onClose} aria-label="Close the case" className="rounded-full p-1.5 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
+          <X className="size-4" />
+        </button>
       </div>
-    </section>
-  );
-}
-
-const DemoLabel = () => (
-  <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-    <span className="inline-flex items-center gap-1 rounded-[3px] border border-primary/60 px-1.5 py-0.5 font-semibold text-primary">
-      <FileSearch className="size-3.5" aria-hidden /> Demo case
-    </span>
-    Sample data, not a live verification.
-  </p>
-);
-
-function Courtyard() {
-  return (
-    <>
-      <DemoLabel />
-      <p className="mt-3 text-sm text-muted-foreground">
-        <span className="font-hash text-foreground">web-prod-01</span>&apos;s own SSH log, 02:00–02:30 UTC.
-      </p>
-      <ol className="mt-3 divide-y divide-border rounded-md border border-border font-hash text-[12.5px]">
-        {ROWS.map((r) =>
-          r.missing ? (
-            <li key={r.t} className="grid grid-cols-[64px_minmax(0,1fr)] gap-2 border-l-4 border-l-bad bg-bad/10 px-3 py-2 text-bad">
-              <span>{r.t}</span>
-              <span className="font-sans text-xs font-semibold">
-                <X className="mr-1 inline size-3.5 align-[-2px]" aria-hidden />
-                No entry in the host log
+      <p className="mt-2 text-sm text-muted-foreground">web-prod-01, 02:00–02:30 UTC: the server&apos;s SSH log next to the network tap&apos;s signed record.</p>
+      <ol className="mt-3 divide-y divide-border rounded-lg border border-border font-hash text-[12px]">
+        {ROWS.map((r) => (
+          <li key={r.t} className={cn("grid grid-cols-[64px_minmax(0,1fr)] gap-x-3 px-3 py-2", r.missing && "border-l-4 border-l-warn bg-warn/10 pl-2")}>
+            <span className="text-muted-foreground">{r.t}</span>
+            <span className="min-w-0">
+              <span className="block">
+                <span className="text-muted-foreground">host </span>
+                {r.missing ? <span className="font-sans font-semibold text-bad">No entry in the host log</span> : `${r.user} from ${r.ip}`}
               </span>
-            </li>
-          ) : (
-            <li key={r.t} className="grid grid-cols-[64px_minmax(0,1fr)] gap-2 px-3 py-2">
-              <span className="text-muted-foreground">{r.t}</span>
-              <span className="min-w-0 break-words">{hostLine(r)}</span>
-            </li>
-          ),
-        )}
+              <span className="block">
+                <span className="text-muted-foreground">tap </span>
+                {r.user} from {r.ip} · signed
+              </span>
+            </span>
+          </li>
+        ))}
       </ol>
-      <div className="mt-3 rounded-md border border-primary/50 bg-primary/10 px-3 py-2.5 text-sm">
-        <p className="font-semibold">
-          <Eye className="mr-1.5 inline size-4 align-[-3px] text-primary" aria-hidden />
-          Independent witness: an access event at {MISSING.t} UTC
-        </p>
-        <p className="mt-1 font-hash text-[12.5px] text-muted-foreground">
-          {EVENT_ID} · {witnessLine(MISSING)}
-        </p>
-      </div>
       <p className="mt-3 text-[15px] font-semibold">{CASE_RESULT}</p>
-      <p className="mt-4 border-l-2 border-primary pl-3 text-[15px]">
-        <span className="label-caps mr-2 text-muted-foreground">Wick</span>The server&apos;s log has a gap. Who else could have seen this session?
-      </p>
-      <button type="button" onClick={() => go("maze")} className={cn(buttonVariants({ size: "lg" }), "mt-4 h-11 gap-2 px-5")}>
-        <Eye className="size-4" /> Inspect witness
+      <p className="mt-1 text-xs text-muted-foreground">It proves the two records differ, not who removed the entry or why.</p>
+      <button type="button" onClick={() => go("seal")} className={cn(pillSolid, "mt-4")}>
+        Verify a real record <ArrowDown className="size-4" />
       </button>
-    </>
-  );
-}
-
-function Maze({ lite }: { lite: boolean }) {
-  const { witnessSeen, replayAt } = useCase();
-  const replay = () => {
-    if (lite) setCase({ replayAt: null, witnessSeen: true, towerLit: true, pulseAt: performance.now() }); // no scene: the state changes at once
-    else setCase({ replayAt: performance.now(), witnessSeen: false, towerLit: false });
-  };
-  return (
-    <>
-      <p className="mt-3 text-[15px] leading-relaxed">
-        An intruder with root on web-prod-01 controls that rack and its log. From above the racks you can see why that is not enough: the session
-        reached the host through the network tap first, and the evidence vault sits in a cage of its own.
-      </p>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        The tap is the gateway witness. It signs every session it sees with its own key and keeps its own record, so taking over the server does not
-        hand over the witness. In this prototype the witness is a separate key and store on the same machine.
-      </p>
-      <button type="button" onClick={replay} disabled={replayAt !== null && !witnessSeen} className={cn(buttonVariants({ size: "lg" }), "mt-4 h-11 gap-2 px-5")}>
-        <RotateCcw className="size-4" /> Replay crossing
-      </button>
-      <div aria-live="polite">
-        {witnessSeen && (
-          <div className="mt-4 rounded-md border border-primary/50 bg-primary/10 px-3 py-2.5 text-sm">
-            <p className="font-semibold">Witness record · observed at the network tap</p>
-            <dl className="mt-1.5 grid grid-cols-[88px_minmax(0,1fr)] gap-x-2 gap-y-0.5 font-hash text-[12.5px]">
-              <dt className="text-muted-foreground">Event ID</dt>
-              <dd>{EVENT_ID}</dd>
-              <dt className="text-muted-foreground">Time</dt>
-              <dd>{MISSING.t} UTC</dd>
-              <dt className="text-muted-foreground">Session</dt>
-              <dd className="break-words">{witnessLine(MISSING)}</dd>
-              <dt className="text-muted-foreground">Signed by</dt>
-              <dd>gateway witness (secp256k1)</dd>
-            </dl>
-          </div>
-        )}
-      </div>
-      <p className="mt-3 text-xs text-muted-foreground">Illustrative: the hall, cages and racks picture the idea. This prototype implements the witness and the sealed vault in software.</p>
-      <button type="button" onClick={() => go("undercroft")} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 hover:underline">
-        Go to the evidence vault <ArrowDown className="size-4" />
-      </button>
-    </>
-  );
-}
-
-function Undercroft() {
-  const { removed } = useCase();
-  const [pick, setPick] = useState(MISSING.t);
-  const [seenAt, setSeenAt] = useState<string | null>(null);
-  return (
-    <>
-      <DemoLabel />
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <fieldset className="rounded-md border border-border">
-          <legend className="ml-2 px-1 text-sm font-semibold">Host log · web-prod-01</legend>
-          <ul className="divide-y divide-border font-hash text-[12px]">
-            {ROWS.filter((r) => r.t !== removed).map((r) => (
-              <li key={r.t}>
-                <label className="flex cursor-pointer gap-2 px-2.5 py-1.5 has-[:checked]:bg-muted">
-                  <input type="radio" name="host-row" value={r.t} checked={pick === r.t} onChange={() => setPick(r.t)} className="mt-0.5 accent-[var(--primary)]" />
-                  <span>
-                    <span className="text-muted-foreground">{r.t}</span> {r.user} from {r.ip}
-                  </span>
-                </label>
-              </li>
-            ))}
-          </ul>
-        </fieldset>
-        <div className="rounded-md border border-primary/50">
-          <p className="px-2.5 pt-1.5 text-sm font-semibold">Sealed witness copy</p>
-          <ul className="divide-y divide-border font-hash text-[12px]">
-            {ROWS.map((r) => (
-              <li key={r.t}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSeenAt(r.t);
-                    setCase({ revealAt: performance.now(), pulseAt: performance.now() });
-                  }}
-                  className={cn("w-full px-2.5 py-1.5 text-left outline-none hover:bg-muted focus-visible:bg-muted", r.t === removed && "bg-primary/10")}
-                >
-                  <span className="text-muted-foreground">{r.t}</span> {r.user} from {r.ip}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button
-          type="button"
-          disabled={!!removed || !pick}
-          onClick={() => {
-            setCase({ removed: pick, pulseAt: performance.now() });
-            setPick("");
-          }}
-          className={cn(buttonVariants({ size: "lg" }), "h-11 gap-2 px-4")}
-        >
-          <Trash2 className="size-4" /> Remove local entry in demo
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setCase({ removed: null });
-            setPick(MISSING.t);
-            setSeenAt(null);
-          }}
-          className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-11 gap-2 px-4")}
-        >
-          <RotateCcw className="size-4" /> Reset demo
-        </button>
-      </div>
-      <div aria-live="polite" className="mt-3 space-y-1 text-[15px]">
-        {removed && <p>The host&apos;s line for {removed} is gone; the sealed witness copy still has it.</p>}
-        {seenAt && (
-          <p className="text-sm text-muted-foreground">
-            {seenAt} UTC: observed at the network tap{seenAt === MISSING.t ? ` (${EVENT_ID})` : ""}.
-          </p>
-        )}
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -420,7 +273,7 @@ function SealPress() {
         }),
       );
       setOut({ sample, altered, checks, anchor, batch: info.batch, chainId: s.chain.chain_id ?? null, contract });
-      setCase({ seal: { seq: sample.seq, original: checks[0].ok, altered: checks[1].ok, block: anchor.block, chainId: s.chain.chain_id ?? null }, pulseAt: performance.now() });
+      setCase({ seal: { seq: sample.seq, original: checks[0].ok, altered: checks[1].ok, block: anchor.block, chainId: s.chain.chain_id ?? null } });
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {

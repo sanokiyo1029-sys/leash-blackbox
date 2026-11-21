@@ -12,7 +12,7 @@
 import type { Status, Verdict } from "@/lib/types";
 import { CASE_RESULT, type Room, type SealResult } from "@/lib/case-state";
 
-export type WickAction = { label: string; href: string; openHow?: boolean };
+export type WickAction = { label: string; href: string; openHow?: boolean; openCase?: boolean };
 export type WickReply = { text: string; action?: WickAction };
 export type LiveState = { ok: true; last: Status["last_verification"] } | { ok: false; error: string };
 export type WickContext = { path: string; compared: boolean; room?: Room; seal?: SealResult | null; live?: LiveState };
@@ -97,9 +97,9 @@ const VERDICT_MEANS: Record<Verdict, string> = {
 
 const ATTACK: WickAction = { label: "Open the Attack Lab", href: "/attack" };
 const DEMO: WickAction = { label: "Open the guided demo", href: "/demo" };
-const CASE: WickAction = { label: "Go to the sample case", href: "/#case" };
+const CASE: WickAction = { label: "Open the missing session", href: "/#top", openCase: true };
 const HOW: WickAction = { label: "How was this verified?", href: "/#how-verified", openHow: true };
-const WITNESS: WickAction = { label: "Inspect the witness", href: "/#maze" };
+const VERIFY: WickAction = { label: "Verify a real record", href: "/#seal" };
 
 const PAGES: { prefix: string; name: string; what: string }[] = [
   { prefix: "/attack", name: "Attack Lab", what: "the server's log store on the left, as an attacker can change it, and what was committed on-chain on the right. Run an attack, then press Verify integrity." },
@@ -138,12 +138,10 @@ type Topic = { id: string; terms: string[]; live?: (c: WickContext) => boolean; 
 const sealSays = (r: SealResult) =>
   `The verification checked record #${r.seq} from this stack against the root anchored on chain ${r.chainId ?? "?"}${r.block ? ` (block ${r.block})` : ""}. The original ${r.original ? "matches" : "does not match"}; the altered copy ${r.altered ? "matches" : "does not match"}, because changing one detail changes its digest.`;
 
-/** "What am I looking at?" in each room of the homepage tour (the courtyard uses the case answer below). */
-const ROOM_HERE: Partial<Record<Room, (c: WickContext) => WickReply>> = {
-  gate: () => ({ text: "You're at the entrance of the data hall. Deep in the hall, the amber light in its own cage is the network tap: the independent witness. Press Investigate the missing session to start at the host rack.", action: CASE }),
-  maze: () => ({ text: "From above the racks you see the trust zones: the host rack the intruder controls, the network tap that saw the session in its own cage, and the evidence vault. Press Replay crossing: when the session passes the tap, the witness records it with its own key (demo case obs-7c41e2a9)." }),
-  undercroft: () => ({ text: "Two records of the same half hour: the host's log and the witness's sealed copy. Remove the 02:14:06 entry from the host log and the sealed copy still holds it. Reset puts it back." }),
-  seal: (c) => (c.seal ? { text: sealSays(c.seal), action: HOW } : { text: "This step checks a real record from this stack, and a copy with one detail changed, against the root anchored on-chain. Press Verify evidence." }),
+/** "What am I looking at?" in each part of the homepage (once the case is open, the case answer below). */
+const ROOM_HERE: Record<Room, (c: WickContext) => WickReply> = {
+  gate: () => ({ text: "You're looking at a server rack. Drag it to turn it: one blade is dark, 02:14:06, a session the network tap signed and the host never logged. Click it, or press Investigate the missing session.", action: CASE }),
+  seal: (c) => (c.seal ? { text: sealSays(c.seal), action: HOW } : { text: "This part checks a real record from this stack, and a copy with one detail changed, against the root anchored on-chain. Press Verify evidence." }),
 };
 
 export const TOPICS: Topic[] = [
@@ -152,12 +150,9 @@ export const TOPICS: Topic[] = [
     terms: ["look at", "what look", "what happen", "this page", "explain page", "explain this", "what page", "where am"],
     live: (c) => isVerifyPage(c.path),
     reply: (c) => {
-      if (c.path === "/" && c.room && c.room !== "case" && ROOM_HERE[c.room]) return ROOM_HERE[c.room]!(c);
-      if (c.path === "/") {
-        return c.compared
-          ? { text: `${CASE_RESULT} The marked row at 02:14:06 is a session by deploy from 203.0.113.45: the gateway witness signed it, the server logged nothing.`, action: WITNESS }
-          : { text: "The homepage walks through a demo case: web-prod-01's SSH log for 02:00–02:30 UTC and an independent witness. Press Investigate the missing session to start in the courtyard.", action: CASE };
-      }
+      if (c.path === "/" && c.compared && c.room !== "seal")
+        return { text: `${CASE_RESULT} The marked row at 02:14:06 is a session by deploy from 203.0.113.45: the network tap signed it, the server logged nothing.`, action: VERIFY };
+      if (c.path === "/") return ROOM_HERE[c.room ?? "gate"](c);
       const p = pageOf(c.path);
       if (!p) return { text: "This page is part of the LEASH console. Ask me what LEASH does, or where to see the demo." };
       const last = c.live?.ok ? c.live.last : undefined;
@@ -171,9 +166,9 @@ export const TOPICS: Topic[] = [
     reply: (c) => ({
       text:
         c.path === "/" && !c.compared
-          ? "The gap shows in the courtyard, once you start the investigation. It proves the records differ: a signed observer saw a session the server never logged. It does not prove who removed it or why."
+          ? "The gap is the dark blade in the rack: open the case to see it next to the witness record. It proves the records differ: a signed observer saw a session the server never logged. It does not prove who removed it or why."
           : "It proves the two records differ: a signed observer saw a session that the server never logged. It does not prove who removed the entry or why; a stopped logger, a crash and an attacker look the same until someone investigates.",
-      action: c.path === "/" && c.seal ? HOW : c.path === "/" && c.compared ? WITNESS : c.path === "/" ? CASE : undefined,
+      action: c.path === "/" && c.seal ? HOW : c.path === "/" && c.compared ? VERIFY : c.path === "/" ? CASE : undefined,
     }),
   },
   {
@@ -334,7 +329,6 @@ export const FALLBACK = (c: WickContext): WickReply => ({
 /** Suggested prompts change with the page and the case state. */
 export function suggestions(c: WickContext): string[] {
   if (c.path === "/" && c.room === "seal") return ["What was verified?", "What does this result mean?", "How can my team try this?"];
-  if (c.path === "/" && (c.room === "maze" || c.room === "undercroft")) return ["What am I looking at?", "Where did the second record come from?", "What does this gap prove?"];
   if (c.path === "/") return c.compared ? ["What does this gap prove?", "Where did the second record come from?", "How can my team try this?"] : ["What does LEASH do?", "Show me the demo.", "What am I looking at?"];
   if (["/attack", "/dashboard", "/auditor", "/evidence", "/proofs"].some((p) => c.path.startsWith(p))) return ["What was verified?", "What does this result mean?", "What am I looking at?"];
   return ["What am I looking at?", "What does LEASH do?", "How can my team try this?"];

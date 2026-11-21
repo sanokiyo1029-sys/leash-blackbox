@@ -33,8 +33,8 @@ function useKeyboardInset() {
 /** One shared assistant for the whole site (mounted once in the app shell, so it survives navigation and theme switches). */
 export function Wick() {
   const path = usePathname();
-  const { room, seal } = useCase();
-  const compared = room !== "gate"; // on the homepage tour, the discrepancy is on screen from the courtyard on
+  const { room, seal, begun } = useCase();
+  const compared = begun; // the case card is open: the discrepancy is on screen
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
@@ -85,6 +85,7 @@ export function Wick() {
           onClose={close}
           onFollow={(a) => {
             if (a.openHow) setCase({ howOpen: true });
+            if (a.openCase) setCase({ begun: true });
             if (matchMedia("(max-width: 639px)").matches) setOpen(false); // phones: get the sheet out of the way of the page it opens
           }}
         />

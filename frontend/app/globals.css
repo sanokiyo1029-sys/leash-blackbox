@@ -113,7 +113,6 @@
   --shadow-panel: none;
   --shadow-pop: 0 18px 40px -18px rgb(32 38 43 / 45%);
 
-  --hero-scrim: rgb(245 241 232 / 84%);
 }
 
 /* The Midnight Archive (dark) */
@@ -149,7 +148,6 @@
 
   --shadow-pop: 0 18px 40px -16px rgb(0 0 0 / 70%);
 
-  --hero-scrim: rgb(17 24 32 / 80%);
 }
 
 @layer base {
@@ -324,10 +322,20 @@
   }
 }
 
-/* The 3D tour's sky, behind a transparent canvas; its horizon matches the scene fog (datacenter-scene.tsx). */
-.tour-sky {
-  background: #d9dde1;
+/* Homepage hero: polished obsidian at night, pale marble by day; frosted glass cards over the 3D rack. */
+.hero-obsidian {
+  background: radial-gradient(60% 75% at 70% 45%, #ffffff 0%, #ece6db 70%);
 }
-.dark .tour-sky {
-  background: #07090c;
+.dark .hero-obsidian {
+  background: radial-gradient(60% 75% at 70% 45%, #1b1f26 0%, #08090b 70%);
+}
+.glass {
+  background: color-mix(in oklab, var(--card) 50%, transparent);
+  border: 1px solid color-mix(in oklab, var(--foreground) 14%, transparent);
+  backdrop-filter: blur(18px) saturate(1.15);
+}
+.font-instrument {
+  font-family: var(--font-instrument), "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
 }

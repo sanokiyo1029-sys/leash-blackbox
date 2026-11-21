@@ -41,6 +41,22 @@ _Last updated: 2026-11-21, session S10 (laptop B); `main` taken back from laptop
     (dark 0.85, light 1.1) in `components/datacenter-scene.tsx` `PALETTE`; LEDs and screens still glow. Checked
     before/after on the production build.
   - Still open: a real phone (owner) and the night-lighting tune (no measured problem found).
+- **Homepage replaced (owner, S09): "an interactive design, not slides".** The owner rejected the station tour as
+  "ppt in an html file" and asked for the look of MotionSites' **Obsidian** design with a data-center theme. Obsidian is
+  a premium (paid) prompt, so nothing of it was copied; the page is original code in that visual language:
+  - `components/monolith-scene.tsx` (R3F): a polished obsidian server rack with LED blades and one empty, amber slot
+    (the missing session), wrapped in an iridescent liquid-chrome ribbon that flows and leans toward the pointer.
+    Drag turns it with inertia (touch: horizontal drags turn, vertical swipes scroll); clicking the slot opens the
+    case; reduced motion renders it still, on demand. Only asset: the CC0 HDRI in `public/tour/`.
+  - `app/page.tsx`: full-screen hero (condensed Instrument Serif headline "Prove what happened — sealed, witnessed,
+    anchored.", pill buttons, a frosted glass card with the live chain status from `/api/status`); a glass **case card**
+    (demo case, host log vs tap record, the 02:14:06 gap, the one-sentence result); and **Verify a real record** (the
+    same live verification as S08: a real anchored record, its proof and the on-chain root, plus an altered copy).
+  - Deleted: the station tour (`datacenter-scene.tsx`), room navigation, posters, the unused PBR textures,
+    `scripts/tour-shots.mjs`. Wick's homepage answers now describe the rack, the case card and the verification.
+  - Checks: tsc + eslint clean; Playwright **29 passed, 1 skipped** (rewritten `e2e/home.spec.ts`); production build;
+    looked at 1440 dark/light and 375 dark/light in the browser (case card, drag, phone composition, launcher clearance).
+  - Found on the way: Turbopack's build cache shipped **stale CSS** once (KI-039).
 
 ## S08 status: "The Missing Session" 3D tour (laptop B, merged into `main`), read first
 - **Merged into `main`** (owner approved, fast-forward from `redesign/castle`, T-053). Continue on `main`.
