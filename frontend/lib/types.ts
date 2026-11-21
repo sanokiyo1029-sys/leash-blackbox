@@ -1,6 +1,6 @@
 export type EventStatus = "INTACT" | "MODIFIED" | "DELETED" | "INJECTED";
 export type Protection = "anchored" | "vault_only" | "unverifiable" | "none";
-export type Verdict = "CLEAN" | "TAMPERING_DETECTED" | "OBSERVED_OMISSION" | "REPORTING_GAP" | "INCONCLUSIVE";
+export type Verdict = "CLEAN" | "TAMPERING_DETECTED" | "OBSERVED_OMISSION" | "CONFLICTING_ATTESTATIONS" | "REPORTING_GAP" | "INCONCLUSIVE";
 
 export interface EventRecord {
   v: number;
@@ -79,6 +79,7 @@ export interface Summary {
   witness_corroborated?: number;
   witness_rejected?: number;
   omissions?: number;
+  conflicts?: number;
   heartbeats?: number;
   reporting_gaps?: number;
 }
@@ -131,7 +132,14 @@ export interface WitnessReport {
   observations: number;
   corroborated: { obs_id: string; seq: number }[];
   rejected: { obs_id: string; witness: string; reason: string }[];
-  omissions: { observation: WitnessClaim; signature: string; signature_valid: boolean; explanation: string }[];
+  omissions: {
+    observation: WitnessClaim;
+    signature: string;
+    signature_valid: boolean;
+    explanation: string;
+    corroborated_by?: { observation: WitnessClaim; signature: string }[]; // policy v2: the second witness
+  }[];
+  conflicts?: { observation: WitnessClaim; signature: string; sources: string[]; missing: string[]; explanation: string }[];
 }
 
 export interface Status {

@@ -1,8 +1,32 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, session S09 (laptop A); `main` taken over from laptop B_
+_Last updated: 2026-11-21, session S10 (laptop B); `main` taken back from laptop A_
 
-## S09 status (laptop A, took over `main` from laptop B), read first
+## S10 status (laptop B, took `main` back from laptop A), read first
+- Pulled `b0ab9d2` (S09) fast-forward, clean. **T-044 done: a second witness and 2-of-3 corroboration.**
+  - `backend/app/witness.py`: `GatewayWitness` (network path, claim kind `ssh_session`) and the new
+    `IdentityWitness` (identity/auth control plane, kind `ssh_auth`), each with its own key
+    (`data/witness/gateway.key`, `data/witness/identity.key`, gitignored) and registered in the vault by role. Both
+    sign every simulated SSH login and the `silent_login` session.
+  - Policy `ssh-session-corroboration` **v2**: a session is established when 2 of 3 sources attest it (host's
+    forwarded `login_success`, gateway, identity), matched on host, user and source IP within ±120 s. Both witnesses
+    but no host record: `OBSERVED_OMISSION` (the finding now carries `corroborated_by`, also in the dispute package).
+    One witness only: new verdict **`CONFLICTING_ATTESTATIONS`** (ranks below OBSERVED_OMISSION, above
+    REPORTING_GAP); nothing is concluded about the host. Host + one witness: corroborated, no dispute.
+  - Votes: one per role per session (a witness signing the same session twice gets one vote); a claim's role/kind
+    must match the signer's registration; only `gateway` and `identity` registrations vote, so a host-agent
+    heartbeat key can no longer attest sessions (it could before). The same signed claim can't be stored twice
+    (`obs_id` is unique and signed).
+  - API: `/api/witness` lists both witnesses; `silent_login` returns `identity_witness`; the report has
+    `witness.conflicts` and `summary.conflicts`.
+  - Frontend: the new verdict label (banner, Wick), and the Attack Lab omission banner names both signers.
+- **Checks (S10, final code):** backend pytest **110 passed** (3 new: one compromised witness can't frame the host;
+  a witness votes only in its registered role; host + one witness is enough), contract unchanged, frontend tsc +
+  eslint clean, Playwright **29 passed, 1 skipped**.
+- **Next:** T-046 (the auditor CLI checks witness signatures and the 2-of-3 rule offline), the owner's real-phone
+  walk (T-054), then the backlog.
+
+## S09 status (laptop A, took over `main` from laptop B)
 - Pulled `3893dc5` fast-forward (clean). Rerun on this laptop: contract **11 passing**, backend **107 passed**,
   tsc + eslint clean, Playwright **29 passed, 1 skipped** (matches S08's record).
 - **T-054 (partly done).** Measured on this laptop's GPU: AMD Radeon integrated (Ryzen iGPU, ANGLE D3D11), production

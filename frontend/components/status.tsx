@@ -41,6 +41,7 @@ const VERDICT = {
   CLEAN: ["success", "CLEAN — host logs match the on-chain proof"],
   TAMPERING_DETECTED: ["danger", "TAMPERING DETECTED"],
   OBSERVED_OMISSION: ["warn", "OBSERVED OMISSION — a witnessed session the host never reported"],
+  CONFLICTING_ATTESTATIONS: ["warn", "CONFLICTING ATTESTATIONS — the witnesses disagree"],
   REPORTING_GAP: ["warn", "REPORTING GAP — the host stopped checking in"],
   INCONCLUSIVE: ["warn", "INCONCLUSIVE — chain unreachable"],
 } as const;

@@ -249,11 +249,14 @@ def run_verification(svc, persist: bool = True) -> dict[str, Any]:
     unreachable = any(s == UNREACHABLE for s in batch_states)
     anchored_batches = sum(1 for s in batch_states if s != PENDING)
 
-    # Precedence: proven rewriting of history, then a witnessed session the host never reported, then "can't tell".
+    # Precedence: proven rewriting of history, then a witnessed session the host never reported, then witnesses that
+    # disagree with each other, then "can't tell".
     if findings or vault_problem:
         verdict = "TAMPERING_DETECTED"
     elif witness["omissions"]:
         verdict = "OBSERVED_OMISSION"
+    elif witness["conflicts"]:
+        verdict = "CONFLICTING_ATTESTATIONS"  # one witness is wrong or compromised; nothing is said about the host
     elif heartbeat["gaps"]:
         verdict = "REPORTING_GAP"  # the host stopped checking in; not, by itself, an intrusion
     elif unreachable or witness["rejected"] or heartbeat["rejected"]:
@@ -288,6 +291,7 @@ def run_verification(svc, persist: bool = True) -> dict[str, Any]:
         "witness_corroborated": len(witness["corroborated"]),
         "witness_rejected": len(witness["rejected"]),
         "omissions": len(witness["omissions"]),
+        "conflicts": len(witness["conflicts"]),
         "heartbeats": heartbeat["heartbeats"],
         "reporting_gaps": len(heartbeat["gaps"]),
     }

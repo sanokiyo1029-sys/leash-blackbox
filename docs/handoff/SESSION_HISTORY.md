@@ -282,3 +282,10 @@
 - T-054: frame timing on the AMD iGPU (desktop ~47 fps, phone ~57 fps; GPU-bound); light theme walked at every station;
   bloom threshold made per theme to stop the light-theme washout. A static shadow map was tried, measured no gain,
   reverted. Final code: tsc + lint clean, Playwright 29 passed + 1 skipped.
+
+### S10 (laptop B, 2026-11-21): T-044 second witness + 2-of-3
+- Pulled `b0ab9d2` (S09) fast-forward. Owner: "continue with the backend and push".
+- T-044: identity/auth control-plane witness with its own key; policy v2 (2 of 3: host, gateway, identity);
+  `CONFLICTING_ATTESTATIONS` when only one witness attests; one vote per role per session; registered role must
+  match the claim; host-agent keys no longer vote. Dispute packages carry the corroborating observation.
+- Checks: backend 110 passed, tsc + lint clean, Playwright 29 passed, 1 skipped. The demo stack was stopped for e2e and restarted.

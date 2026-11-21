@@ -82,13 +82,15 @@ const VERDICT_WORD: Record<Verdict, string> = {
   CLEAN: "Clean",
   TAMPERING_DETECTED: "Tampering detected",
   OBSERVED_OMISSION: "Observed omission",
+  CONFLICTING_ATTESTATIONS: "Conflicting attestations",
   REPORTING_GAP: "Reporting gap",
   INCONCLUSIVE: "Inconclusive",
 };
 const VERDICT_MEANS: Record<Verdict, string> = {
-  CLEAN: "every record the host committed still matches the Merkle roots anchored on-chain, and the host reported every session the witness signed.",
+  CLEAN: "every record the host committed still matches the Merkle roots anchored on-chain, and the host reported every session the witnesses signed.",
   TAMPERING_DETECTED: "some host records no longer match what was committed on-chain: they were altered, erased or injected after anchoring. The vault still holds the originals.",
-  OBSERVED_OMISSION: "the gateway witness signed a session that the host never reported. That proves the records differ, not who caused it or why.",
+  OBSERVED_OMISSION: "both witnesses, the gateway and the identity plane, signed a session that the host never reported. That proves the records differ, not who caused it or why.",
+  CONFLICTING_ATTESTATIONS: "only one of the two witnesses signed a session, and neither the other witness nor the host has a record of it. One witness is wrong or compromised, so nothing is concluded about the host.",
   REPORTING_GAP: "the host's agent missed a signed heartbeat deadline. A gap alone is not called an intrusion; it says the host went quiet.",
   INCONCLUSIVE: "the check could not finish (for example the chain was unreachable or a signature was invalid), so the host was not attested.",
 };

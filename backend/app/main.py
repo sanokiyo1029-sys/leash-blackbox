@@ -28,7 +28,7 @@ from .records import RawEvent, utc_now_iso
 from .service import LeashService, deployment_to_dict
 from .storage import VerificationRun
 from .verify import run_verification, snapshot
-from .witness import POLICY as WITNESS_POLICY, GatewayWitness, list_observations
+from .witness import POLICY as WITNESS_POLICY, GatewayWitness, IdentityWitness, list_observations
 
 sys.path.insert(0, str(REPO_ROOT / "verifier"))
 import leash_verify  # noqa: E402  (standalone auditor tool, reused for the portal)
@@ -63,6 +63,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     svc = LeashService(settings)
     lab = AttackLab(svc.stores.host, svc.stores.lab)
     witness = GatewayWitness(svc)
+    identity = IdentityWitness(svc)
     agent = HostAgentHeartbeats(settings, HOST)
     agent_alive = threading.Event()
     agent_alive.set()
@@ -173,6 +174,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return {"ingested": 0, "batches": []}
         records = svc.emit_from_host(raws)
         witness.observe_traffic(raws)
+        identity.observe_traffic(raws)
         batches: list[dict[str, Any]] = []
         error = None
         if req.anchor:
@@ -259,8 +261,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if scenario in ("silent_login", "stop_agent"):
             agent_alive.clear()  # the agent is dead: no more heartbeats until a lab reset
         if scenario == "silent_login":
-            # The session happens in the world; only the independent gateway witness gets to record it.
-            result["witness"] = witness.observe_session(HOST, "deploy", ATTACKER_IP, utc_now_iso())
+            # The session happens in the world; only the independent witnesses get to record it.
+            at = utc_now_iso()
+            result["witness"] = witness.observe_session(HOST, "deploy", ATTACKER_IP, at)
+            result["identity_witness"] = identity.observe_session(HOST, "deploy", ATTACKER_IP, at)
         return result
 
     @app.post("/api/disputes")
@@ -288,6 +292,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/api/witness")
     def witness_view(limit: int = Query(200, ge=1, le=5000)) -> dict[str, Any]:
         return {"witness_id": witness.witness_id, "role": witness.role, "policy": WITNESS_POLICY,
+                "witnesses": [{"witness_id": w.witness_id, "role": w.role} for w in (witness, identity)],
                 "observations": list_observations(svc, limit)}
 
     @app.get("/api/attacks")

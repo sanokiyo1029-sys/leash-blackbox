@@ -38,7 +38,8 @@ def test_omission_dispute_is_committed_and_rederivable(client):
     receipt = client.app.state.svc.anchor.get_receipt(body["tx_hash"])
     assert int(receipt["status"]) == 1 and int(receipt["blockNumber"]) == body["block_number"]
     omission = body["package"]["omissions"][0]["observation"]
-    assert omission["src_ip"] == ATTACKER_IP and body["package"]["witness_policy"]["version"] == 1
+    assert omission["src_ip"] == ATTACKER_IP and body["package"]["witness_policy"]["version"] == 2
+    assert body["package"]["omissions"][0]["corroborated_by"][0]["observation"]["role"] == "identity"
 
     assert client.get("/api/disputes/0").json()["matches"] is True
     assert [d["dispute_id"] for d in client.get("/api/disputes").json()["disputes"]] == [0]

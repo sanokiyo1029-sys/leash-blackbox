@@ -239,7 +239,7 @@ export default function AttackLab() {
         {report && !stale && report.verdict === "CLEAN" && (
           <AlertBanner key="clean" tone="success" title={`Verified — all ${s?.intact} records match the on-chain commitment`}>
             Recomputed {s?.intact} SHA-256 leaves and the Merkle root in {report.duration_ms} ms; chain attestation {report.chain_attestation}.
-            {s?.witness_observations ? ` The gateway witness signed ${s.witness_observations} SSH sessions; the host reported every one.` : ""}
+            {s?.witness_observations ? ` The gateway and identity witnesses signed ${s.witness_observations} observations; the host reported every session.` : ""}
           </AlertBanner>
         )}
         {report && !stale && report.verdict === "TAMPERING_DETECTED" && (
@@ -257,14 +257,15 @@ export default function AttackLab() {
           </AlertBanner>
         )}
         {omissions.length > 0 && (
-          <AlertBanner key="omit" tone="warn" title={`Observed omission — the gateway witnessed ${omissions.length === 1 ? "a session" : `${omissions.length} sessions`} the server never reported`}>
+          <AlertBanner key="omit" tone="warn" title={`Observed omission — both witnesses saw ${omissions.length === 1 ? "a session" : `${omissions.length} sessions`} the server never reported`}>
             {omissions.map((o) => (
               <span key={o.observation.obs_id} className="block">
-                {o.observation.user} from {o.observation.src_ip} at {o.observation.observed_at} · signed by gateway witness {o.observation.witness.slice(0, 10)}… ·{" "}
+                {o.observation.user} from {o.observation.src_ip} at {o.observation.observed_at} · signed by{" "}
+                {[o.observation, ...(o.corroborated_by ?? []).map((a) => a.observation)].map((w) => `${w.role} witness ${w.witness.slice(0, 10)}…`).join(" and ")} ·{" "}
                 {o.signature_valid ? "signature valid" : "signature INVALID"}
               </span>
             ))}
-            Policy {report?.witness?.policy.id} v{report?.witness?.policy.version}: every witnessed session needs a matching host login within ±{report?.witness?.policy.skew_seconds} s. This shows the host stayed
+            Policy {report?.witness?.policy.id} v{report?.witness?.policy.version}: a session two of three sources attest needs a matching host login within ±{report?.witness?.policy.skew_seconds} s. This shows the host stayed
             silent; it does not by itself show why.
           </AlertBanner>
         )}
