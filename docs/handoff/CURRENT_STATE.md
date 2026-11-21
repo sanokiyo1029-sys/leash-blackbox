@@ -1,8 +1,18 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, session S10 (laptop B); T-046 merged into `main`_
+_Last updated: 2026-11-21, session S10 (laptop B); laptop A's `frontend/obsidian` merged into `main`_
 
-## S10 branch `backend/witness-audit` (laptop B, T-046, merged into `main`), read first
+## S10 integration: `frontend/obsidian` merged into `main` (laptop B), read first
+- Owner approved ("Merge it, then build"). `git merge --no-ff origin/frontend/obsidian` at `9c8ee97` merged cleanly
+  into `main` (after T-046 and the docs fixes): the Obsidian palette, Instrument Serif headings, pill navigation and
+  buttons on every route, and the reduced-motion rack render (see `docs/handoff/SPLIT_HANDOFF.md`, laptop A's notes).
+- Checks on the merged tree: contract **11 passing**, frontend tsc + eslint clean, Playwright **29 passed, 1
+  skipped**, production build via `start-all.cmd`. Backend, verifier, agent, contract and scripts are byte-identical
+  to `899ca8b`, where pytest passed **116**.
+- Laptop A has stopped; only laptop B writes to `main` now. Next (owner, S10): make the judge path (homepage, `/demo`,
+  `/attack`) livelier and less generic, on its own branch.
+
+## S10 branch `backend/witness-audit` (laptop B, T-046, merged into `main`)
 - Started from `main` at `25467c6` (laptop A's T-055). Owner: "continue with the backend on your branch".
 - **T-046: the standalone auditor CLI checks the witnesses offline** (`verifier/leash_verify.py`, still stdlib-only and
   sharing no code with the backend):

@@ -300,3 +300,6 @@
   Backend 116 passed, tsc + lint clean, Playwright 29 passed, 1 skipped. Not merged into `main`.
 - Owner approved the merge: `main` fast-forwarded to `backend/witness-audit` (main had not moved, so the tested tree
   is unchanged).
+- Docs: duplicate KI-039 renumbered (verifier speed is KI-040), stale "next: T-054" lines fixed, T-050 closed.
+- Owner: "Merge it, then build". Merged laptop A's `frontend/obsidian` into `main` (`--no-ff`, clean). Contract 11,
+  tsc + lint clean, Playwright 29 passed + 1 skipped, production build; backend unchanged since the 116-pass run.
