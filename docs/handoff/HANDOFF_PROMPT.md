@@ -1,12 +1,11 @@
 # Continuation guide (send this to whoever continues)
 
-**State at handoff (2026-11-21, S07, laptop A):** work is on branch **`redesign/castle`** (pushed); `main` is
-unchanged at `bed98ce`.
-- Get it: `git fetch origin`, then `git switch redesign/castle` (tracks `origin/redesign/castle`).
-- Read `docs/handoff/CURRENT_STATE.md` → "S07 status", then **`docs/design/CASTLE_DIRECTION.md`**.
-- **Next:** build the animated castle UI on `/` (no photos; references in `docs/design/references/`), then the
-  backend support it needs; rerun tsc, lint, e2e (stack stopped, KI-022) and the brief's browser checks; then ask
-  the owner before fast-forwarding `main`.
+**State at handoff (2026-11-21, S08, laptop B):** the data-hall homepage tour is on **`main`** (fast-forwarded
+from `redesign/castle` with the owner's approval).
+- Get it: `git fetch origin`, then `git switch main` and `git pull --ff-only`.
+- Read `docs/handoff/CURRENT_STATE.md` → "S08 status".
+- **Next:** T-054 (walk the data hall on a real phone, measure frame rate on a mid-range GPU), then the backlog in
+  `docs/handoff/NEXT_TASKS.md`.
 
 ## 1. Fresh machine (once)
 Requirements: Git, Node.js 20+, Python 3.11+ (3.12 used on Windows), optionally GitHub CLI.

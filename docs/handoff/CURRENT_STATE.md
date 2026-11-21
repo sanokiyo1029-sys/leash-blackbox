@@ -1,9 +1,9 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, session S08 (laptop B), 3D homepage tour on branch `redesign/castle`_
+_Last updated: 2026-11-21, session S08 (laptop B), 3D homepage tour merged into `main`_
 
-## S08 status: "The Missing Session" 3D tour (laptop B, branch `redesign/castle`, NOT merged into `main`), read first
-- **Branch `redesign/castle`** now also holds S08. `main` is `bed98ce` (unchanged). Ask the owner before fast-forwarding.
+## S08 status: "The Missing Session" 3D tour (laptop B, merged into `main`), read first
+- **Merged into `main`** (owner approved, fast-forward from `redesign/castle`, T-053). Continue on `main`.
 - **Owner's S08 brief** (pasted in chat, replaces the castle explorer plan in `docs/design/CASTLE_DIRECTION.md`): a
   cinematic 3D homepage, four connected places, a judge understands the incident, makes one choice and verifies a
   piece of evidence in about 90 seconds. Owner decisions in S08: React Three Fiber approved; the reference images stay

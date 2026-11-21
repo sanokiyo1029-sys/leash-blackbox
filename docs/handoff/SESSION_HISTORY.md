@@ -268,3 +268,5 @@
   realistic data hall (`datacenter-scene.tsx`, CC0 Poly Haven maps + HDRI in `frontend/public/tour/`, bloom, soft
   shadows), rooms retold for the data center, the knight art removed from Wick, posters for the fallback. Playwright
   29 passed + 1 skipped; production build; three new shots.
+- Owner approved the merge: `main` fast-forwarded to `redesign/castle` (main had not moved, so the tested tree is
+  unchanged; backend, contract, verifier and agent are identical to `bed98ce`).
