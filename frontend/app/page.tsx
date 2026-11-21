@@ -3,11 +3,13 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { motion, useReducedMotion } from "motion/react";
 import { AlertTriangle, ArrowDown, ArrowRight, Check, ChevronDown, LayoutDashboard, RotateCcw, Stamp, X } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { api, short, useApi } from "@/lib/api";
 import { CASE_RESULT, resetCase, setCase, useCase, type Room } from "@/lib/case-state";
 import type { Batch, EventItem, EventRecord, Status } from "@/lib/types";
+import { ease } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 import { leafHash, readBatch, rootFromProof, type ProofStep } from "@/lib/verify";
 
@@ -224,7 +226,7 @@ type Detail = { proof: BundleEvent | null };
 type Outcome = {
   sample: BundleEvent;
   altered: EventRecord;
-  checks: { leaf: string; root: string; ok: boolean }[]; // [original, altered]
+  checks: { leaf: string; root: string; ok: boolean; levels: string[] }[]; // [original, altered]; levels: leaf … root
   anchor: { root: string; block: number | null; by: "browser" | "api"; rpc?: string };
   batch: Batch | null;
   chainId: number | null;
@@ -268,8 +270,10 @@ function SealPress() {
       const checks = await Promise.all(
         [sample.record, altered].map(async (rec) => {
           const leaf = await leafHash(rec);
-          const root = await rootFromProof(leaf, sample.proof);
-          return { leaf, root, ok: rec.seq === sample.seq && root === anchor.root.toLowerCase() };
+          const levels = [leaf];
+          for (const step of sample.proof) levels.push(await rootFromProof(levels[levels.length - 1], [step]));
+          const root = levels[levels.length - 1];
+          return { leaf, root, levels, ok: rec.seq === sample.seq && root === anchor.root.toLowerCase() };
         }),
       );
       setOut({ sample, altered, checks, anchor, batch: info.batch, chainId: s.chain.chain_id ?? null, contract });
@@ -284,9 +288,6 @@ function SealPress() {
   const offline = status.error || events.error;
   return (
     <>
-      <p className="mt-2 text-[15px] leading-relaxed">
-        Check a real record from this stack against the commitment anchored on-chain: the original, and a copy with one detail changed.
-      </p>
       {offline ? (
         <p role="status" className="mt-3 rounded-md border border-warn/50 px-3 py-2 text-sm">
           <AlertTriangle className="mr-1.5 inline size-4 align-[-3px] text-warn" aria-hidden />
@@ -315,6 +316,7 @@ function SealPress() {
       <div aria-live="polite">
         {out && (
           <div className="mt-4 space-y-2">
+            <ProofLadder out={out} />
             <Verdict ok={out.checks[0].ok} title="Original sample" text={out.checks[0].ok ? `Matches the seal: its digest climbs ${out.sample.proof.length} proof steps to the root anchored in block ${out.anchor.block ?? "?"}.` : "Does not match the seal: this record is not what was anchored."} />
             <Verdict ok={out.checks[1].ok} title="Altered copy" text={out.checks[1].ok ? "Matches the seal." : "Does not match: one changed detail gives a different digest, so it climbs to a different root."} />
             <details id="how-verified" open={howOpen} onToggle={(e) => setCase({ howOpen: e.currentTarget.open })} className="group rounded-md border border-border">
@@ -373,6 +375,50 @@ function SealPress() {
         </button>
       </div>
     </>
+  );
+}
+
+/** The two proofs climbing level by level to the root, then meeting the commitment read from the chain. */
+function ProofLadder({ out }: { out: Outcome }) {
+  const reduce = useReducedMotion();
+  const top = out.checks[0].levels.length - 1;
+  const step = 0.18;
+  const enter = (delay: number) => (reduce ? {} : { initial: { opacity: 0, y: -6 }, animate: { opacity: 1, y: 0 }, transition: { delay, duration: 0.3, ease: ease.out } });
+  return (
+    <div className="rounded-xl border border-border bg-background/40 p-3" aria-label="Merkle proof, level by level">
+      <div className="grid grid-cols-2 gap-3">
+        {out.checks.map((c, k) => (
+          <ol key={k} className="space-y-2 font-hash text-[11px]">
+            <li className="label-caps font-sans text-muted-foreground">{k === 0 ? "Original" : "Altered copy"}</li>
+            {c.levels.map((h, i) => (
+              <motion.li
+                key={i}
+                {...enter(i * step + k * 0.06)}
+                className={cn(
+                  "relative flex items-center justify-between gap-2 rounded-md border px-2 py-1",
+                  i > 0 && "before:absolute before:-top-2 before:left-5 before:h-2 before:w-px before:bg-border",
+                  k === 1 ? "border-bad/40 text-bad" : i === top ? "border-ok/60 bg-ok/10 text-ok" : "border-border",
+                )}
+              >
+                <span className="font-sans text-muted-foreground">{i === 0 ? "leaf" : i === top ? "root" : `level ${i}`}</span>
+                <span className="truncate">{h.slice(0, 14)}…</span>
+              </motion.li>
+            ))}
+          </ol>
+        ))}
+      </div>
+      <motion.div
+        {...enter((top + 1) * step + 0.1)}
+        className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md border border-foreground/25 px-3 py-2 text-xs"
+      >
+        <span className="font-semibold">On-chain root · batch #{out.sample.batch_id} · block {out.anchor.block ?? "?"}</span>
+        <span className="font-hash">{out.anchor.root.slice(0, 14)}…</span>
+        <span className="flex w-full gap-3 font-semibold">
+          <span className={out.checks[0].ok ? "text-ok" : "text-bad"}>{out.checks[0].ok ? "✓ original reaches it" : "✗ original misses it"}</span>
+          <span className={out.checks[1].ok ? "text-ok" : "text-bad"}>{out.checks[1].ok ? "✓ altered reaches it" : "✗ altered misses it"}</span>
+        </span>
+      </motion.div>
+    </div>
   );
 }
 

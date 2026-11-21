@@ -29,6 +29,21 @@ def _lab(svc: LeashService) -> AttackLab:
     return AttackLab(svc.stores.host, svc.stores.lab)
 
 
+def test_reset_survives_an_open_connection_and_keeps_the_vault_append_only(svc):
+    # A request arriving mid-reset holds a store open; on Windows deleting the file then failed halfway (WinError 32).
+    svc.ingest(generate_traffic(20, seed=3))
+    held = sqlite3.connect(svc.settings.vault_db_path)
+    try:
+        svc.reset()
+    finally:
+        held.close()
+    assert svc.counts()["vault_events"] == 0 and svc.counts()["host_events"] == 0
+    svc.ingest(generate_traffic(5, seed=4))
+    with pytest.raises(Exception, match="append-only"):
+        with svc.stores.vault() as s:
+            s.execute(select(VaultEvent).limit(1)).scalar_one().canonical_json = "{}"
+
+
 def test_ingest_sequences_and_chains_events(svc):
     records = svc.emit_from_host(generate_traffic(25, seed=3))
     assert [r["seq"] for r in records] == list(range(1, 26))

@@ -284,39 +284,40 @@ class Stores:
         self.vault_engine = _sqlite_engine(s.vault_db_path)
         self.lab_engine = _sqlite_engine(s.lab_db_path)
         self.witness_engine = _sqlite_engine(s.witness_db_path)
-        HostBase.metadata.create_all(self.host_engine)
-        VaultBase.metadata.create_all(self.vault_engine)
-        LabBase.metadata.create_all(self.lab_engine)
-        WitnessBase.metadata.create_all(self.witness_engine)
+        self._create_schemas()
+        self._host = sessionmaker(self.host_engine, expire_on_commit=False)
+        self._vault = sessionmaker(self.vault_engine, expire_on_commit=False)
+        self._lab = sessionmaker(self.lab_engine, expire_on_commit=False)
+        self._witness = sessionmaker(self.witness_engine, expire_on_commit=False)
+
+    def _schemas(self):
+        return ((self.host_engine, HostBase), (self.vault_engine, VaultBase), (self.lab_engine, LabBase),
+                (self.witness_engine, WitnessBase))
+
+    def _create_schemas(self) -> None:
+        for engine, base in self._schemas():
+            base.metadata.create_all(engine)
         with self.vault_engine.begin() as conn:
             for ddl in VAULT_TRIGGERS:
                 conn.execute(text(ddl))
         with self.witness_engine.begin() as conn:
             for ddl in WITNESS_TRIGGERS:
                 conn.execute(text(ddl))
-        self._host = sessionmaker(self.host_engine, expire_on_commit=False)
-        self._vault = sessionmaker(self.vault_engine, expire_on_commit=False)
-        self._lab = sessionmaker(self.lab_engine, expire_on_commit=False)
-        self._witness = sessionmaker(self.witness_engine, expire_on_commit=False)
 
     def dispose(self) -> None:
-        for engine in (self.host_engine, self.vault_engine, self.lab_engine, self.witness_engine):
+        for engine, _ in self._schemas():
             engine.dispose()
 
     def wipe(self) -> None:
-        """Demo reset: delete every store file and recreate empty schemas.
+        """Demo reset: empty every store in place (drop its tables, with their triggers, and recreate them).
 
-        This is an operator action on the whole lab, not something the
-        simulated attacker can do to the vault.
+        The files are not deleted: on Windows a connection opened by a request arriving mid-reset (the UI polls
+        /api/status) locks the file, and a delete then fails halfway and leaves the stores broken.
+        This is an operator action on the whole lab, not something the simulated attacker can do to the vault.
         """
-        self.dispose()
-        s = self.settings
-        for path in (s.host_db_path, s.vault_db_path, s.lab_db_path, s.witness_db_path):
-            for suffix in ("", "-wal", "-shm", "-journal"):
-                p = Path(str(path) + suffix)
-                if p.exists():
-                    p.unlink()
-        self._open()
+        for engine, base in self._schemas():
+            base.metadata.drop_all(engine)
+        self._create_schemas()
 
     @contextmanager
     def host(self) -> Iterator[Session]:

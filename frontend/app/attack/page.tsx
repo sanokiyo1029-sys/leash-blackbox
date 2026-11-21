@@ -678,7 +678,7 @@ function RowPair({
         animate={{ opacity: 1, x: 0 }}
         transition={stagger(index, 0.02)}
         className={cn(
-          "group relative min-h-[62px] overflow-hidden rounded-xl border bg-card/50 px-3 py-2 transition-[border-color,background-color] duration-500",
+          "group relative min-h-[46px] overflow-hidden rounded-md border bg-card/50 px-2.5 py-1.5 transition-[border-color,background-color] duration-500",
           row.touched === "modify" && row.host && "border-warn/40 bg-warn/[0.05]",
           injected && "border-violet/40 bg-violet/[0.06]",
           bad && "border-bad/40",
@@ -712,7 +712,7 @@ function RowPair({
                   <HashChip value={row.hostHash} n={5} tone={bad ? "bad" : row.touched === "modify" ? "warn" : undefined} />
                 </span>
               </div>
-              <div className="mt-1 truncate pr-14 text-[13px] lg:pr-16">
+              <div className="mt-0.5 truncate pr-14 font-hash text-[12px] lg:pr-16">
                 <Highlight text={row.host.msg} />
               </div>
               {!injected && (
@@ -739,7 +739,7 @@ function RowPair({
               )}
             </motion.div>
           ) : (
-            <motion.div key="erased" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: dur.base }} className="relative flex h-full min-h-[44px] items-center gap-2">
+            <motion.div key="erased" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: dur.base }} className="relative flex h-full min-h-[30px] items-center gap-2">
               {/* shredder sweep */}
               <motion.span
                 className="absolute inset-y-0 left-0 w-full origin-left bg-gradient-to-r from-bad/0 via-bad/30 to-bad/0"
@@ -768,7 +768,7 @@ function RowPair({
         animate={{ opacity: 1, x: 0 }}
         transition={stagger(index, 0.02)}
         className={cn(
-          "relative min-h-[62px] rounded-xl border bg-card/40 px-3 py-2 transition-[border-color,background-color] duration-500",
+          "relative min-h-[46px] rounded-md border bg-card/40 px-2.5 py-1.5 transition-[border-color,background-color] duration-500",
           row.verdict === "INTACT" && "border-ok/25",
           bad && "border-ok/40 bg-ok/[0.05]",
           focused && "lg:ring-2 lg:ring-primary/40",
@@ -783,13 +783,13 @@ function RowPair({
                 <HashChip value={row.anchoredHash} n={5} tone={row.verdict === "INTACT" || bad ? "ok" : undefined} />
               </span>
             </div>
-            <div className={cn("mt-1 truncate text-[13px]", bad ? "text-ok" : "text-foreground/65", attackerLine && !bad && "text-foreground/80")}>
+            <div className={cn("mt-0.5 truncate font-hash text-[12px]", bad ? "text-ok" : "text-foreground/65", attackerLine && !bad && "text-foreground/80")}>
               {bad && <span className="mr-1.5 text-[10px] font-semibold tracking-wide uppercase">original</span>}
               <Highlight text={row.anchored.msg} />
             </div>
           </>
         ) : (
-          <div className="flex h-full min-h-[44px] items-center gap-2 text-[12.5px] text-violet">
+          <div className="flex h-full min-h-[30px] items-center gap-2 text-[12.5px] text-violet">
             <span className="rounded border border-dashed border-violet/50 px-1.5 text-[10px]">no commitment</span>
             <span className="italic opacity-90">this line never reached the collector</span>
           </div>
