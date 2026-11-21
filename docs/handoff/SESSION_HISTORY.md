@@ -306,3 +306,7 @@
 - Branch `frontend/judge-path` (owner: livelier, less generic judge path): `/demo` console with a live log terminal
   and chain panel, homepage Merkle proof ladder, denser Attack Lab rows; demo reset now empties stores in place
   (WinError 32 fix). Backend 117, tsc + lint clean, Playwright 29 passed + 1 skipped. Not merged into `main`.
+- Branch `frontend/fortress` (owner's fortress brief, pasted): 3D gatehouse on 13 CC0 scans (owner-approved), five
+  chapters around one incident (session ssh-7c41e2a9, 02:14:06), seal room, auditor's desk on the real workflow, Wick
+  lantern knight with three starter questions, basalt/limestone themes and Spectral. tsc + lint clean; Playwright 29
+  passed + 1 skipped + 1 matcher failure fixed (home.spec 5/5 after); production build; walked at 1440 and 390.

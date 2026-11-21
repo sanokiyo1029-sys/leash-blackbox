@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUp, MessageSquareText, X } from "lucide-react";
@@ -33,8 +34,8 @@ function useKeyboardInset() {
 /** One shared assistant for the whole site (mounted once in the app shell, so it survives navigation and theme switches). */
 export function Wick() {
   const path = usePathname();
-  const { room, seal, begun } = useCase();
-  const compared = begun; // the case card is open: the discrepancy is on screen
+  const { room, seal, revealed } = useCase();
+  const compared = revealed; // the altered log is shown: the gap is on screen
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [draft, setDraft] = useState("");
@@ -85,7 +86,6 @@ export function Wick() {
           onClose={close}
           onFollow={(a) => {
             if (a.openHow) setCase({ howOpen: true });
-            if (a.openCase) setCase({ begun: true });
             if (matchMedia("(max-width: 639px)").matches) setOpen(false); // phones: get the sheet out of the way of the page it opens
           }}
         />
@@ -99,13 +99,23 @@ export function Wick() {
         onClick={() => (open ? close() : setOpen(true))}
         aria-expanded={open}
         aria-controls="wick-panel"
+        aria-label="Ask Wick"
         className={cn(
-          "fixed right-[max(12px,env(safe-area-inset-right))] bottom-[max(12px,env(safe-area-inset-bottom))] z-[35] flex h-11 items-center gap-2 rounded-md border border-border bg-card px-3.5 text-foreground shadow-[var(--shadow-pop)] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:right-5 sm:bottom-5",
+          "group fixed right-[max(12px,env(safe-area-inset-right))] bottom-[max(12px,env(safe-area-inset-bottom))] z-[35] flex h-14 items-end gap-1.5 rounded-full border border-border bg-card/90 pt-1 pr-1 pl-2 text-foreground shadow-[var(--shadow-pop)] backdrop-blur-sm outline-none transition-transform duration-150 hover:-translate-y-0.5 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:right-5 sm:bottom-5 sm:pr-4",
           open && "max-sm:hidden",
         )}
       >
-        <MessageSquareText className="size-4 text-primary" aria-hidden />
-        <span className="text-sm font-semibold whitespace-nowrap">Ask Wick</span>
+        {/* Wick, the lantern knight: a quiet breath while idle; he lifts his lantern when the missing record is found. */}
+        <span className="relative h-12 w-9 shrink-0" aria-hidden>
+          <span key={revealed ? "raise" : "idle"} className={cn("wick-idle absolute inset-0 flex justify-center", revealed && "wick-raise")}>
+            <Image src="/wick/wick-dark-216.png" alt="" width={102} height={235} unoptimized className="hidden h-full w-auto dark:block" />
+            <Image src="/wick/wick-light-216.png" alt="" width={118} height={216} unoptimized className="block h-full w-auto dark:hidden" />
+            <span className={cn("wick-glow absolute top-[56%] left-[2%] size-4 rounded-full", revealed && "wick-glow-on")} />
+          </span>
+        </span>
+        <span className="hidden self-center text-sm font-semibold whitespace-nowrap sm:inline">
+          Ask Wick <MessageSquareText className="ml-0.5 inline size-3.5 align-[-2px] text-primary" aria-hidden />
+        </span>
       </button>
     </>
   );

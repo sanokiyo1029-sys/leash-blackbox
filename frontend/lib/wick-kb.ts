@@ -10,7 +10,7 @@
  * To add knowledge: add a topic with a few terms and a reply, then a case in e2e/wick.spec.ts.
  */
 import type { Status, Verdict } from "@/lib/types";
-import { CASE_RESULT, type Room, type SealResult } from "@/lib/case-state";
+import { CASE_RESULT, SESSION, type Room, type SealResult } from "@/lib/case-state";
 
 export type WickAction = { label: string; href: string; openHow?: boolean; openCase?: boolean };
 export type WickReply = { text: string; action?: WickAction };
@@ -97,7 +97,7 @@ const VERDICT_MEANS: Record<Verdict, string> = {
 
 const ATTACK: WickAction = { label: "Open the Attack Lab", href: "/attack" };
 const DEMO: WickAction = { label: "Open the guided demo", href: "/demo" };
-const CASE: WickAction = { label: "Open the missing session", href: "/#top", openCase: true };
+const CASE: WickAction = { label: "Go to the missing session", href: "/#missing" };
 const HOW: WickAction = { label: "How was this verified?", href: "/#how-verified", openHow: true };
 const VERIFY: WickAction = { label: "Verify a real record", href: "/#seal" };
 
@@ -138,13 +138,43 @@ type Topic = { id: string; terms: string[]; live?: (c: WickContext) => boolean; 
 const sealSays = (r: SealResult) =>
   `The verification checked record #${r.seq} from this stack against the root anchored on chain ${r.chainId ?? "?"}${r.block ? ` (block ${r.block})` : ""}. The original ${r.original ? "matches" : "does not match"}; the altered copy ${r.altered ? "matches" : "does not match"}, because changing one detail changes its digest.`;
 
-/** "What am I looking at?" in each part of the homepage (once the case is open, the case answer below). */
+/** "What am I looking at?" in each chapter of the homepage (once the gap is shown, the case answer below). */
 const ROOM_HERE: Record<Room, (c: WickContext) => WickReply> = {
-  gate: () => ({ text: "You're looking at a server rack. Drag it to turn it: one blade is dark, 02:14:06, a session the network tap signed and the host never logged. Click it, or press Investigate the missing session.", action: CASE }),
-  seal: (c) => (c.seal ? { text: sealSays(c.seal), action: HOW } : { text: "This part checks a real record from this stack, and a copy with one detail changed, against the root anchored on-chain. Press Verify evidence." }),
+  bridge: () => ({ text: "You're on the bridge before dawn. The lit window high in the keep is the archive, where LEASH keeps a copy of the server's evidence that the server cannot reach. Scroll to cross, or press Investigate the missing session.", action: CASE }),
+  gatehouse: () => ({ text: "This is the gatehouse. Everything the server sends is copied past these walls as it happens, so changing the server later does not change the copy." }),
+  witness: () => ({ text: `Through the slit runs the witness passage. The gateway records every session that crosses it and signs the record with its own key. Here both records show session ${SESSION.id} at ${SESSION.time} (sample data).`, action: CASE }),
+  missing: () => ({ text: `This is the guard desk: the server's log and the witness record, line for line. Press Show altered server log and look at ${SESSION.time}.` }),
+  seal: (c) => (c.seal ? { text: sealSays(c.seal), action: HOW } : { text: "This room checks a real record from this stack, and a copy with one detail changed, against the root anchored on-chain. Press Verify evidence." }),
+  desk: () => ({ text: "This is the auditor's desk. Run the missing session for real: the server's agent goes silent during a login, both witnesses sign it, and the verifier reports an observed omission. Then download the evidence bundle or open the dashboard." }),
 };
 
 export const TOPICS: Topic[] = [
+  {
+    id: "missing",
+    terms: ["went gap", "what went", "disappear", "gone"], // "missing" is aliased to "gap",
+    reply: (c) => ({
+      text: c.compared
+        ? `You've found it: session ${SESSION.id}, ${SESSION.user} from ${SESSION.ip} at ${SESSION.time} on ${SESSION.host}. The witness record still has it; the server's log has no entry. ${CASE_RESULT}`
+        : `A session: ${SESSION.id}, ${SESSION.user} from ${SESSION.ip} at ${SESSION.time} on ${SESSION.host}. The gateway witness signed it, and the server's log, once altered, has no entry for it. The guard desk lines the two records up so you can see the gap yourself.`,
+      action: c.path === "/" && c.compared ? VERIFY : CASE,
+    }),
+  },
+  {
+    id: "quai",
+    terms: ["quai", "quai prove", "what quai", "quai do"],
+    reply: () => ({
+      text: "Committing a batch's Merkle root to a public chain such as Quai proves that the committed records have not changed since: anyone can recompute the root from the records and compare. It proves the integrity of what was committed, not that a log line is true, and not who changed a server. This stack does not use Quai yet: it anchors to a local development chain (31337), so there is no Quai transaction to show.",
+      action: VERIFY,
+    }),
+  },
+  {
+    id: "where-verify",
+    terms: ["where verify", "where check", "verify this", "verify myself", "check myself"],
+    reply: (c) => ({
+      text: "Three places. On this page, the seal room has your browser recompute a real record's Merkle root and read the commitment from the chain. The Auditor page verifies a whole evidence bundle in your browser. And verifier/leash_verify.py checks a bundle offline, including the witnesses' signatures.",
+      action: c.path === "/" ? VERIFY : { label: "Open the Auditor", href: "/auditor" },
+    }),
+  },
   {
     id: "here",
     terms: ["look at", "what look", "what happen", "this page", "explain page", "explain this", "what page", "where am"],
@@ -152,7 +182,7 @@ export const TOPICS: Topic[] = [
     reply: (c) => {
       if (c.path === "/" && c.compared && c.room !== "seal")
         return { text: `${CASE_RESULT} The marked row at 02:14:06 is a session by deploy from 203.0.113.45: the network tap signed it, the server logged nothing.`, action: VERIFY };
-      if (c.path === "/") return ROOM_HERE[c.room ?? "gate"](c);
+      if (c.path === "/") return ROOM_HERE[c.room ?? "bridge"](c);
       const p = pageOf(c.path);
       if (!p) return { text: "This page is part of the LEASH console. Ask me what LEASH does, or where to see the demo." };
       const last = c.live?.ok ? c.live.last : undefined;
@@ -166,7 +196,7 @@ export const TOPICS: Topic[] = [
     reply: (c) => ({
       text:
         c.path === "/" && !c.compared
-          ? "The gap is the dark blade in the rack: open the case to see it next to the witness record. It proves the records differ: a signed observer saw a session the server never logged. It does not prove who removed it or why."
+          ? "The gap is at the guard desk: press Show altered server log to see it next to the witness record. It proves the records differ: a signed observer saw a session the server never logged. It does not prove who removed it or why."
           : "It proves the two records differ: a signed observer saw a session that the server never logged. It does not prove who removed the entry or why; a stopped logger, a crash and an attacker look the same until someone investigates.",
       action: c.path === "/" && c.seal ? HOW : c.path === "/" && c.compared ? VERIFY : c.path === "/" ? CASE : undefined,
     }),
@@ -175,7 +205,7 @@ export const TOPICS: Topic[] = [
     id: "second",
     terms: ["second record", "where from", "record from", "witness", "second"],
     reply: (c) => ({
-      text: "It comes from a gateway witness on the network path. It signs each SSH session it sees with its own key and stores it outside the server. In this prototype it is logically isolated (its own key, store and registry) but runs on the same machine.",
+      text: "It comes from independent witnesses: a gateway on the network path and an identity service that authenticates each login. Each signs every SSH session it sees with its own key and stores it outside the server; a session counts once two of the three sources (server, gateway, identity) agree. In this prototype they are logically isolated (own keys, store and registry) but run on the same machine.",
       action: c.path !== "/" ? ATTACK : c.compared ? HOW : CASE,
     }),
   },
@@ -328,8 +358,7 @@ export const FALLBACK = (c: WickContext): WickReply => ({
 
 /** Suggested prompts change with the page and the case state. */
 export function suggestions(c: WickContext): string[] {
-  if (c.path === "/" && c.room === "seal") return ["What was verified?", "What does this result mean?", "How can my team try this?"];
-  if (c.path === "/") return c.compared ? ["What does this gap prove?", "Where did the second record come from?", "How can my team try this?"] : ["What does LEASH do?", "Show me the demo.", "What am I looking at?"];
+  if (c.path === "/") return ["What went missing?", "What does Quai prove?", "Where can I verify this?"];
   if (["/attack", "/dashboard", "/auditor", "/evidence", "/proofs"].some((p) => c.path.startsWith(p))) return ["What was verified?", "What does this result mean?", "What am I looking at?"];
   return ["What am I looking at?", "What does LEASH do?", "How can my team try this?"];
 }

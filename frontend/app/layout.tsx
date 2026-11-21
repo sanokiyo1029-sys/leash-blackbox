@@ -1,15 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, IBM_Plex_Mono, Instrument_Serif, Inter } from "next/font/google";
+import { IBM_Plex_Mono, Inter, Spectral } from "next/font/google";
 import { AppShell } from "@/components/app-shell";
 import { THEME_SCRIPT } from "@/lib/theme-script";
 import "./globals.css";
 
-// Inter for the product, Cormorant Garamond Semibold for editorial headlines, IBM Plex Mono for evidence.
+// Inter for controls and the product, Spectral (a restrained serif) for display headlines, IBM Plex Mono for evidence.
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const cormorant = Cormorant_Garamond({ variable: "--font-cormorant", subsets: ["latin"], weight: ["600"] });
+const spectral = Spectral({ variable: "--font-spectral", subsets: ["latin"], weight: ["300", "400", "500"] });
 const plexMono = IBM_Plex_Mono({ variable: "--font-plex-mono", subsets: ["latin"], weight: ["400", "500", "600"] });
-// Condensed display serif for the homepage hero (the Obsidian-style headlines).
-const instrument = Instrument_Serif({ variable: "--font-instrument", subsets: ["latin"], weight: "400" });
 
 export const metadata: Metadata = {
   title: "LEASH BLACKBOX",
@@ -21,7 +19,7 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, inte
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${cormorant.variable} ${plexMono.variable} ${instrument.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${spectral.variable} ${plexMono.variable} h-full antialiased`}>
       <head>
         {/* Sets the theme class before the first paint, so a dark-mode visit never flashes light. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />

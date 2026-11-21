@@ -1,8 +1,50 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, session S10 (laptop B); judge-path redesign on branch `frontend/judge-path`_
+_Last updated: 2026-11-21, session S10 (laptop B); fortress homepage on branch `frontend/fortress`_
 
-## S10 branch `frontend/judge-path` (laptop B, NOT merged into `main`), read first
+## S10 branch `frontend/fortress` (laptop B, NOT merged into `main`), read first
+- Owner brief (pasted): the homepage as a dark-fantasy fortress built around one incident: a session disappeared from
+  the server, the visitor finds the surviving evidence and checks it. Plan and scope: `docs/design/FORTRESS_PLAN.md`.
+  Built on `frontend/judge-path` (its demo console, proof ladder and reset fix come along).
+- Owner approved 13 CC0 Poly Haven files (9.0 MB, `frontend/public/fortress/SOURCES.md`); Wick's two lantern knights
+  restored from git history (`frontend/public/wick/`).
+- `components/fortress-scene.tsx` (R3F, desktop ≥1024 px + WebGL2 + motion allowed): one coherent place in metres:
+  ruined basalt arch at the near left, a cobbled bridge on piers over a misty ravine turning right, gatehouse with
+  drum towers, raised portcullis and torches, curtain walls, the keep with a cone-roofed stair turret and one amber
+  window, courtyard, a vaulted passage with a slit into a parallel passage, the guard desk with its lantern (it
+  brightens when the gap is revealed). Photographed stone in both themes; dark = pre-dawn sky gradient, torches and
+  amber; light = misty morning HDRI and a low raking sun. Native scroll drives the camera (bridge → under the gate →
+  courtyard with the window overhead → passage → desk).
+- `components/seal-scene.tsx`: oxidised bronze seal in dark wax, the fortress silhouette as its emblem; verifying lifts
+  it and the proof takes its place in the same panel.
+- `app/page.tsx` chapters (one incident, session `ssh-7c41e2a9` at 02:14:06, `lib/case-state.ts` `SESSION`):
+  hero ("Know what happened. / Even when your server lies.", "Investigate the missing session" jumps to the guard desk
+  and focuses it, "Explore the fortress"), I gatehouse, II witness passage (two records of one session), III guard
+  desk ("Show altered server log" reveals the gap; witness still has it; labelled sample data), IV seal room (real
+  record, real proof, committed vs recomputed, "Local chain 31337 · Quai: not deployed yet", the precise claim), V
+  auditor's desk (real: silent_login → verify → OBSERVED_OMISSION with both signed witness records; download the
+  evidence bundle, commit a dispute, open the dashboard). Skip link "Skip to the investigation".
+- Stills: `frontend/scripts/fortress-posters.mjs` renders each chapter from the real scene in both themes plus the
+  seal close-up into `public/fortress/posters/` (3.4 MB); phones, tablets, reduced motion and no-WebGL see them, and
+  desktop shows them while the scene loads.
+- Themes and type site-wide (`app/globals.css`, `app/layout.tsx`): basalt / oxidised bronze / ivory / amber (dark),
+  limestone / graphite-silver / ink (light); Spectral replaces Instrument Serif for every display heading (sentence
+  case); Inter and IBM Plex Mono unchanged. The dashboard and other routes pick this up through the shared tokens only.
+- Wick: the lantern knight returns as the launcher (blackened steel dark, pearl light; knight only on phones), idle
+  breath, lifts and brightens his lantern when the altered log is shown; three starter questions on the homepage
+  ("What went missing?", "What does Quai prove?", "Where can I verify this?") with honest answers (no Quai yet).
+- Checks (branch, final code): tsc + eslint clean; Playwright full run 29 passed, 1 skipped, 1 failed (Wick matcher:
+  "missing" is aliased to "gap"; fixed), then `e2e/home.spec.ts` 5/5 passed after the fix; production build via
+  `start-all.cmd`; walked in the browser at 1440 (dark and light: hero, gatehouse, passage, guard desk toggle, seal
+  verification, desk real run, Wick) and 390 (stills, stacked records, no horizontal overflow). Backend unchanged
+  since the 117-pass run.
+- Not done / limits (KI-041): procedural geometry with photo-scanned textures, not sculpted models; the ravine reads
+  shallow; mist and dawn light are static; the seal is procedural (closer to the brief than before, short of
+  luxury-watch photography); light theme uses the same slate texture under a pale morning light rather than a
+  limestone scan; no real-phone or mid-range-GPU check; the dashboard got the new tokens and type only.
+- **Next:** the owner reviews the branch (`frontend/fortress`) and decides whether to merge it into `main`.
+
+## S10 branch `frontend/judge-path` (laptop B, NOT merged into `main`; included in `frontend/fortress`)
 - Owner: "make the ui more lively, interactive, presentable and not ai generated slop"; chose the judge path
   (homepage, `/demo`, `/attack`) and named what was off: static, generic cards, too much text, unlike a security tool.
 - `/demo` is now a console: scene rail, the server's real log in a terminal (seven scenes: lines stream in, the
