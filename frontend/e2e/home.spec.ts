@@ -36,14 +36,14 @@ test("home: the tour reaches the case, replays the witness, tests the ledger and
   await expect(page.getByRole("heading", { name: "Know what happened. Even when your server lies." })).toBeVisible();
   await expect(page.getByRole("link", { name: "Open dashboard" })).toHaveAttribute("href", "/dashboard");
   await page.getByRole("link", { name: "Investigate the missing session." }).click();
-  await expect(page.getByRole("heading", { name: "The gate ledger" })).toBeInViewport();
+  await expect(page.getByRole("heading", { name: "The server's own log" })).toBeInViewport();
   await expect(page.getByText("No entry in the host log")).toBeVisible();
   await expect(page.locator("#case").getByText("The independent record contains a session that is missing from this server log.")).toBeVisible();
   await page.getByRole("button", { name: "Inspect witness" }).click();
 
   const maze = page.locator("#maze");
   await maze.getByRole("button", { name: "Replay crossing" }).click();
-  await expect(maze.getByText("Witness record · observed at the inner gate")).toBeVisible({ timeout: 20_000 });
+  await expect(maze.getByText("Witness record · observed at the network tap")).toBeVisible({ timeout: 20_000 });
   await expect(maze.getByText("obs-7c41e2a9")).toBeVisible();
 
   const under = page.locator("#undercroft");
@@ -68,10 +68,9 @@ test("home: reduced motion gets the light fortress and still reaches the verdict
   await seeded(request);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await expect(page.getByRole("link", { name: /Lit archive window/ })).toBeVisible();
   await expect(page.locator("canvas")).toHaveCount(0);
   await page.locator("#maze").getByRole("button", { name: "Replay crossing" }).click();
-  await expect(page.getByText("Witness record · observed at the inner gate")).toBeVisible();
+  await expect(page.getByText("Witness record · observed at the network tap")).toBeVisible();
   await page.locator("#seal").getByRole("button", { name: "Verify evidence" }).click();
   await expect(page.getByText("Original sample: match.")).toBeVisible();
   await expect(page.getByText("Altered copy: no match.")).toBeVisible();
@@ -88,7 +87,7 @@ test("wick: keyboard, case-aware answers, unsupported question, theme switch kee
   await input.fill("What am I looking at?");
   await page.keyboard.press("Enter");
   const panel = page.getByRole("dialog", { name: "Wick" });
-  await expect(panel.getByText(/You're on the bridge outside the fortress/)).toBeVisible();
+  await expect(panel.getByText(/You're at the entrance of the data hall/)).toBeVisible();
 
   await input.fill("Do you integrate with Splunk?");
   await page.keyboard.press("Enter");
@@ -105,7 +104,7 @@ test("wick: keyboard, case-aware answers, unsupported question, theme switch kee
   await page.getByRole("radio", { name: "Dark" }).first().check({ force: true });
   await expect(page.locator("html")).toHaveClass(/dark/);
   await expect(input).toHaveValue("an unsent draft");
-  await expect(panel.getByText(/You're on the bridge outside the fortress/)).toBeVisible();
+  await expect(panel.getByText(/You're at the entrance of the data hall/)).toBeVisible();
   await page.reload();
   await expect(page.locator("html")).toHaveClass(/dark/);
 

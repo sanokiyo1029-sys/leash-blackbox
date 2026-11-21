@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUp, X } from "lucide-react";
+import { ArrowUp, MessageSquareText, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { setCase, useCase } from "@/lib/case-state";
 import type { Status } from "@/lib/types";
@@ -13,20 +12,6 @@ import { FALLBACK, match, suggestions, type WickAction, type WickContext, type W
 
 type Msg = { id: number; from: "you" | "wick"; text: string; action?: WickAction };
 
-/** The owner's two knights; CSS shows the one for the active theme, so a theme switch is an instant armour change. */
-export function Knight({ className }: { className?: string }) {
-  return (
-    <>
-      <Image src="/wick/wick-dark-216.png" alt="" width={102} height={216} unoptimized loading="eager" className={cn("hidden h-full w-auto dark:block", className)} />
-      <Image src="/wick/wick-light-216.png" alt="" width={118} height={216} unoptimized loading="eager" className={cn("block h-full w-auto dark:hidden", className)} />
-    </>
-  );
-}
-
-const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
-// A closed helm can't smile: Wick tilts around his feet. A nod on open, a small settle when a reply lands.
-const NOD: Keyframe[] = [{ transform: "rotate(0)" }, { transform: "rotate(-8deg)", offset: 0.35 }, { transform: "rotate(2deg)", offset: 0.7 }, { transform: "rotate(0)" }];
-const SETTLE: Keyframe[] = [{ transform: "none" }, { transform: "translateY(2px) rotate(1.5deg)", offset: 0.4 }, { transform: "none" }];
 
 /** iOS keeps fixed elements under the keyboard; lift the sheet by the part of the layout viewport it covers. */
 function useKeyboardInset() {
@@ -56,12 +41,7 @@ export function Wick() {
   const [pending, setPending] = useState(false);
   const [announce, setAnnounce] = useState("");
   const launcher = useRef<HTMLButtonElement>(null);
-  const portrait = useRef<HTMLDivElement>(null);
   const nextId = useRef(0);
-
-  const play = (frames: Keyframe[], ms: number) => {
-    if (!reduced()) portrait.current?.animate(frames, { duration: ms, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
-  };
 
   const close = () => {
     setOpen(false);
@@ -87,7 +67,6 @@ export function Wick() {
     const reply: WickReply = topic ? topic.reply(ctx) : FALLBACK(ctx);
     setMsgs((m) => [...m, { id: nextId.current++, from: "wick", ...reply }]);
     setAnnounce(`Wick: ${reply.text}${reply.action ? ` Link: ${reply.action.label}.` : ""}`);
-    play(SETTLE, 420);
   };
 
   return (
@@ -99,8 +78,6 @@ export function Wick() {
           setDraft={setDraft}
           pending={pending}
           chips={suggestions({ path, compared, room })}
-          portrait={portrait}
-          onOpened={() => play(NOD, 650)}
           onAsk={(q, fromDraft) => {
             if (fromDraft) setDraft("");
             void ask(q);
@@ -122,14 +99,12 @@ export function Wick() {
         aria-expanded={open}
         aria-controls="wick-panel"
         className={cn(
-          "fixed right-[max(12px,env(safe-area-inset-right))] bottom-[max(12px,env(safe-area-inset-bottom))] z-[35] flex items-end gap-1 rounded-xl border border-border bg-[var(--wick-surface)] pt-1.5 pr-3 pl-1.5 text-foreground shadow-[var(--shadow-pop)] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:right-5 sm:bottom-5",
+          "fixed right-[max(12px,env(safe-area-inset-right))] bottom-[max(12px,env(safe-area-inset-bottom))] z-[35] flex h-11 items-center gap-2 rounded-md border border-border bg-card px-3.5 text-foreground shadow-[var(--shadow-pop)] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:right-5 sm:bottom-5",
           open && "max-sm:hidden",
         )}
       >
-        <span className="h-16 sm:h-[72px]">
-          <Knight />
-        </span>
-        <span className="pb-2 text-sm font-semibold whitespace-nowrap">Ask Wick</span>
+        <MessageSquareText className="size-4 text-primary" aria-hidden />
+        <span className="text-sm font-semibold whitespace-nowrap">Ask Wick</span>
       </button>
     </>
   );
@@ -141,8 +116,6 @@ function WickPanel({
   setDraft,
   pending,
   chips,
-  portrait,
-  onOpened,
   onAsk,
   onClose,
   onFollow,
@@ -152,8 +125,6 @@ function WickPanel({
   setDraft: (v: string) => void;
   pending: boolean;
   chips: string[];
-  portrait: React.RefObject<HTMLDivElement | null>;
-  onOpened: () => void;
   onAsk: (q: string, fromDraft: boolean) => void;
   onClose: () => void;
   onFollow: (a: WickAction) => void;
@@ -164,8 +135,6 @@ function WickPanel({
 
   useEffect(() => {
     input.current?.focus();
-    onOpened();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per open
   }, []);
   useEffect(() => {
     log.current?.lastElementChild?.scrollIntoView({ block: "nearest" });
@@ -184,19 +153,14 @@ function WickPanel({
         }
       }}
       style={kb ? { bottom: kb } : undefined}
-      className="fixed inset-x-0 bottom-0 z-[35] flex max-h-[85dvh] flex-col rounded-t-xl border border-border bg-popover pb-[env(safe-area-inset-bottom)] text-popover-foreground shadow-[var(--shadow-pop)] sm:inset-x-auto sm:right-5 sm:bottom-[112px] sm:max-h-[min(560px,calc(100dvh-150px))] sm:w-[380px] sm:rounded-xl sm:pb-0"
+      className="fixed inset-x-0 bottom-0 z-[35] flex max-h-[85dvh] flex-col rounded-t-xl border border-border bg-popover pb-[env(safe-area-inset-bottom)] text-popover-foreground shadow-[var(--shadow-pop)] sm:inset-x-auto sm:right-5 sm:bottom-[72px] sm:max-h-[min(560px,calc(100dvh-150px))] sm:w-[380px] sm:rounded-xl sm:pb-0"
     >
       <header className="flex items-end gap-3 border-b border-border px-4 pt-3 pb-2.5">
-        <div className="h-14 shrink-0 rounded-lg bg-[var(--wick-surface)] px-1 pt-1">
-          <div ref={portrait} className="h-full origin-bottom">
-            <Knight />
-          </div>
-        </div>
         <div className="min-w-0 flex-1 pb-0.5">
           <h2 id="wick-title" className="font-display text-xl leading-none font-semibold">
             Wick
           </h2>
-          <p className="mt-1 text-xs text-muted-foreground">Archive guide · answers from this site&apos;s own docs</p>
+          <p className="mt-1 text-xs text-muted-foreground">Guide · answers from this site&apos;s own docs, no AI service</p>
         </div>
         <button type="button" onClick={onClose} aria-label="Close Wick" className="mb-1 rounded-md p-1.5 text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring">
           <X className="size-4" />

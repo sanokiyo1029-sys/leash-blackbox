@@ -264,3 +264,7 @@
 - Checks: tsc/eslint clean; Playwright 29 passed + 1 skipped; pytest 107 passed; production build; three shots.
 - Left running: the production stack in the "LEASH demo stack (production)" terminal tab (stop with Ctrl+C or
   `scripts\start-all.ps1 -Stop`).
+- Same session, after the owner's review ("too cartoonish … realism … cybersecurity"): the fortress was replaced by a
+  realistic data hall (`datacenter-scene.tsx`, CC0 Poly Haven maps + HDRI in `frontend/public/tour/`, bloom, soft
+  shadows), rooms retold for the data center, the knight art removed from Wick, posters for the fallback. Playwright
+  29 passed + 1 skipped; production build; three new shots.

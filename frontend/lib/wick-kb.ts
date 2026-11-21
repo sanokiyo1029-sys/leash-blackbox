@@ -134,14 +134,14 @@ type Topic = { id: string; terms: string[]; live?: (c: WickContext) => boolean; 
 
 /** The seal press's real result, in one or two sentences. */
 const sealSays = (r: SealResult) =>
-  `The seal press checked record #${r.seq} from this stack against the root anchored on chain ${r.chainId ?? "?"}${r.block ? ` (block ${r.block})` : ""}. The original ${r.original ? "matches" : "does not match"}; the altered copy ${r.altered ? "matches" : "does not match"}, because changing one detail changes its digest.`;
+  `The verification checked record #${r.seq} from this stack against the root anchored on chain ${r.chainId ?? "?"}${r.block ? ` (block ${r.block})` : ""}. The original ${r.original ? "matches" : "does not match"}; the altered copy ${r.altered ? "matches" : "does not match"}, because changing one detail changes its digest.`;
 
 /** "What am I looking at?" in each room of the homepage tour (the courtyard uses the case answer below). */
 const ROOM_HERE: Partial<Record<Room, (c: WickContext) => WickReply>> = {
-  gate: () => ({ text: "You're on the bridge outside the fortress. The lit watchtower window is the independent witness. Press Investigate the missing session to follow the trail inside.", action: CASE }),
-  maze: () => ({ text: "From the wall walk you see the junction the intruder reaches, the watchtower and the archive at once. Press Replay crossing: when the marker passes the inner gate, the witness records it with its own key (demo case obs-7c41e2a9)." }),
-  undercroft: () => ({ text: "Two records of the same half hour: the host's ledger and the witness's sealed copy. Remove the 02:14:06 entry from the host ledger and the sealed copy still holds it. Reset puts it back." }),
-  seal: (c) => (c.seal ? { text: sealSays(c.seal), action: HOW } : { text: "The seal press checks a real record from this stack, and a copy with one detail changed, against the root anchored on-chain. Press Verify evidence." }),
+  gate: () => ({ text: "You're at the entrance of the data hall. Deep in the hall, the amber light in its own cage is the network tap: the independent witness. Press Investigate the missing session to start at the host rack.", action: CASE }),
+  maze: () => ({ text: "From above the racks you see the trust zones: the host rack the intruder controls, the network tap that saw the session in its own cage, and the evidence vault. Press Replay crossing: when the session passes the tap, the witness records it with its own key (demo case obs-7c41e2a9)." }),
+  undercroft: () => ({ text: "Two records of the same half hour: the host's log and the witness's sealed copy. Remove the 02:14:06 entry from the host log and the sealed copy still holds it. Reset puts it back." }),
+  seal: (c) => (c.seal ? { text: sealSays(c.seal), action: HOW } : { text: "This step checks a real record from this stack, and a copy with one detail changed, against the root anchored on-chain. Press Verify evidence." }),
 };
 
 export const TOPICS: Topic[] = [
@@ -189,7 +189,7 @@ export const TOPICS: Topic[] = [
     reply: (c) => {
       if (isVerifyPage(c.path)) return liveSummary(c);
       return {
-        text: c.path === "/" && c.seal ? sealSays(c.seal) : "Nothing on the homepage is a live verification except the seal press: the case is a curated sample. It shows how the real rule works; the Attack Lab runs it against the real witness and chain.",
+        text: c.path === "/" && c.seal ? sealSays(c.seal) : "Nothing on the homepage is a live verification except the Verify step: the case is a curated sample. It shows how the real rule works; the Attack Lab runs it against the real witness and chain.",
         action: c.compared ? HOW : ATTACK,
       };
     },
@@ -296,7 +296,7 @@ export const TOPICS: Topic[] = [
     terms: ["theme", "theme switch", "change theme"],
     reply: () => ({ text: "Use the System, Light and Dark control at the top right, or in the menu on a phone. I change armour with the theme." }),
   },
-  { id: "you", terms: ["who you", "what you", "you name"], reply: () => ({ text: "I'm Wick, the archive guide. I answer from this site's own documentation, right here in your browser; no AI service is involved." }) },
+  { id: "you", terms: ["who you", "what you", "you name"], reply: () => ({ text: "I'm Wick, this site's guide. I answer from this site's own documentation, right here in your browser; no AI service is involved." }) },
   ...PAGES.filter((p) => ["/evidence", "/dashboard", "/validation", "/architecture"].includes(p.prefix)).map(
     (p): Topic => ({
       id: p.prefix.slice(1),

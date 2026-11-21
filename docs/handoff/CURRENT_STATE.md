@@ -34,6 +34,24 @@ _Last updated: 2026-11-21, session S08 (laptop B), 3D homepage tour on branch `r
   (new: the full tour incl. a real seal check, and reduced motion reaching the verdict); backend pytest **107
   passed** (backend unchanged); production build via `start-all.cmd`; the three required shots captured from the
   running production site with `node frontend/scripts/tour-shots.mjs` into `docs/design/tour-shots/`.
+- **S08 later the same day: the fortress became a realistic data center** (owner: "too cartoonish i want realism and its
+  for cybersecurity so design it appropriately"; then chose: real data center, keep the assistant but drop the knight,
+  and a small CC0 asset download). What changed:
+  - `components/datacenter-scene.tsx` replaces `fortress-scene.tsx`: one data hall in metres. Cold aisle A with glass
+    containment, four rows of instanced racks (server fronts and status LEDs drawn on canvases, LEDs bloom), LED
+    fixtures that switch on down the aisle when the investigation starts, cable baskets, the yellow fibre raceway (the
+    network path), the network tap in its own mesh cage (the witness, amber beacon), the evidence vault cage with
+    storage arrays, and the verification wall whose screens show the real seal result. PBR maps + HDRI from Poly Haven
+    (CC0, `frontend/public/tour/SOURCES.md`, 6.8 MB), soft shadows, UnrealBloom via three's own EffectComposer.
+  - Rooms renamed: Entrance, Host rack, Network (panel on the right, overhead view), Evidence vault, Verify. Copy retold
+    for the data center; the demo case, the live seal check and every control are unchanged.
+  - Fallback and loading state: `public/tour/poster-{dark,light}.jpg` (renders of the opening shot made by
+    `scripts/tour-shots.mjs`) replace the SVG castle. Reduced motion / no WebGL2 still reach the verdict.
+  - Wick keeps all answers but lost the knight: a text launcher "Ask Wick", no portrait or tilt. Deleted:
+    `components/castle-scene.tsx`, `components/fortress-scene.tsx`, `public/wick/*.png`, `scripts/trim-wick.mjs`, and
+    the castle CSS tokens.
+  - Checks: tsc + eslint clean; Playwright **29 passed, 1 skipped**; production build via `start-all.cmd`; shots
+    `docs/design/tour-shots/01-hall-entrance.png`, `02-above-the-racks-looking-back.png`, `03-verification-wall.png`.
 - **Not verified:** a real phone (only the 390 px emulation for the S07 castle; the 3D tour on a phone was not
   walked through), light theme of the 3D tour, frame rate on a mid-range device. See KI-035.
 

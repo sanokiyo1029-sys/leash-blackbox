@@ -1,4 +1,7 @@
-# Castle direction (owner, 2026-11-21, S07): read before touching the homepage
+# Castle direction (owner, 2026-11-21, S07): SUPERSEDED in S08
+
+> The owner replaced the castle with a realistic data center ("too cartoonish … it's for cybersecurity"). The homepage
+> is now `frontend/components/datacenter-scene.tsx`; see `docs/handoff/CURRENT_STATE.md` (S08). Kept for history.
 
 ## What the owner asked for (their words, condensed)
 - "Not 2D." The whole site should feel like a medieval castle, animated with everything available.

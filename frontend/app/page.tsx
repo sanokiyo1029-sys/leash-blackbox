@@ -2,20 +2,18 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
+import Image from "next/image";
 import Link from "next/link";
-import { useMotionValue } from "motion/react";
 import { AlertTriangle, ArrowDown, ArrowRight, Check, ChevronDown, Eye, FileSearch, LayoutDashboard, RotateCcw, Stamp, Trash2, X } from "lucide-react";
-import { CastleScene } from "@/components/castle-scene";
 import { buttonVariants } from "@/components/ui/button";
-import { Knight } from "@/components/wick";
 import { api, short, useApi } from "@/lib/api";
 import { CASE_RESULT, ROOMS, resetCase, setCase, useCase, type Room } from "@/lib/case-state";
 import type { Batch, EventItem, EventRecord, Status } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { leafHash, readBatch, rootFromProof, type ProofStep } from "@/lib/verify";
 
-// The fortress loads only here, after the page: operational routes never pay for three.js.
-const FortressScene = dynamic(() => import("@/components/fortress-scene"), { ssr: false });
+// The data hall loads only here, after the page: operational routes never pay for three.js or its textures.
+const DataCenterScene = dynamic(() => import("@/components/datacenter-scene"), { ssr: false });
 
 // Demo case (fixture, labelled on screen): one host, one witness, one event ID, consistent times throughout.
 const EVENT_ID = "obs-7c41e2a9";
@@ -29,7 +27,7 @@ const ROWS = [
 const MISSING = ROWS.find((r) => r.missing)!;
 const hostLine = (r: (typeof ROWS)[number]) => `sshd: Accepted publickey for ${r.user} from ${r.ip} port ${r.port} ssh2`;
 const witnessLine = (r: (typeof ROWS)[number]) => `SSH session · ${r.user} from ${r.ip} → web-prod-01`;
-const LABEL: Record<Room, string> = { gate: "Bridge", case: "Courtyard", maze: "Wall walk", undercroft: "Undercroft", seal: "Seal chamber" };
+const LABEL: Record<Room, string> = { gate: "Entrance", case: "Host rack", maze: "Network", undercroft: "Evidence vault", seal: "Verify" };
 
 const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const go = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" });
@@ -74,23 +72,24 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {tall && (
-        <div className="tour-sky fixed inset-x-0 top-14 bottom-0 z-0" aria-hidden>
-          <FortressScene />
-        </div>
-      )}
+      {/* The opening shot as a still: the light version's backdrop, and what shows while the 3D hall loads */}
+      <div className="tour-sky fixed inset-x-0 top-14 bottom-0 z-0" aria-hidden>
+        <Image src="/tour/poster-dark.jpg" alt="" fill sizes="100vw" priority className="hidden object-cover dark:block" />
+        <Image src="/tour/poster-light.jpg" alt="" fill sizes="100vw" priority className="block object-cover dark:hidden" />
+        {tall && <DataCenterScene />}
+      </div>
       <RoomNav room={room} />
       <Opening tall={tall} onBegin={begin} />
-      <Chapter id="case" room="case" tall={tall} title="The gate ledger">
+      <Chapter id="case" room="case" tall={tall} title="The server's own log">
         <Courtyard />
       </Chapter>
-      <Chapter id="maze" room="maze" tall={tall} title="Two routes, one junction" extra>
+      <Chapter id="maze" room="maze" tall={tall} title="Where the session crossed" extra right>
         <Maze lite={!tall} />
       </Chapter>
-      <Chapter id="undercroft" room="undercroft" tall={tall} title="The ledger and the sealed copy">
+      <Chapter id="undercroft" room="undercroft" tall={tall} title="The log and the witness copy">
         <Undercroft />
       </Chapter>
-      <Chapter id="seal" room="seal" tall={tall} title="The seal press" last>
+      <Chapter id="seal" room="seal" tall={tall} title="Verify against the chain" last>
         <SealPress />
       </Chapter>
     </div>
@@ -137,15 +136,9 @@ function RoomNav({ room }: { room: Room }) {
 }
 
 function Opening({ tall, onBegin }: { tall: boolean; onBegin: (e?: React.MouseEvent) => void }) {
-  const still = useMotionValue(0);
   return (
     <section id="top" data-room="gate" aria-labelledby="hero-title" className={cn("pointer-events-none relative", tall ? "h-[210svh]" : "")}>
       <div className={cn("relative h-[calc(100svh-56px)] overflow-hidden", tall && "sticky top-14")}>
-        {!tall && (
-          <div className="pointer-events-auto absolute inset-0">
-            <CastleScene progress={still} still onOpen={onBegin} />
-          </div>
-        )}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,var(--hero-scrim)_0%,var(--hero-scrim)_26%,transparent_50%)] lg:bg-[linear-gradient(90deg,var(--hero-scrim)_0%,var(--hero-scrim)_24%,transparent_52%)]" />
         <div className="relative mx-auto flex h-full w-full max-w-[1320px] px-[clamp(20px,4vw,56px)] pt-8 lg:items-center lg:pt-0 xl:pl-36">
           <div className="pointer-events-auto max-w-[540px]">
@@ -172,7 +165,7 @@ function Opening({ tall, onBegin }: { tall: boolean; onBegin: (e?: React.MouseEv
 }
 
 /** One room: a tall stretch of scroll for the camera, with its panel held in view (top on desktop, bottom on phones). */
-function Chapter({ id, room, tall, title, extra, last, children }: { id: string; room: Room; tall: boolean; title: string; extra?: boolean; last?: boolean; children: React.ReactNode }) {
+function Chapter({ id, room, tall, title, extra, last, right, children }: { id: string; room: Room; tall: boolean; title: string; extra?: boolean; last?: boolean; right?: boolean; children: React.ReactNode }) {
   return (
     <section
       id={id}
@@ -184,7 +177,7 @@ function Chapter({ id, room, tall, title, extra, last, children }: { id: string;
       )}
     >
       <div className={cn("mx-auto w-full max-w-[1320px] px-[clamp(12px,4vw,56px)] xl:pl-36", tall ? "sticky bottom-3 py-3 lg:top-[72px] lg:bottom-auto lg:py-0" : "py-12")}>
-        <div className={cn("pointer-events-auto w-full rounded-md border border-border bg-card/92 p-4 shadow-[var(--shadow-pop)] backdrop-blur-sm sm:p-5", tall ? "max-h-[64svh] overflow-y-auto lg:max-h-[calc(100svh-96px)] lg:max-w-[480px]" : "max-w-[760px]")}>
+        <div className={cn("pointer-events-auto w-full rounded-md border border-border bg-card/92 p-4 shadow-[var(--shadow-pop)] backdrop-blur-sm sm:p-5", tall ? "max-h-[64svh] overflow-y-auto lg:max-h-[calc(100svh-96px)] lg:max-w-[480px]" : "max-w-[760px]", tall && right && "lg:ml-auto")}>
           <h2 id={`${id}-title`} tabIndex={-1} className="font-display text-[clamp(26px,3vw,34px)] leading-tight font-semibold outline-none">
             {title}
           </h2>
@@ -239,14 +232,9 @@ function Courtyard() {
         </p>
       </div>
       <p className="mt-3 text-[15px] font-semibold">{CASE_RESULT}</p>
-      <div className="mt-4 flex items-end gap-3">
-        <div className="h-16 shrink-0" aria-hidden>
-          <Knight />
-        </div>
-        <p className="rounded-md border border-border bg-background px-3 py-2 text-[15px]">
-          <span className="sr-only">Wick: </span>The gate ledger has a gap. Who else could see this crossing?
-        </p>
-      </div>
+      <p className="mt-4 border-l-2 border-primary pl-3 text-[15px]">
+        <span className="label-caps mr-2 text-muted-foreground">Wick</span>The server&apos;s log has a gap. Who else could have seen this session?
+      </p>
       <button type="button" onClick={() => go("maze")} className={cn(buttonVariants({ size: "lg" }), "mt-4 h-11 gap-2 px-5")}>
         <Eye className="size-4" /> Inspect witness
       </button>
@@ -263,12 +251,12 @@ function Maze({ lite }: { lite: boolean }) {
   return (
     <>
       <p className="mt-3 text-[15px] leading-relaxed">
-        On the ground, the intruder crosses the courtyard, passes the inner gate and turns toward the keep; from there the archive is out of sight. From
-        above the wall you can see the junction, the watchtower and the archive at once.
+        An intruder with root on web-prod-01 controls that rack and its log. From above the racks you can see why that is not enough: the session
+        reached the host through the network tap first, and the evidence vault sits in a cage of its own.
       </p>
       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-        The watchtower is the gateway witness. It signs what crosses the inner gate with its own key and keeps its own record, so taking over the server does
-        not hand over the witness. In this prototype the witness is a separate key and store on the same machine.
+        The tap is the gateway witness. It signs every session it sees with its own key and keeps its own record, so taking over the server does not
+        hand over the witness. In this prototype the witness is a separate key and store on the same machine.
       </p>
       <button type="button" onClick={replay} disabled={replayAt !== null && !witnessSeen} className={cn(buttonVariants({ size: "lg" }), "mt-4 h-11 gap-2 px-5")}>
         <RotateCcw className="size-4" /> Replay crossing
@@ -276,7 +264,7 @@ function Maze({ lite }: { lite: boolean }) {
       <div aria-live="polite">
         {witnessSeen && (
           <div className="mt-4 rounded-md border border-primary/50 bg-primary/10 px-3 py-2.5 text-sm">
-            <p className="font-semibold">Witness record · observed at the inner gate</p>
+            <p className="font-semibold">Witness record · observed at the network tap</p>
             <dl className="mt-1.5 grid grid-cols-[88px_minmax(0,1fr)] gap-x-2 gap-y-0.5 font-hash text-[12.5px]">
               <dt className="text-muted-foreground">Event ID</dt>
               <dd>{EVENT_ID}</dd>
@@ -290,9 +278,9 @@ function Maze({ lite }: { lite: boolean }) {
           </div>
         )}
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Illustrative: the maze and its gates picture the idea. This prototype implements the witness and the sealed vault, not these defences.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Illustrative: the hall, cages and racks picture the idea. This prototype implements the witness and the sealed vault in software.</p>
       <button type="button" onClick={() => go("undercroft")} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 hover:underline">
-        Take the tower stairs down <ArrowDown className="size-4" />
+        Go to the evidence vault <ArrowDown className="size-4" />
       </button>
     </>
   );
@@ -307,7 +295,7 @@ function Undercroft() {
       <DemoLabel />
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <fieldset className="rounded-md border border-border">
-          <legend className="ml-2 px-1 text-sm font-semibold">Host ledger · web-prod-01</legend>
+          <legend className="ml-2 px-1 text-sm font-semibold">Host log · web-prod-01</legend>
           <ul className="divide-y divide-border font-hash text-[12px]">
             {ROWS.filter((r) => r.t !== removed).map((r) => (
               <li key={r.t}>
@@ -369,7 +357,7 @@ function Undercroft() {
         {removed && <p>The host&apos;s line for {removed} is gone; the sealed witness copy still has it.</p>}
         {seenAt && (
           <p className="text-sm text-muted-foreground">
-            {seenAt} UTC: observed crossing the inner gate{seenAt === MISSING.t ? ` (${EVENT_ID})` : ""}.
+            {seenAt} UTC: observed at the network tap{seenAt === MISSING.t ? ` (${EVENT_ID})` : ""}.
           </p>
         )}
       </div>
