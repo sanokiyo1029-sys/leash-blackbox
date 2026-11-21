@@ -66,8 +66,8 @@ function chapter(): number {
 
 // ----------------------------------------------------------------- themes: the same hall, dimmed at night
 const PALETTE = {
-  dark: { bg: "#07090c", rack: "#181b20", floor: "#3a3f45", wall: "#4f555b", ceiling: "#1d2025", env: 0.5, hemi: 0.3, fixture: 6, key: 1.1, glass: 0.1 },
-  light: { bg: "#d9dde1", rack: "#e4e6e9", floor: "#b9bec3", wall: "#c9ccd0", ceiling: "#e9ebee", env: 0.9, hemi: 0.5, fixture: 7, key: 1.7, glass: 0.16 },
+  dark: { bg: "#07090c", rack: "#181b20", floor: "#3a3f45", wall: "#4f555b", ceiling: "#1d2025", env: 0.5, hemi: 0.3, fixture: 6, key: 1.1, glass: 0.1, bloom: 0.85 },
+  light: { bg: "#d9dde1", rack: "#e4e6e9", floor: "#b9bec3", wall: "#c9ccd0", ceiling: "#e9ebee", env: 0.9, hemi: 0.5, fixture: 7, key: 1.7, glass: 0.16, bloom: 1.1 }, // bright surfaces stay below the light bloom threshold; LEDs and screens still glow
 };
 type Pal = (typeof PALETTE)["dark"];
 const isDark = () => document.documentElement.classList.contains("dark");
@@ -613,6 +613,7 @@ function Rig({ m, pal }: { m: Mats; pal: React.MutableRefObject<Pal> }) {
     m.fixture.emissiveIntensity = lightsOn.current === null ? 1.4 : 3;
     if (hemi.current) hemi.current.intensity = p.hemi;
     if (key.current) key.current.intensity = p.key;
+    (composer.passes[1] as UnrealBloomPass).threshold = p.bloom;
     composer.render();
     if (settling || camera.position.distanceTo(t.p) > 0.005 || look.current.distanceTo(t.l) > 0.005) invalidate();
   }, 1);

@@ -1,6 +1,22 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, end of session S08 (laptop B), handed off to the other laptop; 3D homepage tour on `main`_
+_Last updated: 2026-11-21, session S09 (laptop A); `main` taken over from laptop B_
+
+## S09 status (laptop A, took over `main` from laptop B), read first
+- Pulled `3893dc5` fast-forward (clean). Rerun on this laptop: contract **11 passing**, backend **107 passed**,
+  tsc + eslint clean, Playwright **29 passed, 1 skipped** (matches S08's record).
+- **T-054 (partly done).** Measured on this laptop's GPU: AMD Radeon integrated (Ryzen iGPU, ANGLE D3D11), production
+  build, a 9 s smooth scroll through the whole tour, headed Edge:
+  - desktop 1440×900 (dpr 1): ~47–48 fps average, median frame 16.7 ms, p95 34–50 ms, ~10% of frames over 33 ms;
+  - phone 390×844 emulation (canvas capped at dpr 1.5): ~57 fps, 1–2% of frames over 33 ms.
+  - No main-thread long tasks during the scroll, and the phone (same JS, fewer pixels) is smooth, so the desktop drops
+    are GPU fill-rate. Freezing the static shadow map was tried and measured: no gain, reverted. Next options trade
+    picture quality (lower dpr on large canvases, lighter bloom, fewer area lights), so they wait for the owner (KI-037).
+  - **Light theme walked at every station** (desktop + phone). Network and Evidence vault were blown out to white:
+    bloom's 0.85 threshold caught the bright light-theme surfaces. Fixed: the bloom threshold is now per theme
+    (dark 0.85, light 1.1) in `components/datacenter-scene.tsx` `PALETTE`; LEDs and screens still glow. Checked
+    before/after on the production build.
+  - Still open: a real phone (owner) and the night-lighting tune (no measured problem found).
 
 ## S08 status: "The Missing Session" 3D tour (laptop B, merged into `main`), read first
 - **Merged into `main`** (owner approved, fast-forward from `redesign/castle`, T-053). Continue on `main`.

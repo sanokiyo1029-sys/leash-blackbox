@@ -275,3 +275,10 @@
   environment.
 - HANDOFF NOW to the other laptop: contract 11 passing, pytest 107 passed, tsc + eslint clean on `08258d3`;
   Playwright not rerun (demo stack running, KI-022; last run 29 passed + 1 skipped on `ab00107`, docs only since).
+
+### S09 (laptop A, 2026-11-21): took over `main`, T-054 measurements
+- Pulled `3893dc5` fast-forward; installed the new frontend deps (three, R3F) with `npm install` (lockfile unchanged).
+- Rerun: contract 11, backend 107, tsc + lint clean, Playwright 29 passed + 1 skipped.
+- T-054: frame timing on the AMD iGPU (desktop ~47 fps, phone ~57 fps; GPU-bound); light theme walked at every station;
+  bloom threshold made per theme to stop the light-theme washout. A static shadow map was tried, measured no gain,
+  reverted. Final code: tsc + lint clean, Playwright 29 passed + 1 skipped.
