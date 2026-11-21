@@ -2,6 +2,16 @@
 
 _Last updated: 2026-11-21, session S10 (laptop B); fortress homepage on branch `frontend/fortress`_
 
+## Public deployment (laptop A, 2026-11-21)
+- **Live:** https://leash-blackbox.vercel.app (Vercel project `leash-blackbox`, root `frontend/`, production deploy of
+  `main` at `5ebf299`: fortress homepage + judge path + all backend work). Every page returns 200 publicly.
+- **Frontend only.** Vercel has no LEASH backend or chain, so live parts (chain status, Verify, Attack Lab, Auditor
+  bundle) show their offline states there; the sample case and the story work. For the full live demo run
+  `scripts\start-all.cmd` locally. Making it fully live needs a hosted API + chain and `LEASH_API_PROXY` set on Vercel
+  (T-057). Redeploy: `cd frontend; npx.cmd vercel@latest deploy --prod --yes` (account logged in on laptop A).
+- Checks on `5ebf299` before the push: backend **117 passed**, contract **11 passing**, tsc + eslint clean, Playwright
+  **30 passed, 1 skipped**.
+
 ## S10 branch `frontend/fortress` (laptop B, NOT merged into `main`), read first
 - Owner brief (pasted): the homepage as a dark-fantasy fortress built around one incident: a session disappeared from
   the server, the visitor finds the surviving evidence and checks it. Plan and scope: `docs/design/FORTRESS_PLAN.md`.
