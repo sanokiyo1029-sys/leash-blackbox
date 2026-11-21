@@ -45,7 +45,7 @@ function ChainStatus({ compact = false }: { compact?: boolean }) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 rounded-[3px] border px-2.5 py-1 font-hash text-[11px] font-medium whitespace-nowrap",
+        "flex items-center gap-2 rounded-full border px-3 py-1 font-hash text-[11px] font-medium whitespace-nowrap",
         bad ? "border-transparent bg-bad text-paper" : "border-border bg-card text-muted-foreground",
       )}
       title={error ?? data?.chain.error ?? data?.chain.rpc_url}
@@ -60,7 +60,7 @@ function ChainStatus({ compact = false }: { compact?: boolean }) {
 function TopNav() {
   const pathname = usePathname();
   return (
-    <nav className="hidden self-stretch xl:flex" aria-label="Primary">
+    <nav className="hidden items-center gap-0.5 rounded-full border border-border bg-card/60 p-1 xl:flex" aria-label="Primary">
       {NAV.map(({ href, short, featured }) => {
         const active = isActive(pathname, href);
         return (
@@ -69,11 +69,11 @@ function TopNav() {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "relative flex items-center gap-1.5 px-2.5 text-[13px] font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
-              active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+              "relative flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
+              active ? "text-background" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {active && <motion.span layoutId="nav-active" transition={spring.snappy} className="absolute inset-x-1 bottom-0 h-0.5 rounded-full bg-primary" />}
+            {active && <motion.span layoutId="nav-active" transition={spring.snappy} className="absolute inset-0 rounded-full bg-foreground" />}
             <span className="relative">{short}</span>
             {featured && <span className="relative size-1.5 rounded-full bg-primary" aria-hidden />}
           </Link>
