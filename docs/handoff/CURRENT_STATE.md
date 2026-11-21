@@ -1,9 +1,13 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, session S08 (laptop B), 3D homepage tour merged into `main`_
+_Last updated: 2026-11-21, end of session S08 (laptop B), handed off to the other laptop; 3D homepage tour on `main`_
 
 ## S08 status: "The Missing Session" 3D tour (laptop B, merged into `main`), read first
 - **Merged into `main`** (owner approved, fast-forward from `redesign/castle`, T-053). Continue on `main`.
+- **Handoff at the end of S08 (laptop B → other laptop):** checks rerun on `main` at `08258d3`: contract **11
+  passing**, backend pytest **107 passed**, frontend tsc + eslint clean. Playwright was not rerun at handoff (the
+  demo stack was running, KI-022); its last run, **29 passed, 1 skipped**, was on `ab00107`, and only docs changed
+  since. ADR-008 records the 3D tour's design. Next: T-054.
 - **Owner's S08 brief** (pasted in chat, replaces the castle explorer plan in `docs/design/CASTLE_DIRECTION.md`): a
   cinematic 3D homepage, four connected places, a judge understands the incident, makes one choice and verifies a
   piece of evidence in about 90 seconds. Owner decisions in S08: React Three Fiber approved; the reference images stay
@@ -52,8 +56,8 @@ _Last updated: 2026-11-21, session S08 (laptop B), 3D homepage tour merged into 
     the castle CSS tokens.
   - Checks: tsc + eslint clean; Playwright **29 passed, 1 skipped**; production build via `start-all.cmd`; shots
     `docs/design/tour-shots/01-hall-entrance.png`, `02-above-the-racks-looking-back.png`, `03-verification-wall.png`.
-- **Not verified:** a real phone (only the 390 px emulation for the S07 castle; the 3D tour on a phone was not
-  walked through), light theme of the 3D tour, frame rate on a mid-range device. See KI-035.
+- **Not verified:** a real phone (only the 390 px emulation), a full light-theme walk through every station (the
+  entrance was checked), frame rate on a mid-range GPU. See KI-035 and T-054.
 
 ## S07 status: redesign (laptop A, branch `redesign/castle`, NOT merged into `main`), read first
 - **Branch `redesign/castle`** holds S07's work; `main` is still `bed98ce` (GHOST, all green). Continue on the

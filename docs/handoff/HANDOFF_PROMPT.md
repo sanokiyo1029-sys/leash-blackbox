@@ -38,7 +38,7 @@ You are continuing LEASH BLACKBOX (repo: sanokiyo1029-sys/leash-blackbox, branch
 1. Run git status, git fetch origin, and confirm main is not behind/diverged; pull --ff-only if safe.
    Stop and report if there are uncommitted changes or divergence you did not make.
 2. Read AGENTS.md, docs/handoff/CURRENT_STATE.md, NEXT_TASKS.md, KNOWN_ISSUES.md, and
-   docs/design/REFERENCE_SPEC.md before touching the UI (for /story also scrollcraft/builds/story/BRIEF.md).
+   docs/design/REFERENCE_SPEC.md before touching the UI (for the homepage also ADR-008).
 3. Re-run the checks listed in CURRENT_STATE.md ("Working commands") to confirm the recorded test status.
 4. Continue from the highest-priority TODO task. Do not reimplement DONE features. Do not change the backend,
    contract or verification code unless a task needs it; never fake verification results in the UI.

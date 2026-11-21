@@ -270,3 +270,8 @@
   29 passed + 1 skipped; production build; three new shots.
 - Owner approved the merge: `main` fast-forwarded to `redesign/castle` (main had not moved, so the tested tree is
   unchanged; backend, contract, verifier and agent are identical to `bed98ce`).
+- ADR-008 added (the homepage 3D tour). Pushing from laptop B was refused (403) because a `GH_TOKEN` for another
+  GitHub account overrode the owner's login; at the owner's request it was removed from the Windows user
+  environment.
+- HANDOFF NOW to the other laptop: contract 11 passing, pytest 107 passed, tsc + eslint clean on `08258d3`;
+  Playwright not rerun (demo stack running, KI-022; last run 29 passed + 1 skipped on `ab00107`, docs only since).
