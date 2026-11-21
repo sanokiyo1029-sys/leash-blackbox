@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, animate, motion, useInView, useMotionValue, useReducedMotion, useTransform } from "motion/react";
-import { AlertTriangle, CheckCircle2, Info, Inbox, Loader2, ShieldAlert, X } from "lucide-react";
+import { AlertTriangle, Castle, CheckCircle2, Info, Inbox, Loader2, ShieldAlert, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { dur, ease, fadeUp } from "@/lib/motion";
 
@@ -62,24 +62,26 @@ export function PageTitle({
   title,
   description,
   actions,
-  variant = "scene",
 }: {
   eyebrow?: string;
   title: string;
   description?: React.ReactNode;
   actions?: React.ReactNode;
-  variant?: "scene" | "action";
+  variant?: "scene" | "action"; // kept for callers; every header now carries the same seal mark
 }) {
   return (
     <motion.header {...fadeUp} className="mb-7 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
       <div className="min-w-0">
         {eyebrow && (
-          <div className="label-caps mb-3 flex items-center gap-2 text-muted-foreground">
-            {variant === "action" && <span className="inline-block h-[3px] w-6 bg-primary" aria-hidden />}
+          <div className="label-caps mb-3 flex items-center gap-2.5 text-muted-foreground">
+            <span className="seal-mark" aria-hidden>
+              <Castle className="size-3" />
+            </span>
             {eyebrow}
           </div>
         )}
         <h1 className="font-display text-[clamp(1.75rem,4.2vw,3rem)] leading-[0.98] font-semibold tracking-[-0.01em] text-balance">{title}</h1>
+        <div className="engraved-rule mt-4" aria-hidden />
         {description && <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-muted-foreground">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}

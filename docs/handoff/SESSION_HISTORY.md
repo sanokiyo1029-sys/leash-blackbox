@@ -310,3 +310,7 @@
   chapters around one incident (session ssh-7c41e2a9, 02:14:06), seal room, auditor's desk on the real workflow, Wick
   lantern knight with three starter questions, basalt/limestone themes and Spectral. tsc + lint clean; Playwright 29
   passed + 1 skipped + 1 matcher failure fixed (home.spec 5/5 after); production build; walked at 1440 and 390.
+- **Fortress identity across the console (laptop A):** shared components only: wax-seal mark + engraved brass rule on
+  every page header (`components/kit.tsx` PageTitle), panels with stone grain and brass corner ticks (`.surface`), and
+  a portcullis that lifts between pages (`app/template.tsx`, pointer-events none, skipped under reduced motion).
+  Checks: tsc + eslint clean, Playwright 30 passed + 1 skipped; deployed to https://leash-blackbox.vercel.app.
