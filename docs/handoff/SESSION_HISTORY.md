@@ -303,3 +303,6 @@
 - Docs: duplicate KI-039 renumbered (verifier speed is KI-040), stale "next: T-054" lines fixed, T-050 closed.
 - Owner: "Merge it, then build". Merged laptop A's `frontend/obsidian` into `main` (`--no-ff`, clean). Contract 11,
   tsc + lint clean, Playwright 29 passed + 1 skipped, production build; backend unchanged since the 116-pass run.
+- Branch `frontend/judge-path` (owner: livelier, less generic judge path): `/demo` console with a live log terminal
+  and chain panel, homepage Merkle proof ladder, denser Attack Lab rows; demo reset now empties stores in place
+  (WinError 32 fix). Backend 117, tsc + lint clean, Playwright 29 passed + 1 skipped. Not merged into `main`.

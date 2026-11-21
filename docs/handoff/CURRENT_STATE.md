@@ -1,8 +1,27 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, session S10 (laptop B); laptop A's `frontend/obsidian` merged into `main`_
+_Last updated: 2026-11-21, session S10 (laptop B); judge-path redesign on branch `frontend/judge-path`_
 
-## S10 integration: `frontend/obsidian` merged into `main` (laptop B), read first
+## S10 branch `frontend/judge-path` (laptop B, NOT merged into `main`), read first
+- Owner: "make the ui more lively, interactive, presentable and not ai generated slop"; chose the judge path
+  (homepage, `/demo`, `/attack`) and named what was off: static, generic cards, too much text, unlike a security tool.
+- `/demo` is now a console: scene rail, the server's real log in a terminal (seven scenes: lines stream in, the
+  attacker's lines vanish when erased, planted lines arrive, verification brings the originals back as "recovered
+  from vault" and strikes the fakes), and the LeashAnchor batches beside it, re-read from the chain after the attack.
+  One line of narration per scene instead of paragraphs. Everything comes from the API, the chain and the browser.
+- Homepage "Verify a real record": the Merkle proof is drawn as a ladder, leaf to root, for the original and the
+  altered copy, meeting the root read from the chain (the hashes themselves show the match). Duplicate copy removed.
+- `/attack`: log rows denser and monospace (behaviour, animations and labels unchanged).
+- **Backend fix found while testing:** the demo reset deleted the SQLite files; on Windows a request arriving
+  mid-reset (the UI polls `/api/status`) reopened a connection, the delete failed with WinError 32 and the API was
+  left with missing tables until restarted. `Stores.wipe()` now drops and recreates the tables in place (triggers
+  included); test `test_reset_survives_an_open_connection_and_keeps_the_vault_append_only`.
+- Checks (branch, final code): backend pytest **117 passed**, frontend tsc + eslint clean, Playwright **29 passed, 1
+  skipped**, production build via `start-all.cmd`; `/demo` run end to end in the browser at 1440 (dark and light) and
+  375 (no horizontal overflow). Not checked: a real phone, the Attack Lab and homepage at 375 after this change.
+- **Next:** the owner reviews the branch and decides whether to merge it into `main`.
+
+## S10 integration: `frontend/obsidian` merged into `main` (laptop B)
 - Owner approved ("Merge it, then build"). `git merge --no-ff origin/frontend/obsidian` at `9c8ee97` merged cleanly
   into `main` (after T-046 and the docs fixes): the Obsidian palette, Instrument Serif headings, pill navigation and
   buttons on every route, and the reduced-motion rack render (see `docs/handoff/SPLIT_HANDOFF.md`, laptop A's notes).
