@@ -1,11 +1,11 @@
 # Continuation guide (send this to whoever continues)
 
-**State at handoff (2026-11-21, S10, laptop B):** `main` has the data-hall homepage tour (S08/S09) and the second
+**State at handoff (2026-11-21, S10, laptop B):** `main` has the rack-hero homepage (T-055, S09) and the second
 witness with 2-of-3 corroboration (T-044, S10). T-046 (the auditor CLI checks the witnesses offline) is merged
 too.
 - Get it: `git fetch origin`, then `git switch main` and `git pull --ff-only`.
 - Read `docs/handoff/CURRENT_STATE.md` → "S08 status".
-- **Next:** the owner's real-phone walk (T-054), then the backlog in `docs/handoff/NEXT_TASKS.md`.
+- **Next:** T-034 (`start-all.sh`) or T-049 (research docs), then the backlog in `docs/handoff/NEXT_TASKS.md`.
 
 ## 1. Fresh machine (once)
 Requirements: Git, Node.js 20+, Python 3.11+ (3.12 used on Windows), optionally GitHub CLI.
