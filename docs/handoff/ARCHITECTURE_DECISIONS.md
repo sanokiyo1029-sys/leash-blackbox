@@ -87,3 +87,23 @@ and anchored batch rows are frozen.
 - *A database posing as a ledger:* rejected by the problem statement and by the threat model.
 - *Bitcoin-style odd-leaf duplication:* ambiguous trees. Promotion is used instead.
 - *Host-side signing keys:* the attacker owns the host, so any key there is theirs.
+
+## ADR-008 Homepage 3D tour (S08)
+
+- **What:** `/` walks a judge through one case in a data hall (`components/datacenter-scene.tsx`): entrance, host
+  rack `web-prod-01`, the network tap as the independent witness, the evidence vault, the verification wall.
+- **Stack:** `three` 0.187 + `@react-three/fiber` 9.8, loaded with `next/dynamic` (`ssr: false`) on `/` only, so no
+  other route ships three.js. `frameloop="demand"`: the scene renders only when scroll or state changes. Bloom uses
+  three's own `EffectComposer` / `UnrealBloomPass`; no drei or postprocessing package was added.
+- **Assets:** procedural geometry; server fronts, LEDs and screens are canvas textures drawn at runtime. Surfaces use
+  CC0 Poly Haven 1K maps and one HDRI (6.8 MB, listed in `frontend/public/tour/SOURCES.md`). No photographs.
+- **Fallback:** the 3D scene runs only with WebGL2 and without reduced motion. Otherwise, and while it loads, the page
+  shows `public/tour/poster-{dark,light}.jpg` and the same steps still reach the verdict (e2e covers both paths).
+- **What is real:** only the Verify step. The browser recomputes the leaf hash and Merkle root from the
+  `/api/events/{seq}` proof (`lib/verify.ts`) and reads the anchored root from the chain over JSON-RPC itself; if it
+  cannot, it uses the API's chain read and says so. The host log, the witness and the vault before that step are a
+  labelled demo fixture. Page, scene and Wick share one store (`lib/case-state.ts`).
+- **Rejected:** the medieval castle (S07) and the procedural fortress (S08 first pass), because the owner found them
+  too cartoonish for a cybersecurity product; the knight art for Wick, for the same reason.
+- **Open cost:** soft shadows and bloom are the expensive parts; not yet profiled on a mid-range GPU or a real phone
+  (KI-035, T-054).
