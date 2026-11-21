@@ -1,8 +1,8 @@
 # CURRENT STATE — LEASH BLACKBOX
 
-_Last updated: 2026-11-21, session S10 (laptop B); T-046 on branch `backend/witness-audit`_
+_Last updated: 2026-11-21, session S10 (laptop B); T-046 merged into `main`_
 
-## S10 branch `backend/witness-audit` (laptop B, T-046, NOT merged into `main`), read first
+## S10 branch `backend/witness-audit` (laptop B, T-046, merged into `main`), read first
 - Started from `main` at `25467c6` (laptop A's T-055). Owner: "continue with the backend on your branch".
 - **T-046: the standalone auditor CLI checks the witnesses offline** (`verifier/leash_verify.py`, still stdlib-only and
   sharing no code with the backend):
@@ -25,7 +25,8 @@ _Last updated: 2026-11-21, session S10 (laptop B); T-046 on branch `backend/witn
 - **Checks (branch, final code):** backend pytest **116 passed** (6 new in `tests/test_auditor_witness.py`, incl. CLI
   and backend agreeing on the same bundle for an omission, a conflict and a forgery), frontend tsc + eslint clean,
   Playwright **29 passed, 1 skipped**. Stdlib recovery costs ~20 ms per signature (KI-039).
-- **Next:** the owner decides whether to merge `backend/witness-audit` into `main`.
+- **Merged into `main`** (owner approved, fast-forward; `main` had not moved, so the tested tree is unchanged).
+  Continue on `main`. Next: the owner's real-phone walk (T-054), then the P2 backlog (T-034, T-049).
 
 ## S10 status (laptop B, took `main` back from laptop A)
 - Pulled `b0ab9d2` (S09) fast-forward, clean. **T-044 done: a second witness and 2-of-3 corroboration.**

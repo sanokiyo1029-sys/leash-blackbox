@@ -298,3 +298,5 @@
   stdlib auditor CLI recovers secp256k1 signatures and applies the 2-of-3 rule offline, never accusing the host on
   incomplete evidence; witness identities pinnable with `--witness`; full bundles carry the signed observations.
   Backend 116 passed, tsc + lint clean, Playwright 29 passed, 1 skipped. Not merged into `main`.
+- Owner approved the merge: `main` fast-forwarded to `backend/witness-audit` (main had not moved, so the tested tree
+  is unchanged).
